@@ -1,0 +1,13 @@
+# Binaries and Visual Studio/Rider hidden folders
+bin/
+obj/
+.vs/
+
+# Log files
+*.log
+
+# User files 
+*.user
+
+# Databases
+*.db
