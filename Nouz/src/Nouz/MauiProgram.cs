@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Radzen;
 
 namespace Nouz
 {
@@ -15,9 +16,10 @@ namespace Nouz
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddRadzenComponents();
 
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
 
