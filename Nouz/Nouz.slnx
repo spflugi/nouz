@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution items/">
+    <File Path="../.github/workflows/build.yaml" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Nouz/Nouz.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Nouz.Architecture.Tests/Nouz.Architecture.Tests.csproj" />
+  </Folder>
+</Solution>
