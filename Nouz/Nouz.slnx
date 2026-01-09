@@ -4,6 +4,10 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Nouz.Application/Nouz.Application.csproj" Id="b9b97466-ded3-478a-b972-ad07f0d49540" />
+    <Project Path="src/Nouz.Domain/Nouz.Domain.csproj" Id="e0e9b32e-9c80-46b1-99fb-29227ab610d3" />
+    <Project Path="src/Nouz.Infrastructure/Nouz.Infrastructure.csproj" Id="b7d288ca-12d4-4e66-9cb2-810053af8c58" />
+    <Project Path="src/Nouz.ReduxSimple/Nouz.ReduxSimple.csproj" Id="52b966d9-a11e-4cf4-8ee0-ec4a0927f5f1" />
     <Project Path="src/Nouz/Nouz.csproj" />
   </Folder>
   <Folder Name="/test/">

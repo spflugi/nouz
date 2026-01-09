@@ -10,8 +10,16 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="Shouldly" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nouz.Application\Nouz.Application.csproj" />
+    <ProjectReference Include="..\..\src\Nouz.Domain\Nouz.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Nouz.Infrastructure\Nouz.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

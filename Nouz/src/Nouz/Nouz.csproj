@@ -10,7 +10,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <EnableDefaultCssItems>false</EnableDefaultCssItems>
         <Nullable>enable</Nullable>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
         <!-- Display name -->
         <ApplicationTitle>Nouz</ApplicationTitle>
