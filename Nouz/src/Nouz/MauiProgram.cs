@@ -1,29 +1,49 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Nouz.Infrastructure.Extensions;
 using Radzen;
 
-namespace Nouz
-{
-    public static class MauiProgram
-    {
-        public static MauiApp CreateMauiApp()
-        {
-            var builder = MauiApp.CreateBuilder();
-            builder
-                .UseMauiApp<App>()
-                .ConfigureFonts(fonts =>
-                {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                });
+namespace Nouz;
 
-            builder.Services.AddMauiBlazorWebView();
-            builder.Services.AddRadzenComponents();
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
+
+        LoadConfiguration(builder.Configuration);
+
+        builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddRadzenComponents();
 
 #if DEBUG
-            builder.Services.AddBlazorWebViewDeveloperTools();
-    		builder.Logging.AddDebug();
+        builder.Services.AddBlazorWebViewDeveloperTools();
+        builder.Logging.AddDebug();
 #endif
 
-            return builder.Build();
+        builder.Services
+            .RegisterLogger(builder.Configuration, builder.Logging);
+
+        return builder.Build();
+    }
+
+    private static void LoadConfiguration(ConfigurationManager configuration)
+    {
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Nouz.appsettings.json");
+
+        if (stream is null)
+        {
+            throw new InvalidOperationException("appsettings.json file not found");
         }
+
+        var config = new ConfigurationBuilder()
+            .AddJsonStream(stream)
+            .Build();
+
+        configuration.AddConfiguration(config);
     }
 }
