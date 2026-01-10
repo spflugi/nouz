@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Nouz.Application.Extensions;
 using Nouz.Infrastructure.Extensions;
 using Radzen;
 
@@ -26,7 +27,8 @@ public static class MauiProgram
 #endif
 
         builder.Services
-            .RegisterLogger(builder.Configuration, builder.Logging);
+            .RegisterLogger(builder.Configuration, builder.Logging)
+            .RegisterCommandsAndHandlers();
 
         return builder.Build();
     }
