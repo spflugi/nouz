@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0;net10.0-windows10.0.19041.0</TargetFrameworks>
@@ -27,6 +27,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Nouz.Application\Nouz.Application.csproj" />
+	  <ProjectReference Include="..\Nouz.ReduxSimple\Nouz.ReduxSimple.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
