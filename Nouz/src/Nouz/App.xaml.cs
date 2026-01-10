@@ -1,34 +1,65 @@
-﻿using Nouz.Application.Logger;
+﻿using Mediator;
+using Nouz.Application.Lifecycle;
+using Nouz.Application.Logger;
 
 namespace Nouz
 {
     public partial class App : Microsoft.Maui.Controls.Application
     {
+        private readonly IMediator _mediator;
         private readonly ILoggerAdapter<App> _logger;
 
         private Exception? _lastFirstChanceException;
 
-        public App(ILoggerAdapter<App> logger)
+        public App(IMediator mediator, ILoggerAdapter<App> logger)
         {
+            _mediator = mediator;
             _logger = logger;
 
             InitializeComponent();
             CatchUnhandledExceptions();
         }
 
-        protected override void OnStart()
+        protected override async void OnStart()
         {
             _logger.LogInformation("Application is starting.");
+
+            try
+            {
+                await _mediator.Send(new LifecycleCommands.PerformOnAppStart());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing application on start.");
+            }
         }
 
-        protected override void OnResume()
+        protected override async void OnResume()
         {
             _logger.LogInformation("Application is resuming.");
+
+            try
+            {
+                await _mediator.Send(new LifecycleCommands.PerformOnAppResume());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing application on resume.");
+            }
         }
 
-        protected override void OnSleep()
+        protected override async void OnSleep()
         {
             _logger.LogInformation("Application is going to sleep.");
+
+            try
+            {
+                await _mediator.Send(new LifecycleCommands.PerformOnAppSleep());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while going to sleep.");
+            }
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
