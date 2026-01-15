@@ -1,5 +1,6 @@
 ﻿using Mediator;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Nouz.Application.Store;
 
 namespace Nouz.Components;
@@ -13,6 +14,9 @@ public abstract class SharedComponentBase : ComponentBase, IDisposable
 
     [Inject]
     protected IStateProvider StateProvider { get; init; } = null!;
+
+    [Inject]
+    protected IJSRuntime JsRuntime { get; init; } = null!;
 
     public virtual void Dispose()
     {
