@@ -1,0 +1,16 @@
+﻿<div class="searchbar">
+    <RadzenIcon Icon="search"
+                Style="color: var(--text-muted);" />
+    <input type="text"
+           placeholder="Search notes..."
+           value="@_query"
+           @oninput="HandleSearchInput" />
+    @if (!string.IsNullOrEmpty(_query))
+    {
+        <RadzenButton Icon="close" 
+                      Variant="Variant.Text" 
+                      Style="color: var(--text-muted);"
+                      Click="@ClearSearchInput" 
+                      title="Clear search" />
+    }
+</div>

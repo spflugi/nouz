@@ -1,0 +1,18 @@
+﻿@inherits SharedComponentBase
+@implements IAsyncDisposable
+
+<div class="sidebar"
+     @ref="_sidebarRef"
+     style="width: @(_sidebarWidth)px">
+
+    <div class="sidebar-header">
+        <h2>Notebooks</h2>
+        <RadzenButton Icon="add"
+                      Variant="Variant.Text"
+                      Style="color: var(--text-muted);"
+                      Click="@CreateNotebook" 
+                      title="New notebook"/>
+    </div>
+
+    <div class="sidebar-resize-handle" @ref="_resizeHandleRef"></div>
+</div>
