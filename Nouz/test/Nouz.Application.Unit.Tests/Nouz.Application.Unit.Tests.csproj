@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Shouldly" />
@@ -22,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Nouz.Application\Nouz.Application.csproj" />
-    <ProjectReference Include="..\..\src\Nouz.Infrastructure\Nouz.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Nouz.Domain\Nouz.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

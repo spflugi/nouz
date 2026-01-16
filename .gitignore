@@ -11,3 +11,7 @@ obj/
 
 # Databases
 *.db
+
+# Claude AI files
+.claude/
+*cwd

@@ -5,12 +5,9 @@
            placeholder="Search notes..."
            value="@_query"
            @oninput="HandleSearchInput" />
-    @if (!string.IsNullOrEmpty(_query))
-    {
-        <RadzenButton Icon="close" 
-                      Variant="Variant.Text" 
-                      Style="color: var(--text-muted);"
-                      Click="@ClearSearchInput" 
-                      title="Clear search" />
-    }
+    <RadzenButton Icon="close"
+                  Variant="Variant.Text"
+                  Style="@($"color: var(--text-muted); visibility: {(string.IsNullOrEmpty(_query) ? "hidden" : "visible")}")"
+                  Click="@ClearSearchInput"
+                  title="Clear search" />
 </div>

@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Solution items/">
     <File Path="../.github/workflows/build.yaml" />
+    <File Path="../.gitignore" />
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/">
@@ -11,6 +12,7 @@
     <Project Path="src/Nouz/Nouz.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Nouz.Application.Unit.Tests/Nouz.Application.Unit.Tests.csproj" />
     <Project Path="test/Nouz.Architecture.Tests/Nouz.Architecture.Tests.csproj" />
     <Project Path="test/Nouz.Infrastructure.Unit.Tests/Nouz.Infrastructure.Unit.Tests.csproj" Id="a3351f97-8c6b-4d1b-b436-f045b14b712b" />
   </Folder>

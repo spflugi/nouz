@@ -29,14 +29,7 @@ public static class NotebookReducers
             })
             .On<NotebookActions.NotebookDeleted>((state, action) =>
             {
-                var notebook = state.Notebooks.Find(n => n.Id == action.Id);
-
-                if (notebook is null)
-                {
-                    return state;
-                }
-
-                var updatedNotebooks = state.Notebooks.Remove(notebook);
+                var updatedNotebooks = state.Notebooks.RemoveAll(n => n.Id == action.Id);
                 return state with { Notebooks = updatedNotebooks };
             })
             .On<NotebookActions.AllNotebooksLoaded>((state, action) =>
