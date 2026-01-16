@@ -14,6 +14,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
 		<PackageReference Include="Microsoft.Maui.Controls" />
 		<PackageReference Include="Serilog" />
 		<PackageReference Include="Serilog.Enrichers.Process" />
@@ -27,6 +32,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Nouz.Application\Nouz.Application.csproj" />
+	  <ProjectReference Include="..\Nouz.Domain\Nouz.Domain.csproj" />
 	  <ProjectReference Include="..\Nouz.ReduxSimple\Nouz.ReduxSimple.csproj" />
 	</ItemGroup>
 

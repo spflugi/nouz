@@ -15,4 +15,9 @@
 	  </PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Nouz.Domain\Nouz.Domain.csproj" />
+	  <ProjectReference Include="..\Nouz.ReduxSimple\Nouz.ReduxSimple.csproj" />
+	</ItemGroup>
+
 </Project>

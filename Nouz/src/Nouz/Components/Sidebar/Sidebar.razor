@@ -13,6 +13,17 @@
                       Click="@CreateNotebook" 
                       title="New notebook"/>
     </div>
+    
+    <div class="notebook-list">
+        @foreach (var notebook in _notebooks)
+        {
+            <NotebookItem Notebook="@notebook"
+                          IsSelected="@(notebook.Id == _selectedNotebookId)"
+                          OnSelect="@SelectNotebook"
+                          OnRename="@RenameNotebook"
+                          OnDelete="@DeleteNotebook" />
+        }
+    </div>
 
     <div class="sidebar-resize-handle" @ref="_resizeHandleRef"></div>
 </div>

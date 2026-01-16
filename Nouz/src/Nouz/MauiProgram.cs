@@ -29,7 +29,8 @@ public static class MauiProgram
         builder.Services
             .RegisterLogger(builder.Configuration, builder.Logging)
             .RegisterCommandsAndHandlers()
-            .RegisterStoreAndDispatcher();
+            .RegisterStoreAndDispatcher()
+            .RegisterDatabase();
 
         return builder.Build();
     }

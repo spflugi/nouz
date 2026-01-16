@@ -1,0 +1,23 @@
+﻿@inherits SharedComponentBase
+
+<div class="notebook-item @(IsSelected ? "selected" : "")" 
+     @onclick="HandleSelect">
+    <RadzenIcon Icon="book" />
+    <span class="notebook-name">@Notebook.Name</span>
+    <div class="notebook-actions">
+        <RadzenButton Icon="edit" 
+                      Variant="Variant.Text" 
+                      Size="ButtonSize.ExtraSmall"
+                      Style="color: var(--text-muted);"
+                      Click="@HandleRename" 
+                      Click:stopPropagation="true" 
+                      title="Rename" />
+        <RadzenButton Icon="delete" 
+                      Variant="Variant.Text" 
+                      Size="ButtonSize.ExtraSmall"
+                      Style="color: var(--text-muted);"
+                      Click="@HandleDelete" 
+                      Click:stopPropagation="true" 
+                      title="Delete" />
+    </div>
+</div>
