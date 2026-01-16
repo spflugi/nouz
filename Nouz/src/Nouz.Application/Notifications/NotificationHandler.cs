@@ -32,8 +32,8 @@ internal sealed class NotificationHandler : ICommandHandler<NotificationCommands
         _logger.LogInformation("Dismiss notification with id {NotificationId}", command.Id);
 
         await _actionDispatcher
-            .Dispatch(new NotificationActions.NotificationDismissed(command.Id));
-
+            .Dispatch(new NotificationActions.NotificationDismissed(command.Id)).ConfigureAwait(false);
+        
         return Unit.Value;
     }
 }

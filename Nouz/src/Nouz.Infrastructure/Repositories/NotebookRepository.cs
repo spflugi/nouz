@@ -45,4 +45,18 @@ internal sealed class NotebookRepository : INotebookRepository
         context.Notebooks.Update(notebook);
         await context.SaveChangesAsync(token).ConfigureAwait(false);
     }
+
+    public async Task Delete(Guid id, CancellationToken token = default)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync(token).ConfigureAwait(false);
+
+        var notebook = await context.Notebooks
+            .FindAsync([id], cancellationToken: token).ConfigureAwait(false);
+
+        if (notebook is not null)
+        {
+            context.Notebooks.Remove(notebook);
+            await context.SaveChangesAsync(token).ConfigureAwait(false);
+        }
+    }
 }

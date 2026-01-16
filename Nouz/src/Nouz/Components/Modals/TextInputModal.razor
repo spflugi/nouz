@@ -1,0 +1,19 @@
+﻿<div class="modal-backdrop" 
+     @onclick="Cancel" 
+     style="@(_isVisible ? "display:flex" : "display:none")">
+    <div class="modal" 
+         @onclick:stopPropagation="true">
+        <div class="modal-header">@Title</div>
+        <div class="modal-body">
+            <input @bind="_inputValue" 
+                   placeholder="@Placeholder" 
+                   class="modal-input" />
+        </div>
+        <div class="modal-footer">
+            <button class="modal-button cancel" 
+                    @onclick="Cancel">Cancel</button>
+            <button class="modal-button ok" 
+                    @onclick="Confirm">OK</button>
+        </div>
+    </div>
+</div>

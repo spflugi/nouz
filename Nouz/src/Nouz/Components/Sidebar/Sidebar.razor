@@ -1,5 +1,9 @@
 ﻿@inherits SharedComponentBase
+@using Nouz.Components.Modals
 @implements IAsyncDisposable
+
+<TextInputModal @ref="TextModal" />
+<ConfirmationModal @ref="ConfirmationModal" />
 
 <div class="sidebar"
      @ref="_sidebarRef"

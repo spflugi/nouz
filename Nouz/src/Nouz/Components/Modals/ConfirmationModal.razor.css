@@ -1,0 +1,69 @@
+﻿/* Backdrop and modal container are same as TextInputModal */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 26, 26, 0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-6);
+    min-width: 300px;
+    max-width: 400px;
+    font-family: system-ui, sans-serif;
+}
+
+/* Header */
+.modal-header {
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+    font-size: 1.1rem;
+}
+
+/* Body */
+.modal-body {
+    margin-bottom: var(--space-4);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+/* Footer buttons */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+}
+
+.modal-button {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: var(--transition-fast);
+}
+
+.modal-button.ok {
+    background-color: var(--accent);
+    color: white;
+}
+
+.modal-button.ok:hover {
+    background-color: var(--accent-hover);
+}
+
+.modal-button.cancel {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.modal-button.cancel:hover {
+    background-color: var(--bg-active);
+}

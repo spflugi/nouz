@@ -1,4 +1,5 @@
 ﻿using Nouz.ReduxSimple;
+using System;
 
 namespace Nouz.Application.Notebooks;
 
@@ -12,6 +13,30 @@ public static class NotebookReducers
             .On<NotebookActions.NotebookAdded>((state, action) =>
             {
                 var updatedNotebooks = state.Notebooks.Add(action.Notebook);
+                return state with { Notebooks = updatedNotebooks };
+            })
+            .On<NotebookActions.NotebookUpdated>((state, action) =>
+            {
+                var oldNotebook = state.Notebooks.Find(n => n.Id == action.Notebook.Id);
+
+                if (oldNotebook is null)
+                {
+                    return state;
+                }
+
+                var updatedNotebooks = state.Notebooks.Replace(oldNotebook, action.Notebook);
+                return state with { Notebooks = updatedNotebooks };
+            })
+            .On<NotebookActions.NotebookDeleted>((state, action) =>
+            {
+                var notebook = state.Notebooks.Find(n => n.Id == action.Id);
+
+                if (notebook is null)
+                {
+                    return state;
+                }
+
+                var updatedNotebooks = state.Notebooks.Remove(notebook);
                 return state with { Notebooks = updatedNotebooks };
             })
             .On<NotebookActions.AllNotebooksLoaded>((state, action) =>

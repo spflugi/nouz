@@ -12,6 +12,17 @@ public static class NotebookActions
     public sealed record NotebookAdded(Notebook Notebook) : IAction;
 
     /// <summary>
+    /// Triggered when a notebook is updated.
+    /// </summary>
+    /// <param name="Notebook"></param>
+    public sealed record NotebookUpdated(Notebook Notebook) : IAction;
+
+    /// <summary>
+    /// Triggered when a notebook was deleted.
+    /// </summary>
+    public sealed record NotebookDeleted(Guid Id) : IAction;
+
+    /// <summary>
     /// Triggered when all notebooks are loaded/refreshed.
     /// </summary>
     public sealed record AllNotebooksLoaded(ImmutableList<Notebook> Notebooks) : IAction;
