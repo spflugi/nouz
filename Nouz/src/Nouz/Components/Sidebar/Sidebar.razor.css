@@ -56,3 +56,9 @@ body.sidebar-resizing {
     body.sidebar-resizing * {
         cursor: ew-resize !important;
     }
+
+.notebook-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-2) 0;
+}

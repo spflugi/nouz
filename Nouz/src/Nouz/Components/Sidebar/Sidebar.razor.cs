@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Collections.Immutable;
+using System.Reactive.Linq;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Nouz.Application.Notebooks;
+using Nouz.Domain.Entities;
+using Nouz.Extensions;
 
 namespace Nouz.Components.Sidebar;
 
@@ -14,6 +19,9 @@ public partial class Sidebar
 
     private int _sidebarWidth = 250;
     private bool _isResizingInitialized;
+
+    private ImmutableList<Notebook> _notebooks = [];
+    private Guid? _selectedNotebookId;
 
     [JSInvokable]
     public void OnSidebarResized(int newWidth)
@@ -30,6 +38,26 @@ public partial class Sidebar
     protected override void OnInitialized()
     {
         _dotNetRef = DotNetObjectReference.Create(this);
+
+        StateProvider.StateObservable
+            .Select(s => s.Notebooks.Notebooks)
+            .DistinctUntilChanged()
+            .TakeUntilDisappearing(this)
+            .Subscribe(notebooks =>
+            {
+                _notebooks = notebooks;
+                StateHasChanged();
+            });
+
+        StateProvider.StateObservable
+            .Select(s => s.Notebooks.SelectedNotebook)
+            .DistinctUntilChanged()
+            .TakeUntilDisappearing(this)
+            .Subscribe(id =>
+            {
+                _selectedNotebookId = id;
+                StateHasChanged();
+            });
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -48,8 +76,29 @@ public partial class Sidebar
         }
     }
 
-    private Task CreateNotebook()
+    private async Task CreateNotebook()
     {
+        // TODO: This is just for testing, remove this code
+        await Mediator.Send(new NotebookCommands.CreateNotebook("New Notebook"));
+    }
+
+    private async Task SelectNotebook(Guid? notebookId)
+    {
+        if (notebookId is not null)
+        {
+            await Mediator.Send(new NotebookCommands.SelectNotebook(notebookId.Value));
+        }
+    }
+
+    private Task RenameNotebook(Guid notebookId)
+    {
+        // TODO: To be implemented
+        return Task.CompletedTask;
+    }
+
+    private Task DeleteNotebook(Guid notebookId)
+    {
+        // TODO: To be implemented
         return Task.CompletedTask;
     }
 }

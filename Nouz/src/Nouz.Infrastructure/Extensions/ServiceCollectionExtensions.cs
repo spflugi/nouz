@@ -1,8 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Nouz.Application.Logger;
 using Nouz.Application.Store;
+using Nouz.Domain.Repositories;
 using Nouz.Infrastructure.Logger;
+using Nouz.Infrastructure.Repositories;
 using Nouz.Infrastructure.Store;
 using Serilog;
 
@@ -33,5 +37,19 @@ public static class ServiceCollectionExtensions
             .AddTransient<IStateProvider, StateProvider>()
             .AddTransient<ITaskDispatcher, MainThreadTaskDispatcher>()
             .AddSingleton<IActionDispatcher, ActionDispatcher>();
+    }
+
+    public static IServiceCollection RegisterDatabase(this IServiceCollection services)
+    {
+        var connectionString = new SqliteConnectionStringBuilder
+        {
+            DataSource = Path.Combine(FileSystem.AppDataDirectory, "nouz.db"),
+            Mode = SqliteOpenMode.ReadWriteCreate
+        }.ToString();
+
+        return services
+            .AddTransient<IDbMigrator, DbMigrator>()
+            .AddTransient<INotebookRepository, NotebookRepository>()
+            .AddDbContextFactory<NouzDbContext>(options => { options.UseSqlite(connectionString); });
     }
 }
