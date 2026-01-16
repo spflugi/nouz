@@ -46,6 +46,20 @@
     --transition-fast: 120ms ease;
     --transition-base: 180ms ease;
     --transition-slow: 280ms ease;
+    /* Notification base */
+    --notification-bg: var(--bg-card);
+    --notification-text: var(--text-primary);
+    --notification-shadow: var(--shadow-md);
+    /* Semantic accents (muted, warm) */
+    --notification-info: #6B8CA6; /* muted blue-gray */
+    --notification-success: #6E9E7C; /* muted green */
+    --notification-warning: #C9A24D; /* warm amber */
+    --notification-error: #C97A6A; /* soft clay red */
+    /* Accent background tints */
+    --notification-info-bg: rgba(107, 140, 166, 0.12);
+    --notification-success-bg: rgba(110, 158, 124, 0.12);
+    --notification-warning-bg: rgba(201, 162, 77, 0.14);
+    --notification-error-bg: rgba(201, 122, 106, 0.14);
 }
 
 

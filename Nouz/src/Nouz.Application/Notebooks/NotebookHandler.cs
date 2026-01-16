@@ -1,24 +1,28 @@
 ﻿using System.Collections.Immutable;
 using Mediator;
 using Nouz.Application.Logger;
+using Nouz.Application.Notifications;
 using Nouz.Application.Store;
 using Nouz.Domain.Entities;
 using Nouz.Domain.Repositories;
 
 namespace Nouz.Application.Notebooks;
 
-public class NotebookHandler :
+internal sealed class NotebookHandler :
     ICommandHandler<NotebookCommands.LoadAllNotebooks>,
     ICommandHandler<NotebookCommands.CreateNotebook>,
     ICommandHandler<NotebookCommands.SelectNotebook>
 {
+    private readonly IMediator _mediator;
     private readonly INotebookRepository _notebookRepository;
     private readonly IActionDispatcher _actionDispatcher;
     private readonly ILoggerAdapter<NotebookHandler> _logger;
 
-    public NotebookHandler(INotebookRepository notebookRepository, IActionDispatcher actionDispatcher,
+    public NotebookHandler(IMediator mediator, INotebookRepository notebookRepository,
+        IActionDispatcher actionDispatcher,
         ILoggerAdapter<NotebookHandler> logger)
     {
+        _mediator = mediator;
         _notebookRepository = notebookRepository;
         _actionDispatcher = actionDispatcher;
         _logger = logger;
@@ -40,7 +44,8 @@ public class NotebookHandler :
         {
             _logger.LogError(ex, "Failed to load all notebooks");
 
-            // TODO: Show error notification to user
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to load all notebooks.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
         }
 
         return Unit.Value;
@@ -67,12 +72,16 @@ public class NotebookHandler :
             await _actionDispatcher.Dispatch(new NotebookActions.NotebookAdded(notebook)).ConfigureAwait(false);
 
             _logger.LogInformation("New notebook with title '{NotebookTitle}' successfully created", command.Title);
+            
+            await _mediator.Send(new NotificationCommands.ShowNotification("Success", "New notebook successfully created.",
+                NotificationSeverity.Info), cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create new notebook");
 
-            // TODO: Show error notification to user
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to create new notebook.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
         }
 
         return Unit.Value;
@@ -85,7 +94,7 @@ public class NotebookHandler :
         await _actionDispatcher.Dispatch(new NotebookActions.NotebookSelected(command.Id)).ConfigureAwait(false);
 
         _logger.LogInformation("New notebook with id '{NotebookId}' selected", command.Id);
-        
+
         return Unit.Value;
     }
 }

@@ -1,0 +1,16 @@
+﻿@inherits SharedComponentBase
+
+<div class="notification-container">
+    @foreach (var n in _notifications)
+    {
+        <div class="notification @n.Severity.ToString().ToLower()">
+
+            <div class="content">
+                <div class="title">@n.Title</div>
+                <div class="message">@n.Message</div>
+            </div>
+
+            <button class="close" @onclick="() => Close(n)">×</button>
+        </div>
+    }
+</div>
