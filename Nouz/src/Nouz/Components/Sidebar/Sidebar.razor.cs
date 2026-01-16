@@ -17,7 +17,7 @@ public partial class Sidebar
     private ElementReference _resizeHandleRef;
     private DotNetObjectReference<Sidebar>? _dotNetRef;
 
-    private int _sidebarWidth = 250;
+    private int _sidebarWidth = 270;
     private bool _isResizingInitialized;
 
     private ImmutableList<Notebook> _notebooks = [];
@@ -78,8 +78,12 @@ public partial class Sidebar
 
     private async Task CreateNotebook()
     {
-        // TODO: This is just for testing, remove this code
-        await Mediator.Send(new NotebookCommands.CreateNotebook("New Notebook"));
+        var notebookTitle = await ShowTextInputModal("Create new notebook", "Notebook title");
+
+        if (!string.IsNullOrWhiteSpace(notebookTitle))
+        {
+            await Mediator.Send(new NotebookCommands.CreateNotebook(notebookTitle));
+        }
     }
 
     private async Task SelectNotebook(Guid? notebookId)
