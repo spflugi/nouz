@@ -90,15 +90,24 @@ public partial class Sidebar
         }
     }
 
-    private Task RenameNotebook(Guid notebookId)
+    private async Task RenameNotebook(Guid notebookId)
     {
-        // TODO: To be implemented
-        return Task.CompletedTask;
+        var newNotebookTitle = await ShowTextInputModal("Rename notebook", "Notebook title");
+
+        if (!string.IsNullOrWhiteSpace(newNotebookTitle))
+        {
+            await Mediator.Send(new NotebookCommands.RenameNotebook(notebookId, newNotebookTitle));
+        }
     }
 
-    private Task DeleteNotebook(Guid notebookId)
+    private async Task DeleteNotebook(Guid notebookId)
     {
-        // TODO: To be implemented
-        return Task.CompletedTask;
+        var confirmed = await ShowConfirmationModal("Delete notebook",
+            "Are you sure you want to delete this notebook? This action cannot be undone.", "Delete", "Cancel");
+
+        if (confirmed)
+        {
+            await Mediator.Send(new NotebookCommands.DeleteNotebook(notebookId));
+        }
     }
 }

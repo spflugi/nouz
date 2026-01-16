@@ -23,4 +23,9 @@ public interface INotebookRepository
     /// Update an existing notebook.
     /// </summary>
     Task Update(Notebook notebook, CancellationToken token = default);
+
+    /// <summary>
+    /// Delete an existing notebook.
+    /// </summary>
+    Task Delete(Guid id, CancellationToken token = default);
 }

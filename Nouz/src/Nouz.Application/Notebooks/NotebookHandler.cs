@@ -11,7 +11,9 @@ namespace Nouz.Application.Notebooks;
 internal sealed class NotebookHandler :
     ICommandHandler<NotebookCommands.LoadAllNotebooks>,
     ICommandHandler<NotebookCommands.CreateNotebook>,
-    ICommandHandler<NotebookCommands.SelectNotebook>
+    ICommandHandler<NotebookCommands.SelectNotebook>,
+    ICommandHandler<NotebookCommands.RenameNotebook>,
+    ICommandHandler<NotebookCommands.DeleteNotebook>
 {
     private readonly IMediator _mediator;
     private readonly INotebookRepository _notebookRepository;
@@ -95,6 +97,48 @@ internal sealed class NotebookHandler :
 
         _logger.LogInformation("New notebook with id '{NotebookId}' selected", command.Id);
 
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NotebookCommands.RenameNotebook command, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Renaming notebook with id '{NotebookId}' to '{NewTitle}'", command.Id, command.NewTitle);
+
+        var existingNotebook = await _notebookRepository.GetById(command.Id, cancellationToken).ConfigureAwait(false);
+        
+        if (existingNotebook is null)
+        {
+            _logger.LogWarning("Cannot rename notebook. Notebook with id '{NotebookId}' not found", command.Id);
+            
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Notebook not found.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+            return Unit.Value;
+        }
+
+        var renamedNotebook = existingNotebook with
+        {
+            Name = command.NewTitle,
+            LastModifiedAt = DateTimeOffset.UtcNow
+        };
+
+        await _notebookRepository.Update(renamedNotebook, cancellationToken).ConfigureAwait(false);
+        await _actionDispatcher.Dispatch(new NotebookActions.NotebookUpdated(renamedNotebook)).ConfigureAwait(false);
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NotebookCommands.DeleteNotebook command, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Deleting notebook with id '{NotebookId}'", command.Id);
+
+        await _notebookRepository.Delete(command.Id);
+
+        _logger.LogInformation("Notebook with id '{NotebookId}' deleted", command.Id);
+
+        await _mediator.Send(new NotificationCommands.ShowNotification("Deleted", "Notebook deleted",
+            NotificationSeverity.Info), cancellationToken).ConfigureAwait(false);
+
+        await _actionDispatcher.Dispatch(new NotebookActions.NotebookDeleted(command.Id));
         return Unit.Value;
     }
 }

@@ -2,7 +2,8 @@
 
 <div class="notebook-item @(IsSelected ? "selected" : "")" 
      @onclick="HandleSelect">
-    <RadzenIcon Icon="book" />
+    <RadzenIcon Icon="book"
+                Style="margin-right: 8px;"/>
     <span class="notebook-name">@Notebook.Name</span>
     <div class="notebook-actions">
         <RadzenButton Icon="edit" 
