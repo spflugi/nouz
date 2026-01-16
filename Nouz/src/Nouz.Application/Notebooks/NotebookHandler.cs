@@ -57,6 +57,14 @@ internal sealed class NotebookHandler :
     {
         _logger.LogInformation("Creating a new notebook with the title '{NotebookTitle}'", command.Title);
 
+        if (string.IsNullOrWhiteSpace(command.Title))
+        {
+            await _mediator.Send(new NotificationCommands.ShowNotification("Warning", "Notebook title cannot be empty!",
+                NotificationSeverity.Warning), cancellationToken).ConfigureAwait(false);
+
+            return Unit.Value;
+        }
+
         try
         {
             var now = DateTimeOffset.UtcNow;
@@ -64,7 +72,7 @@ internal sealed class NotebookHandler :
             var notebook = new Notebook
             {
                 Id = Guid.NewGuid(),
-                Name = command.Title,
+                Name = command.Title.Trim(),
                 CreatedAt = now,
                 LastModifiedAt = now,
                 SortOrder = 1
@@ -76,7 +84,7 @@ internal sealed class NotebookHandler :
             _logger.LogInformation("New notebook with title '{NotebookTitle}' successfully created", command.Title);
             
             await _mediator.Send(new NotificationCommands.ShowNotification("Success", "New notebook successfully created.",
-                NotificationSeverity.Info), cancellationToken).ConfigureAwait(false);
+                NotificationSeverity.Success), cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -124,6 +132,9 @@ internal sealed class NotebookHandler :
         await _notebookRepository.Update(renamedNotebook, cancellationToken).ConfigureAwait(false);
         await _actionDispatcher.Dispatch(new NotebookActions.NotebookUpdated(renamedNotebook)).ConfigureAwait(false);
 
+        await _mediator.Send(new NotificationCommands.ShowNotification("Success", "Notebook successfully renamed.",
+            NotificationSeverity.Success), cancellationToken).ConfigureAwait(false);
+
         return Unit.Value;
     }
 
@@ -131,14 +142,25 @@ internal sealed class NotebookHandler :
     {
         _logger.LogInformation("Deleting notebook with id '{NotebookId}'", command.Id);
 
-        await _notebookRepository.Delete(command.Id);
+        try
+        {
+            await _notebookRepository.Delete(command.Id, cancellationToken).ConfigureAwait(false);
 
-        _logger.LogInformation("Notebook with id '{NotebookId}' deleted", command.Id);
+            _logger.LogInformation("Notebook with id '{NotebookId}' deleted", command.Id);
 
-        await _mediator.Send(new NotificationCommands.ShowNotification("Deleted", "Notebook deleted",
-            NotificationSeverity.Info), cancellationToken).ConfigureAwait(false);
+            await _mediator.Send(new NotificationCommands.ShowNotification("Deleted", "Notebook deleted",
+                NotificationSeverity.Success), cancellationToken).ConfigureAwait(false);
 
-        await _actionDispatcher.Dispatch(new NotebookActions.NotebookDeleted(command.Id));
+            await _actionDispatcher.Dispatch(new NotebookActions.NotebookDeleted(command.Id)).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete notebook with id '{NotebookId}'", command.Id);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Error deleting notebook",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+        }
+        
         return Unit.Value;
     }
 }

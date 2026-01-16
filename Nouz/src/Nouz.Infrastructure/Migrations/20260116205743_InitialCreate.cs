@@ -25,6 +25,16 @@ namespace Nouz.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Notebooks", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notebooks_Name",
+                table: "Notebooks",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notebooks_SortOrder",
+                table: "Notebooks",
+                column: "SortOrder");
         }
 
         /// <inheritdoc />

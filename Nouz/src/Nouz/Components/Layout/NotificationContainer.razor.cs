@@ -10,6 +10,22 @@ public partial class NotificationContainer
     private readonly List<Notification> _notifications = new();
     private readonly Dictionary<Guid, CancellationTokenSource> _timers = new();
 
+    public ValueTask DisposeAsync()
+    {
+        // Cancel and dispose all active timers
+        foreach (var timer in _timers.Values)
+        {
+            timer.Cancel();
+            timer.Dispose();
+        }
+        _timers.Clear();
+
+        // Call base.Dispose() to fire DisposingEvent for TakeUntilDisappearing subscriptions
+        Dispose();
+
+        return ValueTask.CompletedTask;
+    }
+
     protected override void OnInitialized()
     {
         StateProvider.StateObservable

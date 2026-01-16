@@ -3,7 +3,7 @@ using Nouz.Domain.Entities;
 
 namespace Nouz.Infrastructure.Repositories;
 
-public class NouzDbContext : DbContext
+internal sealed class NouzDbContext : DbContext
 {
     public DbSet<Notebook> Notebooks { get; set; } = null!;
 
@@ -21,6 +21,9 @@ public class NouzDbContext : DbContext
             n.Property(x => x.CreatedAt).IsRequired();
             n.Property(x => x.LastModifiedAt).IsRequired();
             n.Property(x => x.SortOrder);
+
+            n.HasIndex(x => x.Name);
+            n.HasIndex(x => x.SortOrder);
         });
     }
 }

@@ -11,7 +11,7 @@ using Nouz.Infrastructure.Repositories;
 namespace Nouz.Infrastructure.Migrations
 {
     [DbContext(typeof(NouzDbContext))]
-    [Migration("20260116145816_InitialCreate")]
+    [Migration("20260116205743_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -40,6 +40,10 @@ namespace Nouz.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("SortOrder");
 
                     b.ToTable("Notebooks");
                 });

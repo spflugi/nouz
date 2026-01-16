@@ -38,6 +38,10 @@ namespace Nouz.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name");
+
+                    b.HasIndex("SortOrder");
+
                     b.ToTable("Notebooks");
                 });
 #pragma warning restore 612, 618

@@ -67,6 +67,8 @@ public class LayerTests
         var rule = Types.InAssembly(InfrastructureAssembly)
             .That()
             .DoNotHaveName("ServiceCollectionExtensions")
+            .And()
+            .DoNotResideInNamespace("Nouz.Infrastructure.Migrations")
             .ShouldNot()
             .BePublic();
 

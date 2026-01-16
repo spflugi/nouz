@@ -20,4 +20,9 @@
 	  <ProjectReference Include="..\Nouz.ReduxSimple\Nouz.ReduxSimple.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Nouz.Application.Unit.Tests" />
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+	</ItemGroup>
+
 </Project>

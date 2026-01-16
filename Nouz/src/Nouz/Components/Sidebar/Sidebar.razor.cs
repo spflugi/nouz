@@ -32,6 +32,10 @@ public partial class Sidebar
     public ValueTask DisposeAsync()
     {
         _dotNetRef?.Dispose();
+
+        // Call base.Dispose() to fire DisposingEvent for TakeUntilDisappearing subscriptions
+        Dispose();
+
         return ValueTask.CompletedTask;
     }
 
