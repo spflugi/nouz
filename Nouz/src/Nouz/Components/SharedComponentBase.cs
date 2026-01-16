@@ -17,7 +17,7 @@ public abstract class SharedComponentBase : ComponentBase, IDisposable
 
     [Inject]
     protected IJSRuntime JsRuntime { get; init; } = null!;
-
+    
     public virtual void Dispose()
     {
         DisposingEvent?.Invoke(this, EventArgs.Empty);

@@ -2,6 +2,7 @@
 using Nouz.ReduxSimple;
 using System.Reactive.Concurrency;
 using Nouz.Application.Notebooks;
+using Nouz.Application.Notifications;
 
 namespace Nouz.Infrastructure.Store;
 
@@ -23,6 +24,7 @@ internal static class StoreFactory
     private static IEnumerable<On<RootState>> CreateReducers()
     {
         return Reducers.CombineReducers(
-            NotebookReducers.Create<RootState>(s => s.Notebooks));
+            NotebookReducers.Create<RootState>(s => s.Notebooks),
+            NotificationReducers.Create<RootState>(s => s.Notifications));
     }
 }
