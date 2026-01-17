@@ -165,7 +165,7 @@ internal sealed class NoteRepository : INoteRepository
             .ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<Note>> Search(string query, CancellationToken token = default)
+    public async Task<IReadOnlyList<Note>> SearchInNotebook(Guid notebookId, string query, CancellationToken token = default)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -174,13 +174,18 @@ internal sealed class NoteRepository : INoteRepository
 
         await using var context = await _contextFactory.CreateDbContextAsync(token).ConfigureAwait(false);
 
-        // Use FTS5 MATCH for fast full-text search
-        // Get distinct NoteIds that have matching blocks
+        // Use LIKE for substring matching (case-insensitive in SQLite by default for ASCII)
+        // This finds the query anywhere in the content, not just at word boundaries
+        var likePattern = $"%{query}%";
+
+        // Find notes in the specified notebook that have blocks containing the search term
         var matchingNoteIds = await context.Database
             .SqlQuery<Guid>($"""
-                SELECT DISTINCT CAST(NoteId AS TEXT) as Value
-                FROM BlockSearch
-                WHERE BlockSearch MATCH {query}
+                SELECT DISTINCT b.NoteId as Value
+                FROM Block b
+                INNER JOIN Notes n ON n.Id = b.NoteId
+                WHERE b.Content LIKE {likePattern}
+                AND n.NotebookId = {notebookId}
                 """)
             .ToListAsync(token)
             .ConfigureAwait(false);

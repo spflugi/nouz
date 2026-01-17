@@ -45,21 +45,6 @@ namespace Nouz.Infrastructure.Migrations
                     b.ToTable("Block");
                 });
 
-            modelBuilder.Entity("Nouz.Domain.Entities.BlockSearch", b =>
-                {
-                    b.Property<Guid>("BlockId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("NoteId")
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("BlockSearch", (string)null);
-                });
-
             modelBuilder.Entity("Nouz.Domain.Entities.Note", b =>
                 {
                     b.Property<Guid>("Id")

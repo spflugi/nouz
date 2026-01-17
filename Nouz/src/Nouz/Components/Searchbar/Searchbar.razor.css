@@ -32,3 +32,9 @@
     .searchbar:focus-within svg {
         color: var(--text-secondary);
     }
+
+.searchbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border-color);
+}

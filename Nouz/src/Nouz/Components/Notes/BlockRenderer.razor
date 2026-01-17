@@ -1,0 +1,76 @@
+@using Nouz.Domain.Entities
+@inject IJSRuntime JsRuntime
+
+<div class="block-wrapper @(IsEditing ? "editing" : "")"
+     @onmouseenter="ShowMenu"
+     @onmouseleave="HideMenu">
+
+    <div class="block-menu-trigger @(_showMenu || IsEditing ? "visible" : "")" @onclick="ToggleContextMenu" @onclick:stopPropagation="true">
+        <RadzenIcon Icon="drag_indicator" Style="font-size: 16px; color: var(--text-muted);" />
+    </div>
+
+    @if (_showContextMenu)
+    {
+        <BlockContextMenu OnTypeSelected="HandleTypeSelected"
+                          OnDeleteSelected="HandleDeleteSelected"
+                          OnClose="CloseContextMenu"
+                          CurrentType="Block.Type" />
+    }
+
+    <div class="block-content" @onclick="HandleClick">
+        @switch (Block.Type)
+        {
+            case BlockType.Paragraph:
+                <p class="block block-paragraph"
+                   contenteditable="true"
+                   @ref="_contentRef"
+                   data-placeholder="Type something..."></p>
+                break;
+
+            case BlockType.H1:
+                <h1 class="block block-h1"
+                    contenteditable="true"
+                    @ref="_contentRef"
+                    data-placeholder="Heading 1"></h1>
+                break;
+
+            case BlockType.H2:
+                <h2 class="block block-h2"
+                    contenteditable="true"
+                    @ref="_contentRef"
+                    data-placeholder="Heading 2"></h2>
+                break;
+
+            case BlockType.H3:
+                <h3 class="block block-h3"
+                    contenteditable="true"
+                    @ref="_contentRef"
+                    data-placeholder="Heading 3"></h3>
+                break;
+
+            case BlockType.H4:
+                <h4 class="block block-h4"
+                    contenteditable="true"
+                    @ref="_contentRef"
+                    data-placeholder="Heading 4"></h4>
+                break;
+
+            case BlockType.ListItem:
+                <div class="block block-list-item" style="padding-left: @(GetIndentLevel() * 20)px">
+                    <span class="list-bullet"></span>
+                    <span class="list-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="List item"></span>
+                </div>
+                break;
+
+            default:
+                <p class="block block-paragraph"
+                   contenteditable="true"
+                   @ref="_contentRef"
+                   data-placeholder="Type something..."></p>
+                break;
+        }
+    </div>
+</div>

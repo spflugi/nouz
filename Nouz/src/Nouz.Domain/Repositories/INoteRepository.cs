@@ -35,7 +35,7 @@ public interface INoteRepository
     public Task MoveToNotebook(Guid noteId, Guid newNotebookId, CancellationToken token = default);
 
     /// <summary>
-    /// Search for notes that match the specified query.
+    /// Search for notes in a specific notebook that match the specified query.
     /// </summary>
-    public Task<IReadOnlyList<Note>> Search(string query, CancellationToken token = default);
+    public Task<IReadOnlyList<Note>> SearchInNotebook(Guid notebookId, string query, CancellationToken token = default);
 }

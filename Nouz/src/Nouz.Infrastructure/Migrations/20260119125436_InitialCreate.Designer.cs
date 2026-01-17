@@ -11,7 +11,7 @@ using Nouz.Infrastructure.Repositories;
 namespace Nouz.Infrastructure.Migrations
 {
     [DbContext(typeof(NouzDbContext))]
-    [Migration("20260117192239_InitialCreate")]
+    [Migration("20260119125436_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -46,21 +46,6 @@ namespace Nouz.Infrastructure.Migrations
                     b.HasIndex("NoteId");
 
                     b.ToTable("Block");
-                });
-
-            modelBuilder.Entity("Nouz.Domain.Entities.BlockSearch", b =>
-                {
-                    b.Property<Guid>("BlockId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("NoteId")
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("BlockSearch", (string)null);
                 });
 
             modelBuilder.Entity("Nouz.Domain.Entities.Note", b =>
