@@ -11,4 +11,6 @@ public sealed record Notebook
     public required DateTimeOffset LastModifiedAt { get; init; }
 
     public int SortOrder { get; init; }
+
+    public ICollection<Note> Notes { get; init; } = [];
 }
