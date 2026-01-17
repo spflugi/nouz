@@ -11,15 +11,6 @@ namespace Nouz.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Create FTS5 virtual table for full-text search
-            migrationBuilder.Sql("""
-                CREATE VIRTUAL TABLE BlockSearch USING fts5(
-                    BlockId,
-                    NoteId,
-                    Content
-                );
-                """);
-
             migrationBuilder.CreateTable(
                 name: "Notebooks",
                 columns: table => new
@@ -95,46 +86,13 @@ namespace Nouz.Infrastructure.Migrations
                 name: "IX_Notes_NotebookId",
                 table: "Notes",
                 column: "NotebookId");
-
-            // Create triggers to sync Block table with FTS5 BlockSearch table
-            migrationBuilder.Sql("""
-                CREATE TRIGGER blocks_ai AFTER INSERT ON Block
-                BEGIN
-                    INSERT INTO BlockSearch (BlockId, NoteId, Content)
-                    VALUES (new.Id, new.NoteId, new.Content);
-                END;
-                """);
-
-            migrationBuilder.Sql("""
-                CREATE TRIGGER blocks_au AFTER UPDATE ON Block
-                BEGIN
-                    UPDATE BlockSearch
-                    SET Content = new.Content
-                    WHERE BlockId = new.Id;
-                END;
-                """);
-
-            migrationBuilder.Sql("""
-                CREATE TRIGGER blocks_ad AFTER DELETE ON Block
-                BEGIN
-                    DELETE FROM BlockSearch WHERE BlockId = old.Id;
-                END;
-                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Drop triggers first
-            migrationBuilder.Sql("DROP TRIGGER IF EXISTS blocks_ad;");
-            migrationBuilder.Sql("DROP TRIGGER IF EXISTS blocks_au;");
-            migrationBuilder.Sql("DROP TRIGGER IF EXISTS blocks_ai;");
-
             migrationBuilder.DropTable(
                 name: "Block");
-
-            // Drop FTS5 virtual table
-            migrationBuilder.Sql("DROP TABLE IF EXISTS BlockSearch;");
 
             migrationBuilder.DropTable(
                 name: "Notes");

@@ -1,0 +1,86 @@
+using System.Collections.Immutable;
+using Microsoft.AspNetCore.Components;
+using Nouz.Domain.Entities;
+
+namespace Nouz.Components.Notes;
+
+public partial class NoteCard
+{
+    private readonly Dictionary<Guid, BlockRenderer> _blockRenderers = new();
+
+    [Parameter, EditorRequired]
+    public Note Note { get; set; } = null!;
+
+    [Parameter]
+    public bool IsEditing { get; set; }
+
+    [Parameter]
+    public Guid? EditingBlockId { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId)> OnBlockClick { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Block Block)> OnBlockContentChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid AfterBlockId, BlockType BlockType, Dictionary<string, object>? Metadata)> OnBlockAdd { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, BlockType NewType)> OnBlockTypeChange { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId)> OnBlockDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<Note> OnSave { get; set; }
+
+    private async Task HandleBlockClick(Guid blockId)
+    {
+        await OnBlockClick.InvokeAsync((Note.Id, blockId));
+    }
+
+    private async Task HandleBlockContentChanged(Block block)
+    {
+        await OnBlockContentChanged.InvokeAsync((Note.Id, block));
+    }
+
+    private async Task HandleBlockEnterPressed((Guid BlockId, BlockType BlockType, Dictionary<string, object>? Metadata) args)
+    {
+        await OnBlockAdd.InvokeAsync((Note.Id, args.BlockId, args.BlockType, args.Metadata));
+    }
+
+    private async Task HandleBlockTypeChange((Guid BlockId, BlockType NewType) args)
+    {
+        await OnBlockTypeChange.InvokeAsync((Note.Id, args.BlockId, args.NewType));
+    }
+
+    private async Task HandleBlockDelete(Guid blockId)
+    {
+        await OnBlockDelete.InvokeAsync((Note.Id, blockId));
+    }
+
+    private async Task HandleSave()
+    {
+        var updatedBlocks = new List<Block>();
+
+        foreach (var block in Note.Blocks)
+        {
+            if (_blockRenderers.TryGetValue(block.Id, out var renderer))
+            {
+                var content = await renderer.GetCurrentContent();
+                updatedBlocks.Add(block with { Content = content });
+            }
+            else
+            {
+                updatedBlocks.Add(block);
+            }
+        }
+
+        var updatedNote = Note with { Blocks = updatedBlocks.ToImmutableList() };
+        await OnSave.InvokeAsync(updatedNote);
+    }
+}

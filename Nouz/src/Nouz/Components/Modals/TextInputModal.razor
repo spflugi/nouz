@@ -1,13 +1,17 @@
-﻿<div class="modal-backdrop" 
-     @onclick="Cancel" 
+﻿@inject IJSRuntime JsRuntime
+
+<div class="modal-backdrop"
+     @onclick="Cancel"
      style="@(_isVisible ? "display:flex" : "display:none")">
-    <div class="modal" 
+    <div class="modal"
          @onclick:stopPropagation="true">
         <div class="modal-header">@Title</div>
         <div class="modal-body">
-            <input @bind="_inputValue" 
-                   placeholder="@Placeholder" 
-                   class="modal-input" />
+            <input @ref="_inputRef"
+                   @bind="_inputValue"
+                   placeholder="@Placeholder"
+                   class="modal-input"
+                   @onkeydown="HandleKeyDown" />
         </div>
         <div class="modal-footer">
             <button class="modal-button cancel" 

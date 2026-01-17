@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
         return services
             .AddTransient<IDbMigrator, DbMigrator>()
             .AddTransient<INotebookRepository, NotebookRepository>()
+            .AddTransient<INoteRepository, NoteRepository>()
             .AddDbContextFactory<NouzDbContext>(options => { options.UseSqlite(connectionString); });
     }
 }

@@ -1,0 +1,132 @@
+.block-wrapper {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    margin: 0;
+    padding-left: 24px;
+}
+
+.block-menu-trigger {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    border-radius: var(--radius-sm);
+}
+
+    .block-menu-trigger:hover {
+        background-color: var(--bg-hover);
+    }
+
+    .block-menu-trigger.visible {
+        opacity: 1;
+    }
+
+.block-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.block {
+    margin: 0;
+    padding: 2px 0;
+    outline: none;
+    min-height: 1.5em;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+    .block:empty::before {
+        content: attr(data-placeholder);
+        color: var(--text-placeholder);
+        pointer-events: none;
+    }
+
+    .block:focus {
+        outline: none;
+    }
+
+.block-paragraph {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.block-h1 {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin-top: var(--space-1);
+}
+
+.block-h2 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin-top: var(--space-1);
+}
+
+.block-h3 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-primary);
+}
+
+.block-h4 {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.block-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.list-bullet {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    background-color: var(--text-muted);
+    border-radius: 50%;
+    margin-top: 8px;
+}
+
+.list-content {
+    flex: 1;
+    min-width: 0;
+    outline: none;
+    min-height: 1.5em;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+    .list-content:empty::before {
+        content: attr(data-placeholder);
+        color: var(--text-placeholder);
+        pointer-events: none;
+    }
+
+    .list-content:focus {
+        outline: none;
+    }
+
+.block-wrapper.editing .block,
+.block-wrapper.editing .list-content {
+    cursor: text;
+}

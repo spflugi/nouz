@@ -73,10 +73,5 @@ internal sealed class NouzDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<BlockSearch>(n =>
-        {
-            n.ToTable("BlockSearch");
-            n.HasNoKey();
-        });
     }
 }

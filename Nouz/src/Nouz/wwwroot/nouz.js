@@ -50,5 +50,94 @@
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
         });
+    },
+
+    focusElement: function (element) {
+        if (!element) return;
+        element.focus();
+
+        // Move cursor to end of content (for contenteditable elements)
+        if (element.isContentEditable) {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.selectNodeContents(element);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    },
+
+    focusInput: function (element) {
+        if (!element) return;
+        // Use setTimeout to ensure the element is fully rendered in MAUI WebView
+        setTimeout(function () {
+            element.focus();
+            element.select();
+        }, 50);
+    },
+
+    getElementText: function (element) {
+        if (!element) return '';
+        return element.innerText || '';
+    },
+
+    setElementText: function (element, text) {
+        if (!element) return;
+        element.innerText = text || '';
+    },
+
+    preventDefaultOnEnter: function (element) {
+        if (!element) return;
+        element.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+            }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+            }
+        });
+    },
+
+    initBlockEditor: function (element, dotNetRef, initialContent) {
+        if (!element) return;
+
+        // Store dotNetRef first so it's available for event listeners
+        element._dotNetRef = dotNetRef;
+
+        // Set initial content and attach listeners only on first init
+        if (!element._blockEditorInit) {
+            element._blockEditorInit = true;
+
+            // Set initial content
+            if (initialContent !== undefined && initialContent !== null) {
+                element.innerText = initialContent;
+            }
+
+            element.addEventListener('keydown', async function (e) {
+                // Use stored dotNetRef which may be updated on re-renders
+                const ref = element._dotNetRef;
+                if (!ref) return;
+
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const content = element.innerText || '';
+                    try {
+                        await ref.invokeMethodAsync('OnEnterKeyPressed', content);
+                    } catch (err) {
+                        console.error('Enter key error:', err);
+                    }
+                }
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                        await ref.invokeMethodAsync('OnTabKeyPressed', e.shiftKey);
+                    } catch (err) {
+                        console.error('Tab key error:', err);
+                    }
+                }
+            });
+        }
     }
 };

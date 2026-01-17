@@ -1,13 +1,26 @@
-﻿<div class="searchbar">
-    <RadzenIcon Icon="search"
-                Style="color: var(--text-muted);" />
-    <input type="text"
-           placeholder="Search notes..."
-           value="@_query"
-           @oninput="HandleSearchInput" />
-    <RadzenButton Icon="close"
-                  Variant="Variant.Text"
-                  Style="@($"color: var(--text-muted); visibility: {(string.IsNullOrEmpty(_query) ? "hidden" : "visible")}")"
-                  Click="@ClearSearchInput"
-                  title="Clear search" />
+@inherits SharedComponentBase
+
+<div class="searchbar">
+    
+    @if (_selectedNotebookId is not null)
+    {
+        <RadzenIcon Icon="search"
+                    Style="color: var(--text-muted);" />
+        <input type="text"
+               placeholder="Search notes..."
+               value="@_query"
+               @oninput="HandleSearchInput" />
+        <RadzenButton Icon="close"
+                      Variant="Variant.Text"
+                      Style="@($"color: var(--text-muted); visibility: {(string.IsNullOrEmpty(_query) ? "hidden" : "visible")}")"
+                      Click="@(() => ClearSearchInput())"
+                      title="Clear search" />
+
+        <div class="searchbar-divider"></div>
+        <RadzenButton Icon="add"
+                      Variant="Variant.Text"
+                      Style="color: var(--text-muted);"
+                      Click="@CreateNote"
+                      title="New note" />
+    }
 </div>

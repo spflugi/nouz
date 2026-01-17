@@ -1,0 +1,44 @@
+@inherits SharedComponentBase
+@using Nouz.Components.Modals
+
+<TextInputModal @ref="TextModal" />
+<ConfirmationModal @ref="ConfirmationModal" />
+
+<div class="note-timeline">
+    @if (_selectedNotebookId is not null)
+    {
+        <div class="timeline-content">
+            @if (_notes.Count == 0)
+            {
+                <div class="empty-state">
+                    <p>No notes yet</p>
+                    <p class="hint">Click the + button in the top bar to create your first note</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var note in _notes)
+                {
+                    <NoteCard @key="note.Id"
+                              Note="@note"
+                              IsEditing="@(_editingNoteId == note.Id)"
+                              EditingBlockId="@(_editingNoteId == note.Id ? _editingBlockId : null)"
+                              OnDelete="@(noteId => DeleteNote(noteId))"
+                              OnSave="@(updatedNote => HandleSaveNote(updatedNote))"
+                              OnBlockClick="@(args => HandleBlockClick(args.NoteId, args.BlockId))"
+                              OnBlockContentChanged="@(args => HandleBlockContentChanged(args.NoteId, args.Block))"
+                              OnBlockAdd="@(args => HandleBlockAdd(args.NoteId, args.AfterBlockId, args.BlockType, args.Metadata))"
+                              OnBlockTypeChange="@(args => HandleBlockTypeChange(args.NoteId, args.BlockId, args.NewType))"
+                              OnBlockDelete="@(args => HandleBlockDelete(args.NoteId, args.BlockId))" />
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <p>Select a notebook</p>
+            <p class="hint">Choose a notebook from the sidebar to view its notes</p>
+        </div>
+    }
+</div>

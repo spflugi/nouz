@@ -778,7 +778,7 @@ public class NoteRepositoryTests : IDisposable
     #region Search Tests
 
     [Fact]
-    public async Task Search_WhenQueryMatchesBlockContent_ShouldReturnNote()
+    public async Task SearchInNotebook_WhenQueryMatchesBlockContent_ShouldReturnNote()
     {
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "This is a unique searchable content");
@@ -786,7 +786,7 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("unique");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "unique");
 
         // Assert
         results.Count.ShouldBe(1);
@@ -794,7 +794,7 @@ public class NoteRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_ShouldReturnNotesWithAllBlocks()
+    public async Task SearchInNotebook_ShouldReturnNotesWithAllBlocks()
     {
         // Arrange
         var block1 = CreateBlock(BlockType.H1, "Searchable title");
@@ -803,7 +803,7 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("Searchable");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "Searchable");
 
         // Assert
         results.Count.ShouldBe(1);
@@ -811,7 +811,7 @@ public class NoteRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_WhenNoMatch_ShouldReturnEmptyList()
+    public async Task SearchInNotebook_WhenNoMatch_ShouldReturnEmptyList()
     {
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Some content");
@@ -819,14 +819,14 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("nonexistent");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "nonexistent");
 
         // Assert
         results.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task Search_WhenQueryIsEmpty_ShouldReturnEmptyList()
+    public async Task SearchInNotebook_WhenQueryIsEmpty_ShouldReturnEmptyList()
     {
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Some content");
@@ -834,14 +834,14 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "");
 
         // Assert
         results.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task Search_WhenQueryIsWhitespace_ShouldReturnEmptyList()
+    public async Task SearchInNotebook_WhenQueryIsWhitespace_ShouldReturnEmptyList()
     {
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Some content");
@@ -849,14 +849,14 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("   ");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "   ");
 
         // Assert
         results.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task Search_ShouldReturnMultipleMatchingNotes()
+    public async Task SearchInNotebook_ShouldReturnMultipleMatchingNotes()
     {
         // Arrange
         var block1 = CreateBlock(BlockType.Paragraph, "First note with keyword");
@@ -873,7 +873,7 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note3);
 
         // Act
-        var results = await _repository.Search("keyword");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "keyword");
 
         // Assert
         results.Count.ShouldBe(2);
@@ -883,7 +883,7 @@ public class NoteRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_ShouldMatchAnyBlockInNote()
+    public async Task SearchInNotebook_ShouldMatchAnyBlockInNote()
     {
         // Arrange
         var block1 = CreateBlock(BlockType.H1, "Title without match");
@@ -893,7 +893,7 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("searchterm");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "searchterm");
 
         // Assert
         results.Count.ShouldBe(1);
@@ -901,7 +901,7 @@ public class NoteRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task Search_ShouldSearchAcrossNotebooks()
+    public async Task SearchInNotebook_ShouldOnlyReturnNotesFromSpecifiedNotebook()
     {
         // Arrange
         var notebook2 = CreateNotebook("Second Notebook");
@@ -917,16 +917,16 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note2);
 
         // Act
-        var results = await _repository.Search("searchword");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "searchword");
 
         // Assert
-        results.Count.ShouldBe(2);
+        results.Count.ShouldBe(1);
         results.ShouldContain(n => n.NotebookId == _defaultNotebook.Id);
-        results.ShouldContain(n => n.NotebookId == notebook2.Id);
+        results.ShouldNotContain(n => n.NotebookId == notebook2.Id);
     }
 
     [Fact]
-    public async Task Search_ShouldReturnNoteOnlyOnceEvenWithMultipleMatchingBlocks()
+    public async Task SearchInNotebook_ShouldReturnNoteOnlyOnceEvenWithMultipleMatchingBlocks()
     {
         // Arrange
         var block1 = CreateBlock(BlockType.H1, "Title with keyword");
@@ -936,7 +936,7 @@ public class NoteRepositoryTests : IDisposable
         await _repository.Add(note);
 
         // Act
-        var results = await _repository.Search("keyword");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "keyword");
 
         // Assert
         results.Count.ShouldBe(1);

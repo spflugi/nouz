@@ -1,0 +1,37 @@
+<div class="note-card @(IsEditing ? "editing" : "")">
+    <div class="note-header">
+        <span class="note-date">@Note.CreatedAt.LocalDateTime.ToString("MMM d, yyyy h:mm tt")</span>
+        <div class="note-actions">
+            @if (IsEditing)
+            {
+                <RadzenButton Icon="check"
+                              Variant="Variant.Text"
+                              Size="ButtonSize.ExtraSmall"
+                              Style="color: var(--notification-success);"
+                              Click="@HandleSave"
+                              title="Save note" />
+            }
+            <RadzenButton Icon="delete"
+                          Variant="Variant.Text"
+                          Size="ButtonSize.ExtraSmall"
+                          Style="color: var(--text-muted);"
+                          Click="@(() => OnDelete.InvokeAsync(Note.Id))"
+                          title="Delete note" />
+        </div>
+    </div>
+    <div class="note-content">
+        @foreach (var block in Note.Blocks)
+        {
+            <BlockRenderer @key="block.Id"
+                           @ref="_blockRenderers[block.Id]"
+                           Block="@block"
+                           NoteId="@Note.Id"
+                           IsEditing="@(EditingBlockId == block.Id)"
+                           OnClick="@(blockId => HandleBlockClick(blockId))"
+                           OnContentChanged="@(b => HandleBlockContentChanged(b))"
+                           OnEnterPressed="@(args => HandleBlockEnterPressed(args))"
+                           OnTypeChange="@(args => HandleBlockTypeChange(args))"
+                           OnDelete="@(blockId => HandleBlockDelete(blockId))" />
+        }
+    </div>
+</div>
