@@ -43,6 +43,11 @@
             <RadzenIcon Icon="code" />
             <span>Code</span>
         </button>
+        <button class="menu-item @(CurrentType == BlockType.Quote ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Quote))">
+            <RadzenIcon Icon="format_quote" />
+            <span>Quote</span>
+        </button>
     </div>
     <div class="menu-divider"></div>
     <div class="menu-section">

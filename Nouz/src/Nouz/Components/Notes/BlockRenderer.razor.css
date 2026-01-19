@@ -129,9 +129,39 @@
 .block-wrapper.editing .block,
 .block-wrapper.editing .list-content,
 .block-wrapper.editing .todo-content,
+.block-wrapper.editing .quote-content,
 .block-wrapper.editing code {
     cursor: text;
 }
+
+/* Quote Block */
+.block-quote {
+    border-left: 3px solid var(--text-muted);
+    padding-left: var(--space-3);
+    margin: var(--space-1) 0;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+.quote-content {
+    display: block;
+    outline: none;
+    min-height: 1.5em;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+    .quote-content:empty::before {
+        content: attr(data-placeholder);
+        color: var(--text-placeholder);
+        pointer-events: none;
+    }
+
+    .quote-content:focus {
+        outline: none;
+    }
 
 /* Todo Item Block */
 .block-todo-item {

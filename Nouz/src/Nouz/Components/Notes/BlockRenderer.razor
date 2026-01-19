@@ -1,4 +1,5 @@
 @using Nouz.Domain.Entities
+@using Nouz.Domain.Extensions
 @inject IJSRuntime JsRuntime
 
 <div class="block-wrapper @(IsEditing ? "editing" : "")"
@@ -17,11 +18,19 @@
                           CurrentType="Block.Type" />
     }
 
+    <FormattingToolbar IsVisible="_showFormattingToolbar"
+                       SelectionRect="_selectionRect"
+                       IsBold="_selectionIsBold"
+                       IsItalic="_selectionIsItalic"
+                       CurrentColor="_selectionColor"
+                       OnFormat="HandleFormat"
+                       OnColorSelected="HandleColorSelected" />
+
     <div class="block-content" @onclick="HandleClick">
         @switch (Block.Type)
         {
             case BlockType.Paragraph:
-                <p class="block block-paragraph"
+                <p class="block block-paragraph formattable"
                    contenteditable="true"
                    @ref="_contentRef"
                    data-placeholder="Type something..."></p>
@@ -82,6 +91,15 @@
                        @ref="_contentRef"
                        data-placeholder="Code"
                        spellcheck="false"></code></pre>
+                break;
+
+            case BlockType.Quote:
+                <blockquote class="block block-quote">
+                    <span class="quote-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="Quote"></span>
+                </blockquote>
                 break;
 
             default:
