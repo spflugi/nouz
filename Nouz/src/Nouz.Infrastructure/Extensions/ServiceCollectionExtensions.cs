@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
             .AddSingleton<IActionDispatcher, ActionDispatcher>();
     }
 
-    public static IServiceCollection RegisterDatabase(this IServiceCollection services)
+    public static IServiceCollection RegisterPersistence(this IServiceCollection services)
     {
         var connectionString = new SqliteConnectionStringBuilder
         {
@@ -51,6 +51,8 @@ public static class ServiceCollectionExtensions
             .AddTransient<IDbMigrator, DbMigrator>()
             .AddTransient<INotebookRepository, NotebookRepository>()
             .AddTransient<INoteRepository, NoteRepository>()
+            .AddSingleton(Microsoft.Maui.Storage.Preferences.Default)
+            .AddSingleton<Nouz.Application.Preferences.IPreferences, Nouz.Infrastructure.Preferences.Preferences>()
             .AddDbContextFactory<NouzDbContext>(options => { options.UseSqlite(connectionString); });
     }
 }
