@@ -78,6 +78,7 @@ public partial class BlockRenderer : IAsyncDisposable
         var newBlockType = Block.Type switch
         {
             BlockType.ListItem => BlockType.ListItem,
+            BlockType.TodoItem => BlockType.TodoItem,
             _ => BlockType.Paragraph
         };
 
@@ -190,5 +191,30 @@ public partial class BlockRenderer : IAsyncDisposable
             };
         }
         return 0;
+    }
+
+    private bool GetCheckedState()
+    {
+        if (Block.Metadata.TryGetValue("checked", out var checkedValue))
+        {
+            return checkedValue switch
+            {
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetBoolean(),
+                bool boolValue => boolValue,
+                _ => Convert.ToBoolean(checkedValue)
+            };
+        }
+        return false;
+    }
+
+    private async Task HandleTodoCheckedChange(ChangeEventArgs e)
+    {
+        var isChecked = e.Value is bool boolValue ? boolValue : e.Value?.ToString() == "True";
+        var metadata = new Dictionary<string, object>(Block.Metadata)
+        {
+            ["checked"] = isChecked
+        };
+        var updatedBlock = Block with { Metadata = metadata };
+        await OnContentChanged.InvokeAsync(updatedBlock);
     }
 }

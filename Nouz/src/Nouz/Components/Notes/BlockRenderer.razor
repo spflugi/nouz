@@ -65,6 +65,25 @@
                 </div>
                 break;
 
+            case BlockType.TodoItem:
+                <div class="block block-todo-item @(GetCheckedState() ? "checked" : "")">
+                    <input type="checkbox"
+                           checked="@GetCheckedState()"
+                           @onchange="HandleTodoCheckedChange" />
+                    <span class="todo-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="To-do"></span>
+                </div>
+                break;
+
+            case BlockType.Code:
+                <pre class="block block-code"><code contenteditable="true"
+                       @ref="_contentRef"
+                       data-placeholder="Code"
+                       spellcheck="false"></code></pre>
+                break;
+
             default:
                 <p class="block block-paragraph"
                    contenteditable="true"

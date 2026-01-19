@@ -241,6 +241,147 @@ public class BlockPersistenceTests : IDisposable
         result.Metadata.ShouldContainKey("important");
     }
 
+    [Fact]
+    public async Task TodoItem_CheckedState_ShouldPersistAsTrue()
+    {
+        // Arrange
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.TodoItem,
+            Content = "Completed task",
+            Metadata = new Dictionary<string, object> { ["checked"] = true }
+        };
+
+        // Act
+        await AddBlockToNote(block, _defaultNote.Id);
+
+        // Assert
+        var result = await GetBlockById(block.Id);
+        result.ShouldNotBeNull();
+        var checkedValue = result.Metadata["checked"];
+        // After JSON deserialization, value will be a JsonElement
+        if (checkedValue is System.Text.Json.JsonElement jsonElement)
+        {
+            jsonElement.GetBoolean().ShouldBeTrue();
+        }
+        else
+        {
+            Convert.ToBoolean(checkedValue).ShouldBeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task TodoItem_CheckedState_ShouldPersistAsFalse()
+    {
+        // Arrange
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.TodoItem,
+            Content = "Pending task",
+            Metadata = new Dictionary<string, object> { ["checked"] = false }
+        };
+
+        // Act
+        await AddBlockToNote(block, _defaultNote.Id);
+
+        // Assert
+        var result = await GetBlockById(block.Id);
+        result.ShouldNotBeNull();
+        var checkedValue = result.Metadata["checked"];
+        if (checkedValue is System.Text.Json.JsonElement jsonElement)
+        {
+            jsonElement.GetBoolean().ShouldBeFalse();
+        }
+        else
+        {
+            Convert.ToBoolean(checkedValue).ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task TodoItem_CheckedState_ShouldUpdateFromFalseToTrue()
+    {
+        // Arrange
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.TodoItem,
+            Content = "Task",
+            Metadata = new Dictionary<string, object> { ["checked"] = false }
+        };
+        await AddBlockToNote(block, _defaultNote.Id);
+
+        // Act - Update the checked state
+        await UpdateBlockMetadata(block.Id, new Dictionary<string, object> { ["checked"] = true });
+
+        // Assert
+        var result = await GetBlockById(block.Id);
+        result.ShouldNotBeNull();
+        var checkedValue = result.Metadata["checked"];
+        if (checkedValue is System.Text.Json.JsonElement jsonElement)
+        {
+            jsonElement.GetBoolean().ShouldBeTrue();
+        }
+        else
+        {
+            Convert.ToBoolean(checkedValue).ShouldBeTrue();
+        }
+    }
+
+    [Fact]
+    public async Task CodeBlock_ShouldPersistWithLanguageMetadata()
+    {
+        // Arrange
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Code,
+            Content = "console.log('Hello');",
+            Metadata = new Dictionary<string, object> { ["language"] = "javascript" }
+        };
+
+        // Act
+        await AddBlockToNote(block, _defaultNote.Id);
+
+        // Assert
+        var result = await GetBlockById(block.Id);
+        result.ShouldNotBeNull();
+        result.Type.ShouldBe(BlockType.Code);
+        var languageValue = result.Metadata["language"];
+        if (languageValue is System.Text.Json.JsonElement jsonElement)
+        {
+            jsonElement.GetString().ShouldBe("javascript");
+        }
+        else
+        {
+            languageValue.ToString().ShouldBe("javascript");
+        }
+    }
+
+    [Fact]
+    public async Task CodeBlock_ShouldPersistMultilineContent()
+    {
+        // Arrange
+        var multilineCode = "function hello() {\n    console.log('Hello');\n    return true;\n}";
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Code,
+            Content = multilineCode
+        };
+
+        // Act
+        await AddBlockToNote(block, _defaultNote.Id);
+
+        // Assert
+        var result = await GetBlockById(block.Id);
+        result.ShouldNotBeNull();
+        result.Content.ShouldBe(multilineCode);
+        result.Content.ShouldContain("\n");
+    }
+
     #endregion
 
     #region Block-Note Relationship Tests
@@ -471,6 +612,17 @@ public class BlockPersistenceTests : IDisposable
         if (block is not null)
         {
             context.Entry(block).CurrentValues.SetValues(block with { Type = newType });
+            await context.SaveChangesAsync();
+        }
+    }
+
+    private async Task UpdateBlockMetadata(Guid blockId, Dictionary<string, object> newMetadata)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var block = await context.Set<Block>().FindAsync(blockId);
+        if (block is not null)
+        {
+            context.Entry(block).CurrentValues.SetValues(block with { Metadata = newMetadata });
             await context.SaveChangesAsync();
         }
     }

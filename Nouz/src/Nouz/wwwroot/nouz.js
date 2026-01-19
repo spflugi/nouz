@@ -118,14 +118,35 @@
                 const ref = element._dotNetRef;
                 if (!ref) return;
 
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const content = element.innerText || '';
-                    try {
-                        await ref.invokeMethodAsync('OnEnterKeyPressed', content);
-                    } catch (err) {
-                        console.error('Enter key error:', err);
+                // Check if this is a code block - allow Enter to create newlines
+                const isCodeBlock = element.closest('.block-code') !== null;
+
+                if (e.key === 'Enter') {
+                    if (isCodeBlock) {
+                        // For code blocks: Shift+Enter creates new block, Enter creates newline
+                        if (e.shiftKey) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const content = element.innerText || '';
+                            try {
+                                await ref.invokeMethodAsync('OnEnterKeyPressed', content);
+                            } catch (err) {
+                                console.error('Enter key error:', err);
+                            }
+                        }
+                        // Regular Enter in code block - let browser handle newline
+                    } else {
+                        // For other blocks: Enter creates new block
+                        if (!e.shiftKey) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const content = element.innerText || '';
+                            try {
+                                await ref.invokeMethodAsync('OnEnterKeyPressed', content);
+                            } catch (err) {
+                                console.error('Enter key error:', err);
+                            }
+                        }
                     }
                 }
                 if (e.key === 'Tab') {

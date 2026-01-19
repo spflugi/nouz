@@ -33,6 +33,16 @@
             <RadzenIcon Icon="format_list_bulleted" />
             <span>List item</span>
         </button>
+        <button class="menu-item @(CurrentType == BlockType.TodoItem ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.TodoItem))">
+            <RadzenIcon Icon="check_box" />
+            <span>To-do</span>
+        </button>
+        <button class="menu-item @(CurrentType == BlockType.Code ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Code))">
+            <RadzenIcon Icon="code" />
+            <span>Code</span>
+        </button>
     </div>
     <div class="menu-divider"></div>
     <div class="menu-section">
