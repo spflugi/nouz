@@ -2,6 +2,7 @@
 using Mediator;
 using Nouz.Application.Logger;
 using Nouz.Application.Notifications;
+using Nouz.Application.Preferences;
 using Nouz.Application.Store;
 using Nouz.Domain.Entities;
 using Nouz.Domain.Repositories;
@@ -18,15 +19,17 @@ internal sealed class NotebookHandler :
     private readonly IMediator _mediator;
     private readonly INotebookRepository _notebookRepository;
     private readonly IActionDispatcher _actionDispatcher;
+    private readonly IPreferences _preferences;
     private readonly ILoggerAdapter<NotebookHandler> _logger;
 
     public NotebookHandler(IMediator mediator, INotebookRepository notebookRepository,
-        IActionDispatcher actionDispatcher,
+        IActionDispatcher actionDispatcher, IPreferences preferences,
         ILoggerAdapter<NotebookHandler> logger)
     {
         _mediator = mediator;
         _notebookRepository = notebookRepository;
         _actionDispatcher = actionDispatcher;
+        _preferences = preferences;
         _logger = logger;
     }
 
@@ -102,6 +105,7 @@ internal sealed class NotebookHandler :
         _logger.LogInformation("Selecting the notebook with the id '{NotebookId}'", command.Id);
 
         await _actionDispatcher.Dispatch(new NotebookActions.NotebookSelected(command.Id)).ConfigureAwait(false);
+        _preferences.Set(PreferenceKeys.SelectedNotebookId, command.Id.ToString());
 
         _logger.LogInformation("New notebook with id '{NotebookId}' selected", command.Id);
 

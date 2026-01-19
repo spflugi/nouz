@@ -30,7 +30,7 @@ public static class MauiProgram
             .RegisterLogger(builder.Configuration, builder.Logging)
             .RegisterCommandsAndHandlers()
             .RegisterStoreAndDispatcher()
-            .RegisterDatabase();
+            .RegisterPersistence();
 
         return builder.Build();
     }
