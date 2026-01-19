@@ -160,5 +160,195 @@
                 }
             });
         }
+    },
+
+    // Get the current selection range within a contenteditable element
+    // Returns { start, end, text } or null if no selection
+    getSelectionRange: function (element) {
+        if (!element) return null;
+
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return null;
+
+        const range = selection.getRangeAt(0);
+
+        // Check if selection is within the element
+        if (!element.contains(range.commonAncestorContainer)) return null;
+
+        // Calculate the text offset from the start of the element
+        const preSelectionRange = range.cloneRange();
+        preSelectionRange.selectNodeContents(element);
+        preSelectionRange.setEnd(range.startContainer, range.startOffset);
+        const start = preSelectionRange.toString().length;
+
+        const end = start + range.toString().length;
+        const text = range.toString();
+
+        return { start, end, text };
+    },
+
+    // Set selection range in a contenteditable element
+    setSelectionRange: function (element, start, end) {
+        if (!element) return;
+
+        const range = document.createRange();
+        const selection = window.getSelection();
+
+        let charIndex = 0;
+        let startNode = null, startOffset = 0;
+        let endNode = null, endOffset = 0;
+
+        const traverseNodes = function (node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const nodeLength = node.textContent.length;
+                if (!startNode && charIndex + nodeLength >= start) {
+                    startNode = node;
+                    startOffset = start - charIndex;
+                }
+                if (!endNode && charIndex + nodeLength >= end) {
+                    endNode = node;
+                    endOffset = end - charIndex;
+                }
+                charIndex += nodeLength;
+            } else {
+                for (let i = 0; i < node.childNodes.length && !endNode; i++) {
+                    traverseNodes(node.childNodes[i]);
+                }
+            }
+        };
+
+        traverseNodes(element);
+
+        if (startNode && endNode) {
+            range.setStart(startNode, startOffset);
+            range.setEnd(endNode, endOffset);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    },
+
+    // Get the bounding rect of the current selection (for positioning toolbar)
+    getSelectionRect: function () {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+            return null;
+        }
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        return {
+            top: rect.top,
+            left: rect.left,
+            bottom: rect.bottom,
+            right: rect.right,
+            width: rect.width,
+            height: rect.height
+        };
+    },
+
+    // Initialize selection monitoring for formatting toolbar
+    initFormattingToolbar: function (element, dotNetRef) {
+        if (!element || !dotNetRef) return;
+        if (element._formattingToolbarInit) {
+            element._formattingDotNetRef = dotNetRef;
+            return;
+        }
+
+        element._formattingToolbarInit = true;
+        element._formattingDotNetRef = dotNetRef;
+
+        // Debounce selection change handler
+        let selectionTimeout = null;
+
+        const handleSelectionChange = function () {
+            if (selectionTimeout) {
+                clearTimeout(selectionTimeout);
+            }
+
+            selectionTimeout = setTimeout(async function () {
+                const ref = element._formattingDotNetRef;
+                if (!ref) return;
+
+                const selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0) {
+                    try {
+                        await ref.invokeMethodAsync('OnSelectionChanged', null);
+                    } catch (err) { }
+                    return;
+                }
+
+                const range = selection.getRangeAt(0);
+
+                // Check if selection is within our element
+                if (!element.contains(range.commonAncestorContainer)) {
+                    try {
+                        await ref.invokeMethodAsync('OnSelectionChanged', null);
+                    } catch (err) { }
+                    return;
+                }
+
+                // Has actual selection (not just cursor)
+                if (selection.isCollapsed) {
+                    try {
+                        await ref.invokeMethodAsync('OnSelectionChanged', null);
+                    } catch (err) { }
+                    return;
+                }
+
+                const selectionData = window.nouz.getSelectionRange(element);
+                const rect = window.nouz.getSelectionRect();
+
+                if (selectionData && rect && selectionData.text.length > 0) {
+                    try {
+                        await ref.invokeMethodAsync('OnSelectionChanged', {
+                            start: selectionData.start,
+                            end: selectionData.end,
+                            text: selectionData.text,
+                            rect: rect
+                        });
+                    } catch (err) {
+                        console.error('Selection change error:', err);
+                    }
+                } else {
+                    try {
+                        await ref.invokeMethodAsync('OnSelectionChanged', null);
+                    } catch (err) { }
+                }
+            }, 100);
+        };
+
+        // Listen for selection changes when focused
+        element.addEventListener('mouseup', handleSelectionChange);
+        element.addEventListener('keyup', function (e) {
+            if (e.shiftKey || e.key === 'Shift') {
+                handleSelectionChange();
+            }
+        });
+
+        // Clear selection state when element loses focus
+        element.addEventListener('blur', function () {
+            // Small delay to allow toolbar click to register
+            setTimeout(async function () {
+                const ref = element._formattingDotNetRef;
+                if (ref && !element.contains(document.activeElement)) {
+                    try {
+                        await ref.invokeMethodAsync('OnSelectionChanged', null);
+                    } catch (err) { }
+                }
+            }, 200);
+        });
+    },
+
+    // Set HTML content for a contenteditable element (for formatted content)
+    setElementHtml: function (element, html) {
+        if (!element) return;
+        element.innerHTML = html || '';
+    },
+
+    // Get plain text from element (strips HTML)
+    getElementPlainText: function (element) {
+        if (!element) return '';
+        return element.innerText || '';
     }
 };

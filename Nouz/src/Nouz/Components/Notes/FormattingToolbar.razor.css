@@ -1,0 +1,113 @@
+.formatting-toolbar {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    transform: translateX(-50%);
+    z-index: 1000;
+    user-select: none;
+}
+
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color var(--transition-fast);
+}
+
+    .toolbar-btn:hover {
+        background-color: var(--bg-hover);
+    }
+
+    .toolbar-btn.active {
+        background-color: var(--accent-light);
+        color: var(--accent);
+    }
+
+    .toolbar-btn em {
+        font-style: italic;
+        font-weight: 600;
+    }
+
+.toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border-color);
+    margin: 0 4px;
+}
+
+.color-picker-wrapper {
+    position: relative;
+}
+
+.color-btn {
+    position: relative;
+    width: 32px;
+}
+
+.color-indicator {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 3px;
+    border-radius: 1px;
+}
+
+.color-icon {
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.color-picker-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    padding: 6px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.color-option {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+    .color-option:hover {
+        transform: scale(1.1);
+        border-color: var(--accent);
+    }
+
+    .color-option.default-color {
+        background-color: var(--bg-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+    }
