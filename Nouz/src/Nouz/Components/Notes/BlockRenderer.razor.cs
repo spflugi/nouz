@@ -14,6 +14,11 @@ public partial class BlockRenderer : IAsyncDisposable
     private bool _formattingInitialized;
     private DotNetObjectReference<BlockRenderer>? _dotNetRef;
 
+    // Drag and drop state
+    private bool _isDragging;
+    private bool _isDragOver;
+    private static Guid? _draggedBlockId;
+
     // Formatting toolbar state
     private bool _showFormattingToolbar;
     private FormattingToolbar.SelectionRectData? _selectionRect;
@@ -28,6 +33,9 @@ public partial class BlockRenderer : IAsyncDisposable
 
     [Parameter, EditorRequired]
     public Guid NoteId { get; set; }
+
+    [Parameter]
+    public int Index { get; set; }
 
     [Parameter]
     public bool IsEditing { get; set; }
@@ -46,6 +54,9 @@ public partial class BlockRenderer : IAsyncDisposable
 
     [Parameter]
     public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid BlockId, int NewIndex)> OnReorder { get; set; }
 
     private bool SupportsFormatting => Block.Type == BlockType.Paragraph;
 
@@ -371,6 +382,41 @@ public partial class BlockRenderer : IAsyncDisposable
             {
                 // Ignore JS interop errors
             }
+        }
+    }
+
+    private void HandleDragStart()
+    {
+        _isDragging = true;
+        _draggedBlockId = Block.Id;
+    }
+
+    private void HandleDragEnd()
+    {
+        _isDragging = false;
+        _draggedBlockId = null;
+    }
+
+    private void HandleDragOver()
+    {
+        if (_draggedBlockId.HasValue && _draggedBlockId.Value != Block.Id)
+        {
+            _isDragOver = true;
+        }
+    }
+
+    private void HandleDragLeave()
+    {
+        _isDragOver = false;
+    }
+
+    private async Task HandleDrop()
+    {
+        _isDragOver = false;
+
+        if (_draggedBlockId.HasValue && _draggedBlockId.Value != Block.Id)
+        {
+            await OnReorder.InvokeAsync((_draggedBlockId.Value, Index));
         }
     }
 

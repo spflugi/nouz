@@ -1,9 +1,8 @@
-﻿.sidebar {
-    width: var(--sidebar-width);
-    min-width: var(--sidebar-min-width);
-    max-width: var(--sidebar-max-width);
+.right-sidebar {
+    min-width: 200px;
+    max-width: 600px;
     background-color: var(--bg-secondary);
-    border-right: 1px solid var(--border-subtle);
+    border-left: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     position: relative;
@@ -29,7 +28,7 @@
 
 .sidebar-resize-handle {
     position: absolute;
-    right: -2px;
+    left: -2px;
     top: 0;
     bottom: 0;
     width: 6px;
@@ -48,17 +47,41 @@
         background-color: var(--accent);
     }
 
-body.sidebar-resizing {
+body.right-sidebar-resizing {
     cursor: ew-resize !important;
     user-select: none;
 }
 
-    body.sidebar-resizing * {
+    body.right-sidebar-resizing * {
         cursor: ew-resize !important;
     }
 
-.notebook-list {
+.sidebar-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--space-2) 0;
+    padding: var(--space-4);
+}
+
+.placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: var(--space-3);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+    .placeholder-content p {
+        font-size: 13px;
+        margin: 0;
+    }
+
+.right-sidebar-toggle {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--space-3);
+    border-left: 1px solid var(--border-subtle);
+    background-color: var(--bg-secondary);
 }

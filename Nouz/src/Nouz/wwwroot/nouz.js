@@ -52,6 +52,60 @@
         });
     },
 
+    initRightSidebarResize: function (handleElement, sidebarElement, dotNetRef, minWidth, maxWidth) {
+        if (!handleElement || !sidebarElement) return;
+        if (handleElement._nouzResizeInitialized) return;
+        handleElement._nouzResizeInitialized = true;
+
+        let isResizing = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const onMouseMove = function (e) {
+            if (!isResizing) return;
+
+            // Inverted deltaX for left-edge resizing
+            const deltaX = startX - e.clientX;
+            let newWidth = startWidth + deltaX;
+            newWidth = Math.max(minWidth || 200, Math.min(maxWidth || 600, newWidth));
+            sidebarElement.style.width = newWidth + 'px';
+        };
+
+        const onMouseUp = async function (e) {
+            if (!isResizing) return;
+
+            isResizing = false;
+            document.body.classList.remove('right-sidebar-resizing');
+            handleElement.classList.remove('resizing');
+
+            const finalWidth = parseInt(sidebarElement.style.width, 10);
+
+            if (dotNetRef && !isNaN(finalWidth)) {
+                try {
+                    await dotNetRef.invokeMethodAsync('OnRightSidebarResized', finalWidth);
+                } catch (err) {
+                    console.error('Right sidebar resize error:', err);
+                }
+            }
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        handleElement.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            isResizing = true;
+            startX = e.clientX;
+            startWidth = sidebarElement.offsetWidth;
+
+            document.body.classList.add('right-sidebar-resizing');
+            handleElement.classList.add('resizing');
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    },
+
     focusElement: function (element) {
         if (!element) return;
         element.focus();

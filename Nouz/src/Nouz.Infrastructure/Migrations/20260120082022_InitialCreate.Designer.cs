@@ -11,7 +11,7 @@ using Nouz.Infrastructure.Repositories;
 namespace Nouz.Infrastructure.Migrations
 {
     [DbContext(typeof(NouzDbContext))]
-    [Migration("20260119125436_InitialCreate")]
+    [Migration("20260120082022_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -36,6 +36,9 @@ namespace Nouz.Infrastructure.Migrations
 
                     b.Property<Guid>("NoteId")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Type")
                         .IsRequired()

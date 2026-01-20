@@ -39,6 +39,11 @@ public static class NoteReducers
                 state with { SearchQuery = action.Query, FilteredNotes = action.FilteredNotes })
             .On<NoteActions.SearchCleared>((state, _) =>
                 state with { SearchQuery = string.Empty, FilteredNotes = null })
+            .On<NoteActions.NoteMoved>((state, action) =>
+            {
+                var updatedNotes = state.Notes.RemoveAll(n => n.Id == action.NoteId);
+                return state with { Notes = updatedNotes };
+            })
             .ToList();
     }
 }

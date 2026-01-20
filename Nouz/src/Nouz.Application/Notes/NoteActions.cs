@@ -45,4 +45,9 @@ public static class NoteActions
     /// Triggered when search is cleared.
     /// </summary>
     public sealed record SearchCleared : IAction;
+
+    /// <summary>
+    /// Triggered when a note is moved to a different notebook.
+    /// </summary>
+    public sealed record NoteMoved(Guid NoteId, Guid NewNotebookId) : IAction;
 }

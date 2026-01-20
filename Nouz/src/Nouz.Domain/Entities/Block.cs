@@ -6,4 +6,5 @@ public sealed record Block
     public required BlockType Type { get; init; }
     public string Content { get; init; } = string.Empty;
     public Dictionary<string, object> Metadata { get; init; } = [];
+    public int Order { get; init; }
 }

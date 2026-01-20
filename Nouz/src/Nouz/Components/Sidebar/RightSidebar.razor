@@ -1,0 +1,38 @@
+@inherits SharedComponentBase
+@implements IAsyncDisposable
+
+@if (!_isCollapsed)
+{
+    <div class="right-sidebar"
+         @ref="_sidebarRef"
+         style="width: @(_sidebarWidth)px">
+
+        <div class="sidebar-resize-handle" @ref="_resizeHandleRef"></div>
+
+        <div class="sidebar-header">
+            <h2>Assistant</h2>
+            <RadzenButton Icon="close"
+                          Variant="Variant.Text"
+                          Style="color: var(--text-muted);"
+                          Click="@ToggleCollapse"
+                          title="Close sidebar" />
+        </div>
+
+        <div class="sidebar-content">
+            <div class="placeholder-content">
+                <RadzenIcon Icon="smart_toy" Style="font-size: 48px; color: var(--text-muted);" />
+                <p>AI Assistant coming soon</p>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="right-sidebar-toggle">
+        <RadzenButton Icon="smart_toy"
+                      Variant="Variant.Text"
+                      Style="color: var(--text-muted);"
+                      Click="@ToggleCollapse"
+                      title="Open Assistant" />
+    </div>
+}

@@ -8,17 +8,18 @@ using Nouz.Extensions;
 
 namespace Nouz.Components.Sidebar;
 
-public partial class Sidebar
+public partial class LeftSidebar
 {
     private const int MinWidth = 120;
     private const int MaxWidth = 600;
 
     private ElementReference _sidebarRef;
     private ElementReference _resizeHandleRef;
-    private DotNetObjectReference<Sidebar>? _dotNetRef;
+    private DotNetObjectReference<LeftSidebar>? _dotNetRef;
 
     private int _sidebarWidth = 270;
     private bool _isResizingInitialized;
+    private bool _isCollapsed;
 
     private ImmutableList<Notebook> _notebooks = [];
     private Guid? _selectedNotebookId;
@@ -66,7 +67,7 @@ public partial class Sidebar
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_isResizingInitialized && _resizeHandleRef.Context is not null && _sidebarRef.Context is not null)
+        if (!_isCollapsed && !_isResizingInitialized && _resizeHandleRef.Context is not null && _sidebarRef.Context is not null)
         {
             _isResizingInitialized = true;
             try
@@ -78,6 +79,12 @@ public partial class Sidebar
                 // Ignore JS errors during initialization
             }
         }
+    }
+
+    private void ToggleCollapse()
+    {
+        _isCollapsed = !_isCollapsed;
+        _isResizingInitialized = false; // Reset so resize gets re-initialized when expanded
     }
 
     private async Task CreateNotebook()

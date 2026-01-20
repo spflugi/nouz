@@ -34,6 +34,9 @@ namespace Nouz.Infrastructure.Migrations
                     b.Property<Guid>("NoteId")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("TEXT");

@@ -41,7 +41,7 @@ internal sealed class NoteRepository : INoteRepository
 
         var blocksByNoteId = blocksWithNoteId
             .GroupBy(x => x.NoteId)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Block).ToImmutableList());
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Block).OrderBy(b => b.Order).ToImmutableList());
 
         return notes
             .Select(n => n with
@@ -69,6 +69,7 @@ internal sealed class NoteRepository : INoteRepository
 
         var blocks = await context.Set<Block>()
             .Where(b => EF.Property<Guid>(b, "NoteId") == noteId)
+            .OrderBy(b => b.Order)
             .AsNoTracking()
             .ToListAsync(token)
             .ConfigureAwait(false);
@@ -212,7 +213,7 @@ internal sealed class NoteRepository : INoteRepository
 
         var blocksByNoteId = blocksWithNoteId
             .GroupBy(x => x.NoteId)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Block).ToImmutableList());
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Block).OrderBy(b => b.Order).ToImmutableList());
 
         return notes
             .Select(n => n with
