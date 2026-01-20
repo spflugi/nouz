@@ -2,6 +2,7 @@
 using Nouz.Application.Logger;
 using Nouz.Application.Notebooks;
 using Nouz.Application.Preferences;
+using Nouz.Application.Settings;
 using Nouz.Application.Store;
 using Nouz.Domain.Repositories;
 
@@ -37,6 +38,7 @@ internal sealed class LifecycleHandler :
         await _mediator.Send(new NotebookCommands.LoadAllNotebooks(), cancellationToken).ConfigureAwait(false);
 
         await LoadLastSelectedNotebookId().ConfigureAwait(false);
+        await LoadOpenAiApiKey().ConfigureAwait(false);
 
         return Unit.Value;
     }
@@ -60,6 +62,16 @@ internal sealed class LifecycleHandler :
         if (selectedNotebookIdValue is not null && Guid.TryParse(selectedNotebookIdValue, out var selectedNotebookId))
         {
             await _actionDispatcher.Dispatch(new NotebookActions.NotebookSelected(selectedNotebookId)).ConfigureAwait(false);
+        }
+    }
+
+    private async Task LoadOpenAiApiKey()
+    {
+        var openAiApiKey = _preferences.Get(PreferenceKeys.OpenAiApiKey);
+
+        if (openAiApiKey is not null)
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.OpenAiApiKeyUpdated(openAiApiKey)).ConfigureAwait(false);
         }
     }
 }

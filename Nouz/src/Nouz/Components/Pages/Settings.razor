@@ -1,0 +1,36 @@
+﻿@page "/settings"
+@inherits SharedComponentBase
+
+<div class="settings-page">
+    <button class="back-button" @onclick="NavigateBack">
+        <RadzenIcon Icon="arrow_back" />
+        <span>Back</span>
+    </button>
+
+    <div class="settings-card">
+        <div class="settings-header">
+            <RadzenIcon Icon="smart_toy" />
+            <span>OpenAI</span>
+        </div>
+
+        <div class="settings-body">
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">API Key</span>
+                    <span class="setting-description">Your OpenAI API key for the AI assistant</span>
+                </div>
+                <div class="setting-input">
+                    <input type="password"
+                           class="text-input"
+                           placeholder="sk-..."
+                           value="@_openAiApiKey"
+                           @oninput="HandleApiKeyInput" />
+                    @if (_isSaving)
+                    {
+                        <span class="saving-indicator">Saving...</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
