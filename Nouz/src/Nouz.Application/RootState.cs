@@ -1,4 +1,5 @@
-﻿using Nouz.Application.Notebooks;
+﻿using Nouz.Application.Chat;
+using Nouz.Application.Notebooks;
 using Nouz.Application.Notes;
 using Nouz.Application.Notifications;
 using Nouz.Application.Settings;
@@ -17,4 +18,6 @@ public sealed record RootState : IState
     public NoteState Notes { get; init; } = new();
 
     public SettingsState Settings { get; init; } = new();
+
+    public ChatState Chat { get; init; } = new();
 }

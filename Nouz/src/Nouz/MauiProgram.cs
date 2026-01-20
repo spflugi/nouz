@@ -30,7 +30,8 @@ public static class MauiProgram
             .RegisterLogger(builder.Configuration, builder.Logging)
             .RegisterCommandsAndHandlers()
             .RegisterStoreAndDispatcher()
-            .RegisterPersistence();
+            .RegisterPersistence()
+            .RegisterChatService();
 
         return builder.Build();
     }

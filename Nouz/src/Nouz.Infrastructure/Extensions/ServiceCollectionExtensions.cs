@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Nouz.Application.Chat;
 using Nouz.Application.Logger;
 using Nouz.Application.Store;
 using Nouz.Domain.Repositories;
+using Nouz.Infrastructure.Chat;
 using Nouz.Infrastructure.Logger;
 using Nouz.Infrastructure.Repositories;
 using Nouz.Infrastructure.Store;
@@ -54,5 +56,10 @@ public static class ServiceCollectionExtensions
             .AddSingleton(Microsoft.Maui.Storage.Preferences.Default)
             .AddSingleton<Nouz.Application.Preferences.IPreferences, Nouz.Infrastructure.Preferences.Preferences>()
             .AddDbContextFactory<NouzDbContext>(options => { options.UseSqlite(connectionString); });
+    }
+
+    public static IServiceCollection RegisterChatService(this IServiceCollection services)
+    {
+        return services.AddSingleton<IChatService, ChatService>();
     }
 }

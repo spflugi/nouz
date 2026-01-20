@@ -1,6 +1,7 @@
 ﻿using Nouz.Application;
 using Nouz.ReduxSimple;
 using System.Reactive.Concurrency;
+using Nouz.Application.Chat;
 using Nouz.Application.Notebooks;
 using Nouz.Application.Notes;
 using Nouz.Application.Notifications;
@@ -29,6 +30,7 @@ internal static class StoreFactory
             NotebookReducers.Create<RootState>(s => s.Notebooks),
             NoteReducers.Create<RootState>(s => s.Notes),
             NotificationReducers.Create<RootState>(s => s.Notifications),
-            SettingsReducers.Create<RootState>(s => s.Settings));
+            SettingsReducers.Create<RootState>(s => s.Settings),
+            ChatReducers.Create<RootState>(s => s.Chat));
     }
 }

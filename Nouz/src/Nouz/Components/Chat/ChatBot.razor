@@ -1,0 +1,70 @@
+@namespace Nouz.Components.Chat
+@inherits SharedComponentBase
+
+<div class="chat-container">
+    <div class="chat-messages" @ref="_messagesContainer">
+        @if (_messages.Count == 0)
+        {
+            <div class="chat-empty">
+                <RadzenIcon Icon="chat_bubble_outline" Style="font-size: 32px;" />
+                <p>Start a conversation with the AI assistant</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var message in _messages)
+            {
+                <div class="chat-message @(message.Role == ChatMessageRole.User ? "user" : "assistant")">
+                    <div class="message-avatar">
+                        @if (message.Role == ChatMessageRole.User)
+                        {
+                            <RadzenIcon Icon="person" />
+                        }
+                        else
+                        {
+                            <RadzenIcon Icon="smart_toy" />
+                        }
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-role">@(message.Role == ChatMessageRole.User ? "You" : "Assistant")</span>
+                            <span class="message-time">@message.Timestamp.ToString("HH:mm")</span>
+                        </div>
+                        <div class="message-text">@message.Content</div>
+                    </div>
+                </div>
+            }
+
+            @if (_isTyping)
+            {
+                <div class="chat-message assistant">
+                    <div class="message-avatar">
+                        <RadzenIcon Icon="smart_toy" />
+                    </div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="chat-input-area">
+        <textarea class="chat-input"
+                  placeholder="Type a message..."
+                  @bind="_inputText"
+                  @bind:event="oninput"
+                  @onkeydown="HandleKeyDown"
+                  rows="1"
+                  disabled="@_isTyping"></textarea>
+        <button class="send-button"
+                @onclick="SendMessage"
+                disabled="@(string.IsNullOrWhiteSpace(_inputText) || _isTyping)">
+            <RadzenIcon Icon="send" />
+        </button>
+    </div>
+</div>

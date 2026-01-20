@@ -404,5 +404,11 @@
     getElementPlainText: function (element) {
         if (!element) return '';
         return element.innerText || '';
+    },
+
+    // Scroll an element to the bottom (for chat)
+    scrollToBottom: function (element) {
+        if (!element) return;
+        element.scrollTop = element.scrollHeight;
     }
 };
