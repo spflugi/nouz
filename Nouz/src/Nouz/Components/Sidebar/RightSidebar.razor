@@ -1,3 +1,4 @@
+@using Nouz.Components.Chat
 @inherits SharedComponentBase
 @implements IAsyncDisposable
 
@@ -19,10 +20,7 @@
         </div>
 
         <div class="sidebar-content">
-            <div class="placeholder-content">
-                <RadzenIcon Icon="smart_toy" Style="font-size: 48px; color: var(--text-muted);" />
-                <p>AI Assistant coming soon</p>
-            </div>
+            <ChatBot />
         </div>
     </div>
 }
