@@ -4,6 +4,7 @@ using System.Reactive.Concurrency;
 using Nouz.Application.Notebooks;
 using Nouz.Application.Notes;
 using Nouz.Application.Notifications;
+using Nouz.Application.Settings;
 
 namespace Nouz.Infrastructure.Store;
 
@@ -27,6 +28,7 @@ internal static class StoreFactory
         return Reducers.CombineReducers(
             NotebookReducers.Create<RootState>(s => s.Notebooks),
             NoteReducers.Create<RootState>(s => s.Notes),
-            NotificationReducers.Create<RootState>(s => s.Notifications));
+            NotificationReducers.Create<RootState>(s => s.Notifications),
+            SettingsReducers.Create<RootState>(s => s.Settings));
     }
 }

@@ -12,6 +12,9 @@ public partial class Searchbar
     private Guid? _selectedNotebookId;
     private readonly Subject<string> _searchSubject = new();
 
+    [Inject]
+    public NavigationManager Navigation { get; init; } = null!;
+
     protected override void OnInitialized()
     {
         StateProvider.StateObservable
@@ -73,6 +76,11 @@ public partial class Searchbar
         {
             await Mediator.Send(new NoteCommands.CreateNote(_selectedNotebookId.Value));
         }
+    }
+
+    private void OpenSettings()
+    {
+        Navigation.NavigateTo("/settings");
     }
 
     public override void Dispose()
