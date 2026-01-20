@@ -3,6 +3,7 @@ using Mediator;
 using Nouz.Application.Logger;
 using Nouz.Application.Notebooks;
 using Nouz.Application.Notifications;
+using Nouz.Application.Preferences;
 using Nouz.Application.Store;
 using Nouz.Domain.Entities;
 using Nouz.Domain.Repositories;
@@ -17,12 +18,13 @@ public class NotebookHandlerTests
     private readonly IMediator _mediator = Substitute.For<IMediator>();
     private readonly INotebookRepository _notebookRepository = Substitute.For<INotebookRepository>();
     private readonly IActionDispatcher _actionDispatcher = Substitute.For<IActionDispatcher>();
+    private readonly IPreferences _preferences = Substitute.For<IPreferences>();
     private readonly ILoggerAdapter<NotebookHandler> _logger = Substitute.For<ILoggerAdapter<NotebookHandler>>();
     private readonly NotebookHandler _handler;
 
     public NotebookHandlerTests()
     {
-        _handler = new NotebookHandler(_mediator, _notebookRepository, _actionDispatcher, _logger);
+        _handler = new NotebookHandler(_mediator, _notebookRepository, _actionDispatcher, _preferences, _logger);
     }
 
     #region LoadAllNotebooks Tests

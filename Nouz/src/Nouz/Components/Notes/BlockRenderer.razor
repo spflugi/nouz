@@ -2,12 +2,22 @@
 @using Nouz.Domain.Extensions
 @inject IJSRuntime JsRuntime
 
-<div class="block-wrapper @(IsEditing ? "editing" : "")"
+<div class="block-wrapper @(IsEditing ? "editing" : "") @(_isDragOver ? "drag-over" : "") @(_isDragging ? "dragging" : "")"
      @onmouseenter="ShowMenu"
-     @onmouseleave="HideMenu">
+     @onmouseleave="HideMenu"
+     draggable="true"
+     @ondragstart="@HandleDragStart"
+     @ondragend="@HandleDragEnd"
+     @ondragover="@HandleDragOver"
+     @ondragover:preventDefault="true"
+     @ondragleave="@HandleDragLeave"
+     @ondrop="@HandleDrop"
+     @ondrop:preventDefault="true">
 
-    <div class="block-menu-trigger @(_showMenu || IsEditing ? "visible" : "")" @onclick="ToggleContextMenu" @onclick:stopPropagation="true">
-        <RadzenIcon Icon="drag_indicator" Style="font-size: 16px; color: var(--text-muted);" />
+    <div class="block-menu-trigger @(_showMenu || IsEditing ? "visible" : "")"
+         @onclick="ToggleContextMenu"
+         @onclick:stopPropagation="true">
+        <RadzenIcon Icon="drag_indicator" Style="font-size: 16px; color: var(--text-muted); cursor: grab;" />
     </div>
 
     @if (_showContextMenu)

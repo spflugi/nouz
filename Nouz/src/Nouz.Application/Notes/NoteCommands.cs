@@ -64,4 +64,14 @@ public static class NoteCommands
     /// Clear the search results and show all notes.
     /// </summary>
     public sealed record ClearSearch : ICommand;
+
+    /// <summary>
+    /// Move a note to a different notebook.
+    /// </summary>
+    public sealed record MoveNote(Guid NoteId, Guid NewNotebookId) : ICommand;
+
+    /// <summary>
+    /// Reorder blocks within a note by moving a block to a new position.
+    /// </summary>
+    public sealed record ReorderBlocks(Guid NoteId, Guid BlockId, int NewIndex) : ICommand;
 }

@@ -54,6 +54,7 @@ namespace Nouz.Infrastructure.Migrations
                     Type = table.Column<string>(type: "TEXT", nullable: false),
                     Content = table.Column<string>(type: "TEXT", nullable: false),
                     Metadata = table.Column<string>(type: "TEXT", nullable: false),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false),
                     NoteId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

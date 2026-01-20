@@ -7,9 +7,13 @@ namespace Nouz.Components.Notes;
 public partial class NoteCard
 {
     private readonly Dictionary<Guid, BlockRenderer> _blockRenderers = new();
+    private bool _showContextMenu;
 
     [Parameter, EditorRequired]
     public Note Note { get; set; } = null!;
+
+    [Parameter]
+    public ImmutableList<Notebook> Notebooks { get; set; } = [];
 
     [Parameter]
     public bool IsEditing { get; set; }
@@ -19,6 +23,9 @@ public partial class NoteCard
 
     [Parameter]
     public EventCallback<Guid> OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid NewNotebookId)> OnMoveToNotebook { get; set; }
 
     [Parameter]
     public EventCallback<(Guid NoteId, Guid BlockId)> OnBlockClick { get; set; }
@@ -34,6 +41,9 @@ public partial class NoteCard
 
     [Parameter]
     public EventCallback<(Guid NoteId, Guid BlockId)> OnBlockDelete { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int NewIndex)> OnBlockReorder { get; set; }
 
     [Parameter]
     public EventCallback<Note> OnSave { get; set; }
@@ -63,24 +73,53 @@ public partial class NoteCard
         await OnBlockDelete.InvokeAsync((Note.Id, blockId));
     }
 
+    private async Task HandleBlockReorder(Guid blockId, int newIndex)
+    {
+        await OnBlockReorder.InvokeAsync((Note.Id, blockId, newIndex));
+    }
+
     private async Task HandleSave()
     {
         var updatedBlocks = new List<Block>();
+        var order = 0;
 
         foreach (var block in Note.Blocks)
         {
             if (_blockRenderers.TryGetValue(block.Id, out var renderer))
             {
                 var content = await renderer.GetCurrentContent();
-                updatedBlocks.Add(block with { Content = content });
+                updatedBlocks.Add(block with { Content = content, Order = order });
             }
             else
             {
-                updatedBlocks.Add(block);
+                updatedBlocks.Add(block with { Order = order });
             }
+            order++;
         }
 
         var updatedNote = Note with { Blocks = updatedBlocks.ToImmutableList() };
         await OnSave.InvokeAsync(updatedNote);
+    }
+
+    private void ToggleContextMenu()
+    {
+        _showContextMenu = !_showContextMenu;
+    }
+
+    private void CloseContextMenu()
+    {
+        _showContextMenu = false;
+    }
+
+    private async Task HandleMoveToNotebook(Guid newNotebookId)
+    {
+        _showContextMenu = false;
+        await OnMoveToNotebook.InvokeAsync((Note.Id, newNotebookId));
+    }
+
+    private async Task HandleDeleteSelected()
+    {
+        _showContextMenu = false;
+        await OnDelete.InvokeAsync(Note.Id);
     }
 }

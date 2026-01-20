@@ -266,3 +266,21 @@
         .block-code code:focus {
             outline: none;
         }
+
+/* Drag and Drop */
+.block-wrapper.dragging {
+    opacity: 0.5;
+}
+
+.block-wrapper.drag-over {
+    border-top: 2px solid var(--accent);
+    margin-top: -2px;
+}
+
+.block-wrapper[draggable="true"] .block-menu-trigger {
+    cursor: grab;
+}
+
+.block-wrapper[draggable="true"] .block-menu-trigger:active {
+    cursor: grabbing;
+}

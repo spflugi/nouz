@@ -64,6 +64,7 @@ internal sealed class NouzDbContext : DbContext
                     v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, JsonSerializerOptions.Default) ??
                          new Dictionary<string, object>());
+            n.Property(x => x.Order);
             n.Property<Guid>("NoteId")
                 .IsRequired();
             n.HasIndex("NoteId");

@@ -31,6 +31,9 @@
 }
 
 .note-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
     opacity: 0;
     transition: opacity var(--transition-fast);
 }
@@ -42,4 +45,8 @@
 .note-content {
     display: flex;
     flex-direction: column;
+}
+
+.context-menu-wrapper {
+    position: relative;
 }

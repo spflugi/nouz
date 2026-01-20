@@ -9,6 +9,7 @@ namespace Nouz.Components.Notes;
 public partial class NoteTimeline
 {
     private ImmutableList<Note> _notes = [];
+    private ImmutableList<Notebook> _notebooks = [];
     private Guid? _selectedNotebookId;
     private Guid? _editingNoteId;
     private Guid? _editingBlockId;
@@ -22,6 +23,16 @@ public partial class NoteTimeline
             .Subscribe(notes =>
             {
                 _notes = notes;
+                StateHasChanged();
+            });
+
+        StateProvider.StateObservable
+            .Select(s => s.Notebooks.Notebooks)
+            .DistinctUntilChanged()
+            .TakeUntilDisappearing(this)
+            .Subscribe(notebooks =>
+            {
+                _notebooks = notebooks;
                 StateHasChanged();
             });
 
@@ -97,5 +108,15 @@ public partial class NoteTimeline
     {
         await Mediator.Send(new NoteCommands.UpdateNote(updatedNote));
         await Mediator.Send(new NoteCommands.SetEditingBlock(null, null));
+    }
+
+    private async Task MoveNote(Guid noteId, Guid newNotebookId)
+    {
+        await Mediator.Send(new NoteCommands.MoveNote(noteId, newNotebookId));
+    }
+
+    private async Task HandleBlockReorder(Guid noteId, Guid blockId, int newIndex)
+    {
+        await Mediator.Send(new NoteCommands.ReorderBlocks(noteId, blockId, newIndex));
     }
 }

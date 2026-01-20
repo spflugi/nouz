@@ -21,15 +21,18 @@
                 {
                     <NoteCard @key="note.Id"
                               Note="@note"
+                              Notebooks="@_notebooks"
                               IsEditing="@(_editingNoteId == note.Id)"
                               EditingBlockId="@(_editingNoteId == note.Id ? _editingBlockId : null)"
                               OnDelete="@(noteId => DeleteNote(noteId))"
+                              OnMoveToNotebook="@(args => MoveNote(args.NoteId, args.NewNotebookId))"
                               OnSave="@(updatedNote => HandleSaveNote(updatedNote))"
                               OnBlockClick="@(args => HandleBlockClick(args.NoteId, args.BlockId))"
                               OnBlockContentChanged="@(args => HandleBlockContentChanged(args.NoteId, args.Block))"
                               OnBlockAdd="@(args => HandleBlockAdd(args.NoteId, args.AfterBlockId, args.BlockType, args.Metadata))"
                               OnBlockTypeChange="@(args => HandleBlockTypeChange(args.NoteId, args.BlockId, args.NewType))"
-                              OnBlockDelete="@(args => HandleBlockDelete(args.NoteId, args.BlockId))" />
+                              OnBlockDelete="@(args => HandleBlockDelete(args.NoteId, args.BlockId))"
+                              OnBlockReorder="@(args => HandleBlockReorder(args.NoteId, args.BlockId, args.NewIndex))" />
                 }
             }
         </div>

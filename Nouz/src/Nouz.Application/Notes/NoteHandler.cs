@@ -20,7 +20,9 @@ internal sealed class NoteHandler :
     ICommandHandler<NoteCommands.SetEditingBlock>,
     ICommandHandler<NoteCommands.ClearNotes>,
     ICommandHandler<NoteCommands.SearchNotes>,
-    ICommandHandler<NoteCommands.ClearSearch>
+    ICommandHandler<NoteCommands.ClearSearch>,
+    ICommandHandler<NoteCommands.MoveNote>,
+    ICommandHandler<NoteCommands.ReorderBlocks>
 {
     private readonly IMediator _mediator;
     private readonly INoteRepository _noteRepository;
@@ -42,14 +44,7 @@ internal sealed class NoteHandler :
         _logger = logger;
     }
 
-    /// <summary>
-    /// Gets a note from state (for operations that don't persist immediately).
-    /// </summary>
-    private Note? GetNoteFromState(Guid noteId)
-    {
-        return _stateProvider.State.Notes.Notes.FirstOrDefault(n => n.Id == noteId);
-    }
-
+    
     public async ValueTask<Unit> Handle(NoteCommands.LoadNotesForNotebook command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Loading notes for notebook '{NotebookId}'", command.NotebookId);
@@ -88,7 +83,8 @@ internal sealed class NoteHandler :
             {
                 Id = Guid.NewGuid(),
                 Type = BlockType.Paragraph,
-                Content = string.Empty
+                Content = string.Empty,
+                Order = 0
             };
 
             var note = new Note
@@ -183,14 +179,6 @@ internal sealed class NoteHandler :
                 return Unit.Value;
             }
 
-            var newBlock = new Block
-            {
-                Id = Guid.NewGuid(),
-                Type = command.Type,
-                Content = string.Empty,
-                Metadata = command.Metadata ?? new Dictionary<string, object>()
-            };
-
             var blocks = note.Blocks.ToList();
             var insertIndex = command.AfterBlockId is null
                 ? 0
@@ -201,11 +189,23 @@ internal sealed class NoteHandler :
                 insertIndex = blocks.Count;
             }
 
+            var newBlock = new Block
+            {
+                Id = Guid.NewGuid(),
+                Type = command.Type,
+                Content = string.Empty,
+                Metadata = command.Metadata ?? new Dictionary<string, object>(),
+                Order = insertIndex
+            };
+
             blocks.Insert(insertIndex, newBlock);
+
+            // Update Order for all blocks based on their position
+            var orderedBlocks = blocks.Select((b, i) => b with { Order = i }).ToImmutableList();
 
             var updatedNote = note with
             {
-                Blocks = blocks.ToImmutableList(),
+                Blocks = orderedBlocks,
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
 
@@ -297,7 +297,11 @@ internal sealed class NoteHandler :
             }
 
             var blockIndex = note.Blocks.IndexOf(blockToDelete);
-            var updatedBlocks = note.Blocks.Remove(blockToDelete);
+            var blocksWithoutDeleted = note.Blocks.Remove(blockToDelete);
+
+            // Update Order for all remaining blocks based on their position
+            var updatedBlocks = blocksWithoutDeleted.Select((b, i) => b with { Order = i }).ToImmutableList();
+
             var updatedNote = note with
             {
                 Blocks = updatedBlocks,
@@ -410,5 +414,91 @@ internal sealed class NoteHandler :
         _logger.LogDebug("Clearing search");
         await _actionDispatcher.Dispatch(new NoteActions.SearchCleared()).ConfigureAwait(false);
         return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.MoveNote command, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Moving note '{NoteId}' to notebook '{NewNotebookId}'", command.NoteId, command.NewNotebookId);
+
+        try
+        {
+            await _noteRepository.MoveToNotebook(command.NoteId, command.NewNotebookId, cancellationToken).ConfigureAwait(false);
+            await _actionDispatcher.Dispatch(new NoteActions.NoteMoved(command.NoteId, command.NewNotebookId)).ConfigureAwait(false);
+
+            _logger.LogInformation("Note '{NoteId}' moved to notebook '{NewNotebookId}'", command.NoteId, command.NewNotebookId);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification("Moved", "Note moved to notebook.",
+                NotificationSeverity.Success), cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to move note '{NoteId}' to notebook '{NewNotebookId}'", command.NoteId, command.NewNotebookId);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to move note.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.ReorderBlocks command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Reordering block '{BlockId}' to index {NewIndex} in note '{NoteId}'",
+            command.BlockId, command.NewIndex, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var blockToMove = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (blockToMove is null)
+            {
+                _logger.LogWarning("Block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var blocks = note.Blocks.ToList();
+            var currentIndex = blocks.IndexOf(blockToMove);
+            var newIndex = Math.Clamp(command.NewIndex, 0, blocks.Count - 1);
+
+            if (currentIndex == newIndex)
+            {
+                return Unit.Value;
+            }
+
+            blocks.RemoveAt(currentIndex);
+            blocks.Insert(newIndex, blockToMove);
+
+            // Update Order for all blocks based on their new position
+            var orderedBlocks = blocks.Select((b, i) => b with { Order = i }).ToImmutableList();
+
+            var updatedNote = note with
+            {
+                Blocks = orderedBlocks,
+                LastModifiedAt = DateTimeOffset.UtcNow
+            };
+
+            await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            _logger.LogDebug("Block '{BlockId}' reordered to index {NewIndex} (state only)", command.BlockId, newIndex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reorder block '{BlockId}' in note '{NoteId}'", command.BlockId, command.NoteId);
+        }
+
+        return Unit.Value;
+    }
+
+    private Note? GetNoteFromState(Guid noteId)
+    {
+        return _stateProvider.State.Notes.Notes.FirstOrDefault(n => n.Id == noteId);
     }
 }

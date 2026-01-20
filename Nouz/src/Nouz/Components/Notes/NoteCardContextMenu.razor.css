@@ -1,0 +1,109 @@
+.note-context-menu {
+    position: absolute;
+    right: 0;
+    top: 24px;
+    z-index: 100;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    padding: var(--space-2) 0;
+}
+
+.menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+}
+
+.menu-section {
+    padding: 0 var(--space-2);
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-2);
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+    text-align: left;
+}
+
+    .menu-item:hover:not(.disabled) {
+        background-color: var(--bg-hover);
+    }
+
+    .menu-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .menu-item ::deep .rzi {
+        font-size: 16px;
+        color: var(--text-secondary);
+    }
+
+.menu-item-with-submenu {
+    position: relative;
+}
+
+.submenu-arrow {
+    margin-left: auto;
+}
+
+    .submenu-arrow ::deep .rzi {
+        font-size: 14px !important;
+    }
+
+.submenu {
+    padding: var(--space-1) 0 0 var(--space-4);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+    .submenu .menu-item {
+        padding: var(--space-1) var(--space-2);
+        font-size: 12px;
+    }
+
+        .submenu .menu-item ::deep .rzi {
+            font-size: 14px;
+        }
+
+.current-badge {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--text-muted);
+    background-color: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+.menu-item-danger {
+    color: var(--notification-error);
+}
+
+    .menu-item-danger:hover {
+        background-color: var(--notification-error-bg);
+    }
+
+    .menu-item-danger ::deep .rzi {
+        color: var(--notification-error);
+    }
+
+.menu-divider {
+    height: 1px;
+    background-color: var(--border-subtle);
+    margin: var(--space-2) 0;
+}

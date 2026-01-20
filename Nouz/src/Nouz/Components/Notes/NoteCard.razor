@@ -11,27 +11,41 @@
                               Click="@HandleSave"
                               title="Save note" />
             }
-            <RadzenButton Icon="delete"
-                          Variant="Variant.Text"
-                          Size="ButtonSize.ExtraSmall"
-                          Style="color: var(--text-muted);"
-                          Click="@(() => OnDelete.InvokeAsync(Note.Id))"
-                          title="Delete note" />
+            <div class="context-menu-wrapper">
+                <RadzenButton Icon="more_vert"
+                              Variant="Variant.Text"
+                              Size="ButtonSize.ExtraSmall"
+                              Style="color: var(--text-muted);"
+                              Click="@ToggleContextMenu"
+                              title="More options" />
+                @if (_showContextMenu)
+                {
+                    <NoteCardContextMenu Notebooks="@Notebooks"
+                                         CurrentNotebookId="@Note.NotebookId"
+                                         OnMoveToNotebook="@HandleMoveToNotebook"
+                                         OnDeleteSelected="@HandleDeleteSelected"
+                                         OnClose="@CloseContextMenu" />
+                }
+            </div>
         </div>
     </div>
     <div class="note-content">
-        @foreach (var block in Note.Blocks)
+        @for (var i = 0; i < Note.Blocks.Count; i++)
         {
+            var block = Note.Blocks[i];
+            var index = i;
             <BlockRenderer @key="block.Id"
                            @ref="_blockRenderers[block.Id]"
                            Block="@block"
                            NoteId="@Note.Id"
+                           Index="@index"
                            IsEditing="@(EditingBlockId == block.Id)"
                            OnClick="@(blockId => HandleBlockClick(blockId))"
                            OnContentChanged="@(b => HandleBlockContentChanged(b))"
                            OnEnterPressed="@(args => HandleBlockEnterPressed(args))"
                            OnTypeChange="@(args => HandleBlockTypeChange(args))"
-                           OnDelete="@(blockId => HandleBlockDelete(blockId))" />
+                           OnDelete="@(blockId => HandleBlockDelete(blockId))"
+                           OnReorder="@(args => HandleBlockReorder(args.BlockId, args.NewIndex))" />
         }
     </div>
 </div>
