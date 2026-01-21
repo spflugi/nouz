@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Converto" Version="6.0.0" />
+    <PackageVersion Include="Markdig" Version="0.40.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.1" />
     <PackageVersion Include="Microsoft.SemanticKernel" Version="1.47.0" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.1" />

@@ -119,6 +119,11 @@
     word-wrap: break-word;
 }
 
+/* Assistant messages with markdown */
+.message-text.assistant-message {
+    white-space: normal;
+}
+
 .typing-indicator {
     display: flex;
     align-items: center;
