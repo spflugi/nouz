@@ -27,7 +27,7 @@ internal sealed class OpenAiUsageService : IOpenAiUsageService
 
     public async Task<OpenAiUsageData?> GetCurrentMonthUsageAsync(CancellationToken cancellationToken = default)
     {
-        var apiKey = _preferences.Get(PreferenceKeys.OpenAiApiAdminKey);// "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"; // 
+        var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).ConfigureAwait(false);
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {

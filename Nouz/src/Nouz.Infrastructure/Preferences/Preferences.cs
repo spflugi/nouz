@@ -2,20 +2,20 @@
 
 internal sealed class Preferences : Application.Preferences.IPreferences
 {
-    private readonly IPreferences _preferences;
+    private readonly ISecureStorage _preferences;
 
-    public Preferences(IPreferences preferences)
+    public Preferences(ISecureStorage preferences)
     {
         _preferences = preferences;
     }
 
-    public string? Get(string key, string? defaultValue = null)
+    public async Task<string?> Get(string key, string? defaultValue = null)
     {
-        return _preferences.Get(key, defaultValue);
+        return await _preferences.GetAsync(key).ConfigureAwait(false) ?? defaultValue;
     }
 
-    public void Set(string key, string value)
+    public Task Set(string key, string value)
     {
-        _preferences.Set(key, value);
+        return _preferences.SetAsync(key, value);
     }
 }

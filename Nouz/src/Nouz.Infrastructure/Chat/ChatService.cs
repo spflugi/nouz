@@ -33,9 +33,9 @@ internal sealed class ChatService : IChatService
         _stateProvider = stateProvider;
     }
 
-    private string GetChatModel()
+    private async Task<string> GetChatModel()
     {
-        var model = _preferences.Get(PreferenceKeys.OpenAiChatModel);
+        var model = await _preferences.Get(PreferenceKeys.OpenAiChatModel).ConfigureAwait(false);
         return string.IsNullOrWhiteSpace(model) ? DefaultChatModel : model;
     }
 
@@ -44,14 +44,14 @@ internal sealed class ChatService : IChatService
         ImmutableList<ChatMessage> conversationHistory,
         CancellationToken cancellationToken = default)
     {
-        var apiKey = _preferences.Get(PreferenceKeys.OpenAiApiKey);
+        var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return "Please configure your OpenAI API key in Settings to use the assistant.";
         }
 
-        var kernel = CreateKernel(apiKey, GetChatModel());
+        var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false));
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var chatHistory = BuildChatHistory(conversationHistory, message);
 
@@ -67,7 +67,7 @@ internal sealed class ChatService : IChatService
         ImmutableList<ChatMessage> conversationHistory,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var apiKey = _preferences.Get(PreferenceKeys.OpenAiApiKey);
+        var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
@@ -84,7 +84,7 @@ internal sealed class ChatService : IChatService
                 .ConfigureAwait(false);
         }
 
-        var kernel = CreateKernel(apiKey, GetChatModel());
+        var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false));
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var chatHistory = BuildChatHistory(conversationHistory, message, relevantNotes);
 
