@@ -31,7 +31,16 @@
                             <span class="message-role">@(message.Role == ChatMessageRole.User ? "You" : "Assistant")</span>
                             <span class="message-time">@message.Timestamp.ToString("HH:mm")</span>
                         </div>
-                        <div class="message-text">@message.Content</div>
+                        @if (message.Role == ChatMessageRole.User)
+                        {
+                            <div class="message-text">@message.Content</div>
+                        }
+                        else
+                        {
+                            <div class="message-text assistant-message">
+                                <MarkdownRenderer Content="@message.Content" />
+                            </div>
+                        }
                     </div>
                 </div>
             }

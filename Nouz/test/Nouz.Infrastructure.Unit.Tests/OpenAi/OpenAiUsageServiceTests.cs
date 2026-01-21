@@ -4,6 +4,7 @@ using Nouz.Application.Preferences;
 using Nouz.Infrastructure.OpenAi;
 using NSubstitute;
 using Shouldly;
+using IPreferences = Nouz.Application.Preferences.IPreferences;
 
 namespace Nouz.Infrastructure.Unit.Tests.OpenAi;
 
@@ -26,7 +27,7 @@ public class OpenAiUsageServiceTests
     public async Task GetCurrentMonthUsageAsync_WhenApiKeyIsNull_ReturnsNull()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns((string?)null);
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>(null));
 
         // Act
         var result = await _service.GetCurrentMonthUsageAsync();
@@ -39,7 +40,7 @@ public class OpenAiUsageServiceTests
     public async Task GetCurrentMonthUsageAsync_WhenApiKeyIsEmpty_ReturnsNull()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns(string.Empty);
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>(string.Empty));
 
         // Act
         var result = await _service.GetCurrentMonthUsageAsync();
@@ -52,7 +53,7 @@ public class OpenAiUsageServiceTests
     public async Task GetCurrentMonthUsageAsync_WhenApiKeyIsWhitespace_ReturnsNull()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns("   ");
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>("   "));
 
         // Act
         var result = await _service.GetCurrentMonthUsageAsync();
@@ -65,7 +66,7 @@ public class OpenAiUsageServiceTests
     public async Task GetCurrentMonthUsageAsync_WhenApiReturnsValidData_ParsesCorrectly()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns("sk-test-key");
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>("sk-test-key"));
 
         var completionsResponse = new
         {
@@ -104,8 +105,8 @@ public class OpenAiUsageServiceTests
                 {
                     results = new[]
                     {
-                        new { amount = new { value = 150m } },
-                        new { amount = new { value = 50m } }
+                        new { amount = new { value = 150L, currency = "usd" } },
+                        new { amount = new { value = 50L, currency = "usd" } }
                     }
                 }
             }
@@ -130,38 +131,46 @@ public class OpenAiUsageServiceTests
     }
 
     [Fact]
-    public async Task GetCurrentMonthUsageAsync_WhenApiReturnsError_ReturnsNull()
+    public async Task GetCurrentMonthUsageAsync_WhenApiReturnsError_ReturnsDataWithZeros()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns("sk-test-key");
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>("sk-test-key"));
         _messageHandler.SetupErrorResponse(HttpStatusCode.Unauthorized);
 
         // Act
         var result = await _service.GetCurrentMonthUsageAsync();
 
-        // Assert
-        result.ShouldBeNull();
+        // Assert - service gracefully handles errors and returns data with zeros
+        result.ShouldNotBeNull();
+        result.InputTokens.ShouldBe(0);
+        result.OutputTokens.ShouldBe(0);
+        result.RequestCount.ShouldBe(0);
+        result.EstimatedCostUsd.ShouldBe(0);
     }
 
     [Fact]
-    public async Task GetCurrentMonthUsageAsync_WhenApiThrows_ReturnsNull()
+    public async Task GetCurrentMonthUsageAsync_WhenIndividualApiFails_ReturnsDataWithZeros()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns("sk-test-key");
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>("sk-test-key"));
         _messageHandler.SetupException(new HttpRequestException("Network error"));
 
         // Act
         var result = await _service.GetCurrentMonthUsageAsync();
 
-        // Assert
-        result.ShouldBeNull();
+        // Assert - service gracefully handles errors and returns data with zeros
+        result.ShouldNotBeNull();
+        result.InputTokens.ShouldBe(0);
+        result.OutputTokens.ShouldBe(0);
+        result.RequestCount.ShouldBe(0);
+        result.EstimatedCostUsd.ShouldBe(0);
     }
 
     [Fact]
     public async Task GetCurrentMonthUsageAsync_SetsPeriodDatesCorrectly()
     {
         // Arrange
-        _preferences.Get(PreferenceKeys.OpenAiApiKey).Returns("sk-test-key");
+        _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>("sk-test-key"));
 
         var emptyResponse = new { data = Array.Empty<object>() };
         var emptyJson = JsonSerializer.Serialize(emptyResponse);
