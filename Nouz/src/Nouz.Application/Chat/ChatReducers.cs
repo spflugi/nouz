@@ -20,10 +20,45 @@ public static class ChatReducers
             .On<ChatActions.AssistantMessageReceived>((state, action) =>
             {
                 var updatedMessages = state.Messages.Add(action.Message);
-                return state with { Messages = updatedMessages, IsTyping = false };
+                return state with { Messages = updatedMessages, IsTyping = false, StreamingMessageId = null };
             })
             .On<ChatActions.ChatCleared>((state, _) =>
-                state with { Messages = [], IsTyping = false })
+                state with { Messages = [], IsTyping = false, StreamingMessageId = null })
+            .On<ChatActions.StreamingMessageStarted>((state, action) =>
+            {
+                var emptyMessage = new ChatMessage(
+                    action.MessageId,
+                    string.Empty,
+                    ChatMessageRole.Assistant,
+                    DateTimeOffset.UtcNow);
+                return state with
+                {
+                    Messages = state.Messages.Add(emptyMessage),
+                    IsTyping = false,
+                    StreamingMessageId = action.MessageId
+                };
+            })
+            .On<ChatActions.StreamingChunkReceived>((state, action) =>
+            {
+                var messageIndex = state.Messages.FindIndex(m => m.Id == action.MessageId);
+                if (messageIndex < 0)
+                {
+                    return state;
+                }
+
+                var existingMessage = state.Messages[messageIndex];
+                var updatedMessage = existingMessage with
+                {
+                    Content = existingMessage.Content + action.Chunk
+                };
+
+                return state with
+                {
+                    Messages = state.Messages.SetItem(messageIndex, updatedMessage)
+                };
+            })
+            .On<ChatActions.StreamingMessageCompleted>((state, _) =>
+                state with { StreamingMessageId = null })
             .ToList();
     }
 }

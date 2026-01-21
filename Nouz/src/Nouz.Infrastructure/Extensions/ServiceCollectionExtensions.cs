@@ -3,11 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Nouz.Application.Chat;
+using Nouz.Application.Embeddings;
 using Nouz.Application.Logger;
+using Nouz.Application.OpenAi;
 using Nouz.Application.Store;
 using Nouz.Domain.Repositories;
 using Nouz.Infrastructure.Chat;
+using Nouz.Infrastructure.Embeddings;
 using Nouz.Infrastructure.Logger;
+using Nouz.Infrastructure.OpenAi;
 using Nouz.Infrastructure.Repositories;
 using Nouz.Infrastructure.Store;
 using Serilog;
@@ -31,8 +35,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterStoreAndDispatcher(this IServiceCollection services)
     {
-        // Add the store as a singleton so that we can register the state 
-        // providers as transient. But never ever use the store directly! 
+        // Add the store as a singleton so that we can register the state
+        // providers as transient. But never ever use the store directly!
 
         return services
             .AddSingleton(StoreFactory.Create())
@@ -53,6 +57,7 @@ public static class ServiceCollectionExtensions
             .AddTransient<IDbMigrator, DbMigrator>()
             .AddTransient<INotebookRepository, NotebookRepository>()
             .AddTransient<INoteRepository, NoteRepository>()
+            .AddTransient<IEmbeddingRepository, EmbeddingRepository>()
             .AddSingleton(Microsoft.Maui.Storage.Preferences.Default)
             .AddSingleton<Nouz.Application.Preferences.IPreferences, Nouz.Infrastructure.Preferences.Preferences>()
             .AddDbContextFactory<NouzDbContext>(options => { options.UseSqlite(connectionString); });
@@ -60,6 +65,11 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterChatService(this IServiceCollection services)
     {
-        return services.AddSingleton<IChatService, ChatService>();
+        return services
+            .AddHttpClient()
+            .AddTransient<IEmbeddingService, EmbeddingService>()
+            .AddTransient<INoteContextService, NoteContextService>()
+            .AddTransient<IChatService, ChatService>()
+            .AddTransient<IOpenAiUsageService, OpenAiUsageService>();
     }
 }

@@ -13,81 +13,49 @@ public partial class ChatBot
     private ElementReference _messagesContainer;
     private string _inputText = string.Empty;
     private bool _isTyping;
-
-
-    /// <summary>
-    /// Adds a user message to the chat.
-    /// </summary>
-    public void AddUserMessage(string content)
-    {
-        _messages.Add(new ChatMessage(content, ChatMessageRole.User, DateTime.Now));
-        StateHasChanged();
-        _ = ScrollToBottom();
-    }
-
-    /// <summary>
-    /// Adds an assistant message to the chat.
-    /// </summary>
-    public void AddAssistantMessage(string content)
-    {
-        _messages.Add(new ChatMessage(content, ChatMessageRole.Assistant, DateTime.Now));
-        StateHasChanged();
-        _ = ScrollToBottom();
-    }
-
-    /// <summary>
-    /// Sets the typing indicator visibility.
-    /// </summary>
-    public void SetTyping(bool isTyping)
-    {
-        _isTyping = isTyping;
-        StateHasChanged();
-        if (isTyping)
-        {
-            _ = ScrollToBottom();
-        }
-    }
-
-    /// <summary>
-    /// Clears all messages from the chat.
-    /// </summary>
-    public void ClearMessages()
-    {
-        _messages.Clear();
-        StateHasChanged();
-    }
+    private bool _isStreaming;
 
     protected override void OnInitialized()
     {
+        // Subscribe to messages from state and sync with local list
         StateProvider.StateObservable
             .Select(s => s.Chat.Messages)
-            .Where(m => m.Count > 0)
             .DistinctUntilChanged()
             .TakeUntilDisappearing(this)
             .Subscribe(messages =>
             {
-                var lastMessage = messages.Last();
-
-                switch (lastMessage.Role)
+                _messages.Clear();
+                foreach (var msg in messages)
                 {
-                    case Nouz.Application.Chat.ChatMessageRole.User:
-                        AddUserMessage(lastMessage.Content);
-                        break;
-                    case Nouz.Application.Chat.ChatMessageRole.Assistant:
-                        AddAssistantMessage(lastMessage.Content);
-                        break;
+                    _messages.Add(msg);
                 }
-
                 StateHasChanged();
+                _ = ScrollToBottom();
             });
 
+        // Subscribe to typing state
         StateProvider.StateObservable
             .Select(s => s.Chat.IsTyping)
             .DistinctUntilChanged()
             .TakeUntilDisappearing(this)
             .Subscribe(isTyping =>
             {
-                SetTyping(isTyping);
+                _isTyping = isTyping;
+                StateHasChanged();
+                if (isTyping)
+                {
+                    _ = ScrollToBottom();
+                }
+            });
+
+        // Subscribe to streaming state
+        StateProvider.StateObservable
+            .Select(s => s.Chat.StreamingMessageId.HasValue)
+            .DistinctUntilChanged()
+            .TakeUntilDisappearing(this)
+            .Subscribe(isStreaming =>
+            {
+                _isStreaming = isStreaming;
                 StateHasChanged();
             });
     }
@@ -102,15 +70,21 @@ public partial class ChatBot
         var message = _inputText.Trim();
         _inputText = string.Empty;
 
-        await Mediator.Send(new ChatCommands.SendMessage(message));
+        // Use streaming command for real-time updates
+        await Mediator.Send(new ChatCommands.SendMessageStreaming(message));
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter" && !e.ShiftKey)
+        if (e is { Key: "Enter", ShiftKey: false })
         {
             await SendMessage();
         }
+    }
+
+    private async Task ClearChat()
+    {
+        await Mediator.Send(new ChatCommands.ClearChat());
     }
 
     private async Task ScrollToBottom()

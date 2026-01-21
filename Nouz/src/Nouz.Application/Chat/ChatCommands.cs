@@ -8,9 +8,14 @@ namespace Nouz.Application.Chat;
 public static class ChatCommands
 {
     /// <summary>
-    /// Send a message to the chat assistant.
+    /// Send a message to the chat assistant (non-streaming).
     /// </summary>
     public sealed record SendMessage(string Content) : ICommand;
+
+    /// <summary>
+    /// Send a message to the chat assistant with streaming response.
+    /// </summary>
+    public sealed record SendMessageStreaming(string Content) : ICommand;
 
     /// <summary>
     /// Clear the chat conversation history.

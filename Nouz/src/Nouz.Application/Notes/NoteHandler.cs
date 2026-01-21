@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
+using System.Text;
 using Mediator;
+using Nouz.Application.Embeddings;
 using Nouz.Application.Logger;
 using Nouz.Application.Notifications;
 using Nouz.Application.Store;
@@ -26,6 +28,8 @@ internal sealed class NoteHandler :
 {
     private readonly IMediator _mediator;
     private readonly INoteRepository _noteRepository;
+    private readonly IEmbeddingService _embeddingService;
+    private readonly IEmbeddingRepository _embeddingRepository;
     private readonly IStateProvider _stateProvider;
     private readonly IActionDispatcher _actionDispatcher;
     private readonly ILoggerAdapter<NoteHandler> _logger;
@@ -33,12 +37,16 @@ internal sealed class NoteHandler :
     public NoteHandler(
         IMediator mediator,
         INoteRepository noteRepository,
+        IEmbeddingService embeddingService,
+        IEmbeddingRepository embeddingRepository,
         IStateProvider stateProvider,
         IActionDispatcher actionDispatcher,
         ILoggerAdapter<NoteHandler> logger)
     {
         _mediator = mediator;
         _noteRepository = noteRepository;
+        _embeddingService = embeddingService;
+        _embeddingRepository = embeddingRepository;
         _stateProvider = stateProvider;
         _actionDispatcher = actionDispatcher;
         _logger = logger;
@@ -102,6 +110,9 @@ internal sealed class NoteHandler :
             // Set the initial block as the editing block
             await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(note.Id, initialBlock.Id)).ConfigureAwait(false);
 
+            // Generate embedding for the new note (if it has content)
+            await UpdateNoteEmbeddingAsync(note, cancellationToken).ConfigureAwait(false);
+
             _logger.LogInformation("New note '{NoteId}' created in notebook '{NotebookId}'", note.Id, command.NotebookId);
         }
         catch (Exception ex)
@@ -150,6 +161,9 @@ internal sealed class NoteHandler :
 
             await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
             await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            // Update embedding for the modified note
+            await UpdateNoteEmbeddingAsync(updatedNote, cancellationToken).ConfigureAwait(false);
 
             _logger.LogDebug("Note '{NoteId}' updated", command.Note.Id);
         }
@@ -500,5 +514,48 @@ internal sealed class NoteHandler :
     private Note? GetNoteFromState(Guid noteId)
     {
         return _stateProvider.State.Notes.Notes.FirstOrDefault(n => n.Id == noteId);
+    }
+
+    private static string ExtractTextFromNote(Note note)
+    {
+        var sb = new StringBuilder();
+        foreach (var block in note.Blocks.OrderBy(b => b.Order))
+        {
+            if (!string.IsNullOrWhiteSpace(block.Content))
+            {
+                if (sb.Length > 0)
+                {
+                    sb.AppendLine();
+                }
+                sb.Append(block.Content);
+            }
+        }
+        return sb.ToString();
+    }
+
+    private async Task UpdateNoteEmbeddingAsync(Note note, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var text = ExtractTextFromNote(note);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                // No text content, remove any existing embedding
+                await _embeddingRepository.DeleteAsync(note.Id, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            var embedding = await _embeddingService.GenerateEmbeddingAsync(text, cancellationToken).ConfigureAwait(false);
+            if (embedding.Length > 0)
+            {
+                await _embeddingRepository.UpsertAsync(note.Id, embedding, cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug("Embedding updated for note '{NoteId}'", note.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the note operation - embedding is supplementary
+            _logger.LogWarning(ex, "Failed to update embedding for note '{NoteId}'", note.Id);
+        }
     }
 }

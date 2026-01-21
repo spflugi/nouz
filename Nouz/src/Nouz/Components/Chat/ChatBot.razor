@@ -1,5 +1,6 @@
-@namespace Nouz.Components.Chat
 @inherits SharedComponentBase
+@namespace Nouz.Components.Chat
+@using Nouz.Application.Chat
 
 <div class="chat-container">
     <div class="chat-messages" @ref="_messagesContainer">
@@ -60,11 +61,20 @@
                   @bind:event="oninput"
                   @onkeydown="HandleKeyDown"
                   rows="1"
-                  disabled="@_isTyping"></textarea>
+                  disabled="@(_isTyping || _isStreaming)"></textarea>
         <button class="send-button"
                 @onclick="SendMessage"
-                disabled="@(string.IsNullOrWhiteSpace(_inputText) || _isTyping)">
+                disabled="@(string.IsNullOrWhiteSpace(_inputText) || _isTyping || _isStreaming)">
             <RadzenIcon Icon="send" />
         </button>
+        @if (_messages.Count > 0)
+        {
+            <button class="clear-button"
+                    @onclick="ClearChat"
+                    disabled="@(_isTyping || _isStreaming)"
+                    title="Clear chat history">
+                <RadzenIcon Icon="delete_outline" />
+            </button>
+        }
     </div>
 </div>

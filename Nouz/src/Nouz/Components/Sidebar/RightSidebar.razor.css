@@ -26,6 +26,12 @@
         margin: 0;
     }
 
+.sidebar-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
 .sidebar-resize-handle {
     position: absolute;
     left: -2px;

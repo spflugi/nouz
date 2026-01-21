@@ -26,4 +26,19 @@ public static class ChatActions
     /// Triggered when the chat conversation is cleared.
     /// </summary>
     public sealed record ChatCleared : IAction;
+
+    /// <summary>
+    /// Triggered when a streaming message starts.
+    /// </summary>
+    public sealed record StreamingMessageStarted(Guid MessageId) : IAction;
+
+    /// <summary>
+    /// Triggered when a streaming chunk is received.
+    /// </summary>
+    public sealed record StreamingChunkReceived(Guid MessageId, string Chunk) : IAction;
+
+    /// <summary>
+    /// Triggered when a streaming message is completed.
+    /// </summary>
+    public sealed record StreamingMessageCompleted(Guid MessageId) : IAction;
 }
