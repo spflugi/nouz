@@ -68,6 +68,25 @@ namespace Nouz.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "NoteEmbeddings",
+                columns: table => new
+                {
+                    NoteId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Embedding = table.Column<byte[]>(type: "BLOB", nullable: false),
+                    LastUpdatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NoteEmbeddings", x => x.NoteId);
+                    table.ForeignKey(
+                        name: "FK_NoteEmbeddings_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Block_NoteId",
                 table: "Block",
@@ -94,6 +113,9 @@ namespace Nouz.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Block");
+
+            migrationBuilder.DropTable(
+                name: "NoteEmbeddings");
 
             migrationBuilder.DropTable(
                 name: "Notes");

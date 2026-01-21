@@ -18,4 +18,16 @@ public interface IChatService
         string message,
         ImmutableList<ChatMessage> conversationHistory,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a streaming response from the AI assistant.
+    /// </summary>
+    /// <param name="message">The user's message.</param>
+    /// <param name="conversationHistory">The previous messages in the conversation for context.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An async enumerable of response chunks.</returns>
+    IAsyncEnumerable<string> GetStreamingResponseAsync(
+        string message,
+        ImmutableList<ChatMessage> conversationHistory,
+        CancellationToken cancellationToken = default);
 }

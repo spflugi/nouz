@@ -225,3 +225,33 @@
     .send-button ::deep .rzi {
         font-size: 18px;
     }
+
+.clear-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+    .clear-button:hover:not(:disabled) {
+        background-color: var(--bg-hover);
+        color: var(--text-secondary);
+        border-color: var(--border-color);
+    }
+
+    .clear-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .clear-button ::deep .rzi {
+        font-size: 18px;
+    }

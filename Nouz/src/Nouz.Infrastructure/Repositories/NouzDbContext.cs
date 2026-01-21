@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Buffers.Binary;
+using Microsoft.EntityFrameworkCore;
 using Nouz.Domain.Entities;
 using System.Text.Json;
 
@@ -8,6 +9,7 @@ internal sealed class NouzDbContext : DbContext
 {
     public DbSet<Note> Notes { get; set; } = null!;
     public DbSet<Notebook> Notebooks { get; set; } = null!;
+    public DbSet<NoteEmbedding> NoteEmbeddings { get; set; } = null!;
 
     public NouzDbContext(DbContextOptions<NouzDbContext> options) : base(options)
     {
@@ -74,5 +76,41 @@ internal sealed class NouzDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<NoteEmbedding>(e =>
+        {
+            e.HasKey(x => x.NoteId);
+            e.Property(x => x.Embedding)
+                .HasConversion(
+                    v => FloatArrayToBytes(v),
+                    v => BytesToFloatArray(v))
+                .IsRequired();
+            e.Property(x => x.LastUpdatedAt)
+                .IsRequired();
+            e.Ignore(x => x.Note);
+            e.HasOne<Note>()
+                .WithOne()
+                .HasForeignKey<NoteEmbedding>(x => x.NoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static byte[] FloatArrayToBytes(float[] floats)
+    {
+        var bytes = new byte[floats.Length * sizeof(float)];
+        for (var i = 0; i < floats.Length; i++)
+        {
+            BinaryPrimitives.WriteSingleLittleEndian(bytes.AsSpan(i * sizeof(float)), floats[i]);
+        }
+        return bytes;
+    }
+
+    private static float[] BytesToFloatArray(byte[] bytes)
+    {
+        var floats = new float[bytes.Length / sizeof(float)];
+        for (var i = 0; i < floats.Length; i++)
+        {
+            floats[i] = BinaryPrimitives.ReadSingleLittleEndian(bytes.AsSpan(i * sizeof(float)));
+        }
+        return floats;
     }
 }

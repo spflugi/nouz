@@ -25,12 +25,135 @@
                            placeholder="sk-..."
                            value="@_openAiApiKey"
                            @oninput="HandleApiKeyInput" />
-                    @if (_isSaving)
+                    @if (_isSavingApiKey)
                     {
                         <span class="saving-indicator">Saving...</span>
                     }
                 </div>
             </div>
+            
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">API Admin Key</span>
+                    <span class="setting-description">Your OpenAI Admin API key to retrieve usage and cost information</span>
+                </div>
+                <div class="setting-input">
+                    <input type="password"
+                           class="text-input"
+                           placeholder="sk-..."
+                           value="@_openAiAdminKey"
+                           @oninput="HandleApiAdminKeyInput" />
+                    @if (_isSavingApiAdminKey)
+                    {
+                        <span class="saving-indicator">Saving...</span>
+                    }
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Chat Model</span>
+                    <span class="setting-description">The OpenAI model to use for chat (e.g., gpt-4o-mini, gpt-5, gpt-5.1, gpt-5.2, gpt-5-mini, gpt-5.2-codex)</span>
+                </div>
+                <div class="setting-input">
+                    <input type="text"
+                           class="text-input"
+                           placeholder="gpt-4o-mini"
+                           value="@_chatModel"
+                           @oninput="HandleChatModelInput" />
+                    @if (_isSavingChatModel)
+                    {
+                        <span class="saving-indicator">Saving...</span>
+                    }
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Embedding Model</span>
+                    <span class="setting-description">The OpenAI model to use for embeddings (e.g., text-embedding-3-small, text-embedding-3-large)</span>
+                </div>
+                <div class="setting-input">
+                    <input type="text"
+                           class="text-input"
+                           placeholder="text-embedding-3-small"
+                           value="@_embeddingModel"
+                           @oninput="HandleEmbeddingModelInput" />
+                    @if (_isSavingEmbeddingModel)
+                    {
+                        <span class="saving-indicator">Saving...</span>
+                    }
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Context Notes</span>
+                    <span class="setting-description">Number of relevant notes to include as context for the AI (0-10, 0 disables RAG)</span>
+                </div>
+                <div class="setting-input">
+                    <input type="number"
+                           class="text-input number-input"
+                           min="0"
+                           max="10"
+                           value="@_topNRelevantNotes"
+                           @oninput="HandleTopNInput" />
+                    @if (_isSavingTopN)
+                    {
+                        <span class="saving-indicator">Saving...</span>
+                    }
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_openAiAdminKey))
+            {
+                <div class="usage-section">
+                    <button class="usage-toggle" @onclick="ToggleUsageExpanded">
+                        <RadzenIcon Icon="@(_isUsageExpanded ? "expand_less" : "expand_more")" />
+                        <span>Usage this month</span>
+                        @if (_isLoadingUsage)
+                        {
+                            <span class="usage-loading">loading...</span>
+                        }
+                    </button>
+
+                    @if (_isUsageExpanded)
+                    {
+                        <div class="usage-content">
+                            @if (_usage is not null)
+                            {
+                                <div class="usage-row">
+                                    <span class="usage-label">Tokens</span>
+                                    <span class="usage-value">@FormatNumber(_usage.InputTokens) in / @FormatNumber(_usage.OutputTokens) out</span>
+                                </div>
+                                <div class="usage-row">
+                                    <span class="usage-label">Requests</span>
+                                    <span class="usage-value">@FormatNumber(_usage.RequestCount)</span>
+                                </div>
+                                <div class="usage-row">
+                                    <span class="usage-label">Est. cost</span>
+                                    <span class="usage-value">$@_usage.EstimatedCostUsd.ToString("F2")</span>
+                                </div>
+                                <div class="usage-updated">
+                                    Updated @FormatTimeAgo(_usage.FetchedAt)
+                                    <button class="refresh-button" @onclick="RefreshUsage" disabled="@_isLoadingUsage">
+                                        <RadzenIcon Icon="refresh" />
+                                    </button>
+                                </div>
+                            }
+                            else if (!_isLoadingUsage)
+                            {
+                                <div class="usage-unavailable">
+                                    Usage data unavailable
+                                    <button class="refresh-button" @onclick="RefreshUsage">
+                                        <RadzenIcon Icon="refresh" />
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>

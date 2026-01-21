@@ -16,4 +16,9 @@ public sealed record ChatState
     /// Gets a value indicating whether the assistant is currently typing.
     /// </summary>
     public bool IsTyping { get; init; }
+
+    /// <summary>
+    /// Gets the ID of the message currently being streamed, if any.
+    /// </summary>
+    public Guid? StreamingMessageId { get; init; }
 }

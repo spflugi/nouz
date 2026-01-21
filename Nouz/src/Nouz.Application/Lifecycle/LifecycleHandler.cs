@@ -38,7 +38,7 @@ internal sealed class LifecycleHandler :
         await _mediator.Send(new NotebookCommands.LoadAllNotebooks(), cancellationToken).ConfigureAwait(false);
 
         await LoadLastSelectedNotebookId().ConfigureAwait(false);
-        await LoadOpenAiApiKey().ConfigureAwait(false);
+        await LoadOpenAiKeys().ConfigureAwait(false);
 
         return Unit.Value;
     }
@@ -65,13 +65,20 @@ internal sealed class LifecycleHandler :
         }
     }
 
-    private async Task LoadOpenAiApiKey()
+    private async Task LoadOpenAiKeys()
     {
         var openAiApiKey = _preferences.Get(PreferenceKeys.OpenAiApiKey);
 
         if (openAiApiKey is not null)
         {
             await _actionDispatcher.Dispatch(new SettingsActions.OpenAiApiKeyUpdated(openAiApiKey)).ConfigureAwait(false);
+        }
+
+        var openAiAdminKey = _preferences.Get(PreferenceKeys.OpenAiApiAdminKey);
+
+        if (openAiAdminKey is not null)
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.OpenAiAdminKeyUpdated(openAiAdminKey)).ConfigureAwait(false);
         }
     }
 }

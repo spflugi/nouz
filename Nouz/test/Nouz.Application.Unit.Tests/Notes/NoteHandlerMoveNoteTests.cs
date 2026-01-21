@@ -1,4 +1,5 @@
 using Mediator;
+using Nouz.Application.Embeddings;
 using Nouz.Application.Logger;
 using Nouz.Application.Notes;
 using Nouz.Application.Notifications;
@@ -13,6 +14,8 @@ public class NoteHandlerMoveNoteTests
 {
     private readonly IMediator _mediator = Substitute.For<IMediator>();
     private readonly INoteRepository _noteRepository = Substitute.For<INoteRepository>();
+    private readonly IEmbeddingService _embeddingService = Substitute.For<IEmbeddingService>();
+    private readonly IEmbeddingRepository _embeddingRepository = Substitute.For<IEmbeddingRepository>();
     private readonly IStateProvider _stateProvider = Substitute.For<IStateProvider>();
     private readonly IActionDispatcher _actionDispatcher = Substitute.For<IActionDispatcher>();
     private readonly ILoggerAdapter<NoteHandler> _logger = Substitute.For<ILoggerAdapter<NoteHandler>>();
@@ -20,7 +23,14 @@ public class NoteHandlerMoveNoteTests
 
     public NoteHandlerMoveNoteTests()
     {
-        _handler = new NoteHandler(_mediator, _noteRepository, _stateProvider, _actionDispatcher, _logger);
+        _handler = new NoteHandler(
+            _mediator,
+            _noteRepository,
+            _embeddingService,
+            _embeddingRepository,
+            _stateProvider,
+            _actionDispatcher,
+            _logger);
     }
 
     [Fact]

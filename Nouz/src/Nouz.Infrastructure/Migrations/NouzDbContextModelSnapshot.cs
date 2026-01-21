@@ -70,6 +70,23 @@ namespace Nouz.Infrastructure.Migrations
                     b.ToTable("Notes");
                 });
 
+            modelBuilder.Entity("Nouz.Domain.Entities.NoteEmbedding", b =>
+                {
+                    b.Property<Guid>("NoteId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Embedding")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<DateTimeOffset>("LastUpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("NoteId");
+
+                    b.ToTable("NoteEmbeddings");
+                });
+
             modelBuilder.Entity("Nouz.Domain.Entities.Notebook", b =>
                 {
                     b.Property<Guid>("Id")
@@ -116,6 +133,15 @@ namespace Nouz.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Notebook");
+                });
+
+            modelBuilder.Entity("Nouz.Domain.Entities.NoteEmbedding", b =>
+                {
+                    b.HasOne("Nouz.Domain.Entities.Note", null)
+                        .WithOne()
+                        .HasForeignKey("Nouz.Domain.Entities.NoteEmbedding", "NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Nouz.Domain.Entities.Notebook", b =>

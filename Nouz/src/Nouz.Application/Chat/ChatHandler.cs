@@ -7,6 +7,7 @@ namespace Nouz.Application.Chat;
 
 internal sealed class ChatHandler :
     ICommandHandler<ChatCommands.SendMessage>,
+    ICommandHandler<ChatCommands.SendMessageStreaming>,
     ICommandHandler<ChatCommands.ClearChat>
 {
     private readonly IMediator _mediator;
@@ -72,6 +73,65 @@ internal sealed class ChatHandler :
             _logger.LogError(ex, "Failed to send chat message");
 
             // Clear typing indicator on error
+            await _actionDispatcher.Dispatch(new ChatActions.AssistantMessageReceived(
+                new ChatMessage(
+                    Guid.NewGuid(),
+                    "Sorry, I encountered an error processing your message. Please try again.",
+                    ChatMessageRole.Assistant,
+                    DateTimeOffset.UtcNow))).ConfigureAwait(false);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification(
+                "Error",
+                "Failed to get a response from the assistant.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(ChatCommands.SendMessageStreaming command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Sending chat message with streaming");
+
+        try
+        {
+            // Create and add user message to state
+            var userMessage = new ChatMessage(
+                Guid.NewGuid(),
+                command.Content,
+                ChatMessageRole.User,
+                DateTimeOffset.UtcNow);
+
+            await _actionDispatcher.Dispatch(new ChatActions.UserMessageAdded(userMessage)).ConfigureAwait(false);
+
+            // Show typing indicator briefly
+            await _actionDispatcher.Dispatch(new ChatActions.AssistantTypingStarted()).ConfigureAwait(false);
+
+            // Get conversation history for context
+            var conversationHistory = _stateProvider.State.Chat.Messages;
+
+            // Start streaming response
+            var assistantMessageId = Guid.NewGuid();
+            await _actionDispatcher.Dispatch(new ChatActions.StreamingMessageStarted(assistantMessageId)).ConfigureAwait(false);
+
+            await foreach (var chunk in _chatService.GetStreamingResponseAsync(
+                command.Content,
+                conversationHistory,
+                cancellationToken).ConfigureAwait(false))
+            {
+                await _actionDispatcher.Dispatch(
+                    new ChatActions.StreamingChunkReceived(assistantMessageId, chunk)).ConfigureAwait(false);
+            }
+
+            await _actionDispatcher.Dispatch(
+                new ChatActions.StreamingMessageCompleted(assistantMessageId)).ConfigureAwait(false);
+
+            _logger.LogDebug("Streaming chat message completed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send streaming chat message");
+
             await _actionDispatcher.Dispatch(new ChatActions.AssistantMessageReceived(
                 new ChatMessage(
                     Guid.NewGuid(),
