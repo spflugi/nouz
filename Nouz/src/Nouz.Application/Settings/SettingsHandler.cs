@@ -39,7 +39,7 @@ internal sealed class SettingsHandler :
     {
         _logger.LogDebug("Saving OpenAI API key");
 
-        _preferences.Set(PreferenceKeys.OpenAiApiKey, command.ApiKey);
+        await _preferences.Set(PreferenceKeys.OpenAiApiKey, command.ApiKey).ConfigureAwait(false);
 
         await _actionDispatcher.Dispatch(new SettingsActions.OpenAiApiKeyUpdated(command.ApiKey)).ConfigureAwait(false);
 
@@ -57,7 +57,7 @@ internal sealed class SettingsHandler :
     {
         _logger.LogDebug("Saving OpenAI Admin key");
 
-        _preferences.Set(PreferenceKeys.OpenAiApiAdminKey, command.AdminKey);
+        await _preferences.Set(PreferenceKeys.OpenAiApiAdminKey, command.AdminKey).ConfigureAwait(false);
 
         await _actionDispatcher.Dispatch(new SettingsActions.OpenAiAdminKeyUpdated(command.AdminKey)).ConfigureAwait(false);
 
@@ -76,9 +76,14 @@ internal sealed class SettingsHandler :
         _logger.LogDebug("Saving OpenAI chat model: {Model}", command.Model);
 
         var model = string.IsNullOrWhiteSpace(command.Model) ? "gpt-4o-mini" : command.Model.Trim();
-        _preferences.Set(PreferenceKeys.OpenAiChatModel, model);
+        await _preferences.Set(PreferenceKeys.OpenAiChatModel, model).ConfigureAwait(false);
 
         await _actionDispatcher.Dispatch(new SettingsActions.OpenAiChatModelUpdated(model)).ConfigureAwait(false);
+
+        await _mediator.Send(new NotificationCommands.ShowNotification(
+            "Saved",
+            "OpenAI chat model saved successfully.",
+            NotificationSeverity.Success), cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("OpenAI chat model saved: {Model}", model);
 
@@ -90,9 +95,14 @@ internal sealed class SettingsHandler :
         _logger.LogDebug("Saving OpenAI embedding model: {Model}", command.Model);
 
         var model = string.IsNullOrWhiteSpace(command.Model) ? "text-embedding-3-small" : command.Model.Trim();
-        _preferences.Set(PreferenceKeys.OpenAiEmbeddingModel, model);
+        await _preferences.Set(PreferenceKeys.OpenAiEmbeddingModel, model).ConfigureAwait(false);
 
         await _actionDispatcher.Dispatch(new SettingsActions.OpenAiEmbeddingModelUpdated(model)).ConfigureAwait(false);
+
+        await _mediator.Send(new NotificationCommands.ShowNotification(
+            "Saved",
+            "OpenAI embedding model saved successfully.",
+            NotificationSeverity.Success), cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("OpenAI embedding model saved: {Model}", model);
 
@@ -104,7 +114,7 @@ internal sealed class SettingsHandler :
         _logger.LogDebug("Saving TopNRelevantNotes setting: {Count}", command.Count);
 
         var count = Math.Clamp(command.Count, 0, 10);
-        _preferences.Set(PreferenceKeys.TopNRelevantNotes, count.ToString());
+        await _preferences.Set(PreferenceKeys.TopNRelevantNotes, count.ToString()).ConfigureAwait(false);
 
         await _actionDispatcher.Dispatch(new SettingsActions.TopNRelevantNotesUpdated(count)).ConfigureAwait(false);
 

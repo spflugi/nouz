@@ -105,7 +105,7 @@ internal sealed class NotebookHandler :
         _logger.LogInformation("Selecting the notebook with the id '{NotebookId}'", command.Id);
 
         await _actionDispatcher.Dispatch(new NotebookActions.NotebookSelected(command.Id)).ConfigureAwait(false);
-        _preferences.Set(PreferenceKeys.SelectedNotebookId, command.Id.ToString());
+        await _preferences.Set(PreferenceKeys.SelectedNotebookId, command.Id.ToString()).ConfigureAwait(false);
 
         _logger.LogInformation("New notebook with id '{NotebookId}' selected", command.Id);
 

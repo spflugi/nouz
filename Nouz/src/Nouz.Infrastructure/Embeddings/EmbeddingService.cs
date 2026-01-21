@@ -17,9 +17,9 @@ internal sealed class EmbeddingService : IEmbeddingService
         _preferences = preferences;
     }
 
-    private string GetEmbeddingModel()
+    private async Task<string> GetEmbeddingModel()
     {
-        var model = _preferences.Get(PreferenceKeys.OpenAiEmbeddingModel);
+        var model = await _preferences.Get(PreferenceKeys.OpenAiEmbeddingModel).ConfigureAwait(false);
         return string.IsNullOrWhiteSpace(model) ? DefaultEmbeddingModel : model;
     }
 
@@ -30,13 +30,13 @@ internal sealed class EmbeddingService : IEmbeddingService
             return [];
         }
 
-        var apiKey = _preferences.Get(PreferenceKeys.OpenAiApiKey);
+        var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             return [];
         }
 
-        var kernel = CreateKernel(apiKey, GetEmbeddingModel());
+        var kernel = CreateKernel(apiKey, await GetEmbeddingModel().ConfigureAwait(false));
 
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only
         var embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();

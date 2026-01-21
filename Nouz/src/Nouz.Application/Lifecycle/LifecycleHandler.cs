@@ -38,7 +38,7 @@ internal sealed class LifecycleHandler :
         await _mediator.Send(new NotebookCommands.LoadAllNotebooks(), cancellationToken).ConfigureAwait(false);
 
         await LoadLastSelectedNotebookId().ConfigureAwait(false);
-        await LoadOpenAiKeys().ConfigureAwait(false);
+        await LoadOpenAiSettings().ConfigureAwait(false);
 
         return Unit.Value;
     }
@@ -57,7 +57,7 @@ internal sealed class LifecycleHandler :
 
     private async Task LoadLastSelectedNotebookId()
     {
-        var selectedNotebookIdValue = _preferences.Get(PreferenceKeys.SelectedNotebookId);
+        var selectedNotebookIdValue = await _preferences.Get(PreferenceKeys.SelectedNotebookId).ConfigureAwait(false);
 
         if (selectedNotebookIdValue is not null && Guid.TryParse(selectedNotebookIdValue, out var selectedNotebookId))
         {
@@ -65,20 +65,34 @@ internal sealed class LifecycleHandler :
         }
     }
 
-    private async Task LoadOpenAiKeys()
+    private async Task LoadOpenAiSettings()
     {
-        var openAiApiKey = _preferences.Get(PreferenceKeys.OpenAiApiKey);
+        var openAiApiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
 
         if (openAiApiKey is not null)
         {
             await _actionDispatcher.Dispatch(new SettingsActions.OpenAiApiKeyUpdated(openAiApiKey)).ConfigureAwait(false);
         }
 
-        var openAiAdminKey = _preferences.Get(PreferenceKeys.OpenAiApiAdminKey);
+        var openAiAdminKey = await _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).ConfigureAwait(false);
 
         if (openAiAdminKey is not null)
         {
             await _actionDispatcher.Dispatch(new SettingsActions.OpenAiAdminKeyUpdated(openAiAdminKey)).ConfigureAwait(false);
+        }
+
+        var chatModel = await _preferences.Get(PreferenceKeys.OpenAiChatModel).ConfigureAwait(false);
+
+        if (chatModel is not null)
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.OpenAiChatModelUpdated(chatModel)).ConfigureAwait(false);
+        }
+
+        var embeddingModel = await _preferences.Get(PreferenceKeys.OpenAiEmbeddingModel).ConfigureAwait(false);
+
+        if (embeddingModel is not null)
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.OpenAiEmbeddingModelUpdated(embeddingModel)).ConfigureAwait(false);
         }
     }
 }
