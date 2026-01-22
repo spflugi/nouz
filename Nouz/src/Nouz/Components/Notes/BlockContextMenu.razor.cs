@@ -12,6 +12,9 @@ public partial class BlockContextMenu
     public EventCallback<BlockType> OnTypeSelected { get; set; }
 
     [Parameter]
+    public EventCallback OnInsertImageRequested { get; set; }
+
+    [Parameter]
     public EventCallback OnDeleteSelected { get; set; }
 
     [Parameter]

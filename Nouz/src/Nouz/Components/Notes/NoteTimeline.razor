@@ -3,6 +3,7 @@
 
 <TextInputModal @ref="TextModal" />
 <ConfirmationModal @ref="ConfirmationModal" />
+<ImagePreviewModal @ref="_imagePreviewModal" />
 
 <div class="note-timeline">
     @if (_selectedNotebookId is not null)
@@ -32,7 +33,11 @@
                               OnBlockAdd="@(args => HandleBlockAdd(args.NoteId, args.AfterBlockId, args.BlockType, args.Metadata))"
                               OnBlockTypeChange="@(args => HandleBlockTypeChange(args.NoteId, args.BlockId, args.NewType))"
                               OnBlockDelete="@(args => HandleBlockDelete(args.NoteId, args.BlockId))"
-                              OnBlockReorder="@(args => HandleBlockReorder(args.NoteId, args.BlockId, args.NewIndex))" />
+                              OnBlockReorder="@(args => HandleBlockReorder(args.NoteId, args.BlockId, args.NewIndex))"
+                              OnImagePasted="@(args => HandleImagePasted(args.NoteId, args.AfterBlockId, args.ImageData, args.FileName, args.MimeType))"
+                              OnImageCaptionChanged="@(args => HandleImageCaptionChanged(args.NoteId, args.BlockId, args.Caption))"
+                              OnImageWidthChanged="@(args => HandleImageWidthChanged(args.NoteId, args.BlockId, args.WidthPercent))"
+                              OnImagePreviewRequested="@(args => ShowImagePreview(args.ImageDataUrl, args.Caption))" />
                 }
             }
         </div>

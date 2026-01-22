@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Reactive.Linq;
 using Nouz.Application.Notes;
+using Nouz.Components.Modals;
 using Nouz.Domain.Entities;
 using Nouz.Extensions;
 
@@ -13,6 +14,7 @@ public partial class NoteTimeline
     private Guid? _selectedNotebookId;
     private Guid? _editingNoteId;
     private Guid? _editingBlockId;
+    private ImagePreviewModal _imagePreviewModal = null!;
 
     protected override void OnInitialized()
     {
@@ -118,5 +120,25 @@ public partial class NoteTimeline
     private async Task HandleBlockReorder(Guid noteId, Guid blockId, int newIndex)
     {
         await Mediator.Send(new NoteCommands.ReorderBlocks(noteId, blockId, newIndex));
+    }
+
+    private async Task HandleImagePasted(Guid noteId, Guid? afterBlockId, string imageData, string fileName, string mimeType)
+    {
+        await Mediator.Send(new NoteCommands.AddImageBlock(noteId, afterBlockId, imageData, fileName, mimeType));
+    }
+
+    private async Task HandleImageCaptionChanged(Guid noteId, Guid blockId, string caption)
+    {
+        await Mediator.Send(new NoteCommands.UpdateImageCaption(noteId, blockId, caption));
+    }
+
+    private async Task HandleImageWidthChanged(Guid noteId, Guid blockId, int widthPercent)
+    {
+        await Mediator.Send(new NoteCommands.UpdateImageWidth(noteId, blockId, widthPercent));
+    }
+
+    private void ShowImagePreview(string imageDataUrl, string? caption)
+    {
+        _imagePreviewModal.Show(imageDataUrl, caption);
     }
 }

@@ -280,11 +280,11 @@
     margin-top: -2px;
 }
 
-.block-wrapper[draggable="true"] .block-menu-trigger {
+.block-menu-trigger[draggable="true"] {
     cursor: grab;
 }
 
-.block-wrapper[draggable="true"] .block-menu-trigger:active {
+.block-menu-trigger[draggable="true"]:active {
     cursor: grabbing;
 }
 
@@ -403,3 +403,105 @@
         border-top: 1px solid var(--border-color);
         margin: 0;
     }
+
+/* Image Block */
+.block-image {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: var(--space-2) 0;
+}
+
+.image-resizable-container {
+    position: relative;
+    display: inline-block;
+    min-width: 100px;
+    max-width: 100%;
+    line-height: 0;
+    font-size: 0;
+}
+
+    .image-resizable-container img {
+        width: 100%;
+        height: auto;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: opacity var(--transition-fast);
+        display: block;
+        vertical-align: bottom;
+    }
+
+        .image-resizable-container img:hover {
+            opacity: 0.95;
+        }
+
+.resize-handle {
+    position: absolute;
+    background-color: var(--accent);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.image-resizable-container:hover .resize-handle {
+    opacity: 1;
+}
+
+.resize-handle-right {
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 40px;
+    border-radius: 4px;
+    cursor: ew-resize;
+}
+
+    .resize-handle-right:hover {
+        background-color: var(--accent-hover);
+    }
+
+    .block-image .image-caption {
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 12px;
+        font-style: italic;
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 4px var(--space-1);
+        min-width: 100px;
+        margin-top: 2px;
+    }
+
+        .block-image .image-caption::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .block-image .image-caption:focus {
+            background-color: var(--bg-hover);
+            border-radius: var(--radius-sm);
+        }
+
+.image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+    .image-placeholder .rz-icon {
+        font-size: 32px;
+    }
+
+/* Global style for image resizing cursor */
+::deep body.image-resizing {
+    cursor: ew-resize !important;
+    user-select: none;
+}
