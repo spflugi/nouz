@@ -38,6 +38,11 @@
             <RadzenIcon Icon="check_box" />
             <span>To-do</span>
         </button>
+        <button class="menu-item @(CurrentType == BlockType.AgendaItem ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.AgendaItem))">
+            <RadzenIcon Icon="chevron_right" />
+            <span>Agenda item</span>
+        </button>
         <button class="menu-item @(CurrentType == BlockType.Code ? "active" : "")"
                 @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Code))">
             <RadzenIcon Icon="code" />
@@ -47,6 +52,21 @@
                 @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Quote))">
             <RadzenIcon Icon="format_quote" />
             <span>Quote</span>
+        </button>
+        <button class="menu-item @(CurrentType == BlockType.Decision ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Decision))">
+            <RadzenIcon Icon="gavel" />
+            <span>Decision</span>
+        </button>
+        <button class="menu-item @(CurrentType == BlockType.Warning ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Warning))">
+            <RadzenIcon Icon="warning" />
+            <span>Warning</span>
+        </button>
+        <button class="menu-item @(CurrentType == BlockType.Divider ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Divider))">
+            <RadzenIcon Icon="horizontal_rule" />
+            <span>Divider</span>
         </button>
     </div>
     <div class="menu-divider"></div>

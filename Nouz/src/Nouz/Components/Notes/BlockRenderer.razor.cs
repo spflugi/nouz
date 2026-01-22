@@ -12,6 +12,9 @@ public partial class BlockRenderer : IAsyncDisposable
     private bool _showContextMenu;
     private bool _contentInitialized;
     private bool _formattingInitialized;
+    private bool _wasEditing;
+    private bool _shouldFocus;
+    private BlockType? _previousBlockType;
     private DotNetObjectReference<BlockRenderer>? _dotNetRef;
 
     // Drag and drop state
@@ -58,6 +61,9 @@ public partial class BlockRenderer : IAsyncDisposable
     [Parameter]
     public EventCallback<(Guid BlockId, int NewIndex)> OnReorder { get; set; }
 
+    [Parameter]
+    public EventCallback OnSaveRequested { get; set; }
+
     private bool SupportsFormatting => Block.Type == BlockType.Paragraph;
 
     protected override void OnInitialized()
@@ -65,15 +71,39 @@ public partial class BlockRenderer : IAsyncDisposable
         _dotNetRef = DotNetObjectReference.Create(this);
     }
 
+    protected override void OnParametersSet()
+    {
+        // Detect when IsEditing changes from false to true
+        if (IsEditing && !_wasEditing)
+        {
+            _shouldFocus = true;
+        }
+
+        // Detect when block type changes while editing (e.g., via context menu)
+        // The DOM element changes so we need to re-focus
+        if (IsEditing && _previousBlockType.HasValue && _previousBlockType.Value != Block.Type)
+        {
+            _shouldFocus = true;
+            _contentInitialized = false; // Reset so content is re-initialized for new element
+        }
+
+        _wasEditing = IsEditing;
+        _previousBlockType = Block.Type;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // Divider blocks don't need JavaScript initialization - they're not editable
+        if (Block.Type == BlockType.Divider)
+        {
+            _contentInitialized = true;
+            return;
+        }
+
         if (_contentRef.Context is not null)
         {
             try
             {
-                // Track if this is the initial content setup (new block)
-                var isNewBlock = !_contentInitialized;
-
                 // Only pass initial content on first init to avoid overwriting user input
                 if (!_contentInitialized)
                 {
@@ -101,10 +131,11 @@ public partial class BlockRenderer : IAsyncDisposable
                     _formattingInitialized = true;
                 }
 
-                // Only focus for newly created blocks that start in editing mode
-                // Don't focus when user clicks an existing block (browser handles that)
-                if (isNewBlock && IsEditing)
+                // Focus the block if it became the editing block
+                // This handles new blocks and blocks changed via context menu
+                if (_shouldFocus)
                 {
+                    _shouldFocus = false;
                     await JsRuntime.InvokeVoidAsync("nouz.focusElement", _contentRef);
                 }
             }
@@ -129,12 +160,13 @@ public partial class BlockRenderer : IAsyncDisposable
         {
             BlockType.ListItem => BlockType.ListItem,
             BlockType.TodoItem => BlockType.TodoItem,
+            BlockType.AgendaItem => BlockType.AgendaItem,
             _ => BlockType.Paragraph
         };
 
-        // For list items, preserve the indentation level
+        // For list and agenda items, preserve the indentation level
         Dictionary<string, object>? metadata = null;
-        if (Block.Type == BlockType.ListItem)
+        if (Block.Type is BlockType.ListItem or BlockType.AgendaItem)
         {
             var indentLevel = GetIndentLevel();
             if (indentLevel > 0)
@@ -150,7 +182,7 @@ public partial class BlockRenderer : IAsyncDisposable
     [JSInvokable]
     public async Task OnTabKeyPressed(bool shiftKey)
     {
-        if (Block.Type != BlockType.ListItem)
+        if (Block.Type is not BlockType.ListItem and not BlockType.AgendaItem)
         {
             return;
         }
@@ -169,6 +201,12 @@ public partial class BlockRenderer : IAsyncDisposable
             var updatedBlock = Block with { Metadata = metadata };
             await OnContentChanged.InvokeAsync(updatedBlock);
         }
+    }
+
+    [JSInvokable]
+    public async Task OnSaveKeyPressed()
+    {
+        await OnSaveRequested.InvokeAsync();
     }
 
     public async Task<string> GetCurrentContent()

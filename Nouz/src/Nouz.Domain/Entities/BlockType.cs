@@ -9,7 +9,10 @@ public enum BlockType
     H4,
     ListItem,
     TodoItem,
+    AgendaItem,
     Code,
     Quote,
+    Decision,
+    Warning,
     Divider
 }

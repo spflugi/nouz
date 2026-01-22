@@ -30,6 +30,13 @@
     letter-spacing: 0.3px;
 }
 
+.note-saved-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+    margin-left: auto;
+}
+
 .note-actions {
     display: flex;
     align-items: center;

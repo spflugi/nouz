@@ -365,15 +365,38 @@ internal sealed class NoteHandler :
             }
 
             var updatedBlock = oldBlock with { Type = command.NewType };
-            var updatedBlocks = note.Blocks.Replace(oldBlock, updatedBlock);
+            var blocks = note.Blocks.Replace(oldBlock, updatedBlock).ToList();
+            var focusBlockId = updatedBlock.Id;
+
+            // If changing to Divider, add a paragraph block after it for continued editing
+            if (command.NewType == BlockType.Divider)
+            {
+                var dividerIndex = blocks.FindIndex(b => b.Id == updatedBlock.Id);
+                var newParagraph = new Block
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.Paragraph,
+                    Content = string.Empty,
+                    Order = dividerIndex + 1
+                };
+                blocks.Insert(dividerIndex + 1, newParagraph);
+                focusBlockId = newParagraph.Id;
+            }
+
+            // Update Order for all blocks based on their position
+            var orderedBlocks = blocks.Select((b, i) => b with { Order = i }).ToImmutableList();
+
             var updatedNote = note with
             {
-                Blocks = updatedBlocks,
+                Blocks = orderedBlocks,
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
 
             // Only update state, don't persist - will be saved when user clicks Save
             await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            // Focus the block (or the new paragraph after a divider)
+            await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(command.NoteId, focusBlockId)).ConfigureAwait(false);
 
             _logger.LogDebug("Block '{BlockId}' type changed to '{NewType}' (state only)", command.BlockId, command.NewType);
         }

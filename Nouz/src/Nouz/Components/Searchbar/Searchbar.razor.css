@@ -38,3 +38,7 @@
     height: 20px;
     background-color: var(--border-color);
 }
+
+.searchbar-spacer {
+    flex: 1;
+}

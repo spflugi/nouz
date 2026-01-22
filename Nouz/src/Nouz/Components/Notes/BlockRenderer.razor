@@ -112,6 +112,40 @@
                 </blockquote>
                 break;
 
+            case BlockType.AgendaItem:
+                <div class="block block-agenda-item" style="padding-left: @(GetIndentLevel() * 20)px">
+                    <RadzenIcon Icon="chevron_right" class="agenda-chevron" />
+                    <span class="agenda-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="Agenda item"></span>
+                </div>
+                break;
+
+            case BlockType.Decision:
+                <div class="block block-decision">
+                    <span class="decision-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="Decision"></span>
+                </div>
+                break;
+
+            case BlockType.Warning:
+                <div class="block block-warning">
+                    <span class="warning-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="Warning"></span>
+                </div>
+                break;
+
+            case BlockType.Divider:
+                <div class="block block-divider" @ref="_contentRef">
+                    <hr />
+                </div>
+                break;
+
             default:
                 <p class="block block-paragraph"
                    contenteditable="true"
