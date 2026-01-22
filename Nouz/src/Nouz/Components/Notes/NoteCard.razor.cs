@@ -8,6 +8,7 @@ public partial class NoteCard
 {
     private readonly Dictionary<Guid, BlockRenderer> _blockRenderers = new();
     private bool _showContextMenu;
+    private bool _showSavedNotification = false;
 
     [Parameter, EditorRequired]
     public Note Note { get; set; } = null!;
@@ -99,6 +100,14 @@ public partial class NoteCard
 
         var updatedNote = Note with { Blocks = updatedBlocks.ToImmutableList() };
         await OnSave.InvokeAsync(updatedNote);
+
+        _showSavedNotification = true;
+        StateHasChanged();
+
+        await Task.Delay(TimeSpan.FromSeconds(1));
+
+        _showSavedNotification = false;
+        StateHasChanged();
     }
 
     private void ToggleContextMenu()

@@ -1,8 +1,7 @@
 @inherits SharedComponentBase
 
 <div class="searchbar">
-    
-    @if (_selectedNotebookId is not null)
+    @if (ShowNotesControls)
     {
         <RadzenIcon Icon="search"
                     Style="color: var(--text-muted);" />
@@ -15,17 +14,22 @@
                       Style="@($"color: var(--text-muted); visibility: {(string.IsNullOrEmpty(_query) ? "hidden" : "visible")}")"
                       Click="@(() => ClearSearchInput())"
                       title="Clear search" />
+    }
 
-        <div class="searchbar-divider"></div>
+    <div class="searchbar-spacer"></div>
+
+    @if (ShowNotesControls)
+    {
         <RadzenButton Icon="add"
                       Variant="Variant.Text"
                       Style="color: var(--text-muted);"
                       Click="@CreateNote"
                       title="New note" />
-        <RadzenButton Icon="settings"
-                      Variant="Variant.Text"
-                      Style="color: var(--text-muted);"
-                      Click="@OpenSettings"
-                      title="Open settings" />
+        <div class="searchbar-divider"></div>
     }
+    <RadzenButton Icon="settings"
+                  Variant="Variant.Text"
+                  Style="color: var(--text-muted);"
+                  Click="@OpenSettings"
+                  title="Open settings" />
 </div>

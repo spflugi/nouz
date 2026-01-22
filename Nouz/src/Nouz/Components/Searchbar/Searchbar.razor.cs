@@ -10,13 +10,20 @@ public partial class Searchbar
 {
     private string _query = string.Empty;
     private Guid? _selectedNotebookId;
+    private bool _isOnSettingsPage;
     private readonly Subject<string> _searchSubject = new();
 
     [Inject]
     public NavigationManager Navigation { get; init; } = null!;
 
+    private bool ShowNotesControls => _selectedNotebookId is not null && !_isOnSettingsPage;
+
     protected override void OnInitialized()
     {
+        // Track navigation to show/hide notes controls
+        Navigation.LocationChanged += OnLocationChanged;
+        UpdateSettingsPageState();
+
         StateProvider.StateObservable
             .Select(s => s.Notebooks.SelectedNotebook)
             .DistinctUntilChanged()
@@ -83,8 +90,21 @@ public partial class Searchbar
         Navigation.NavigateTo("/settings");
     }
 
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateSettingsPageState();
+        StateHasChanged();
+    }
+
+    private void UpdateSettingsPageState()
+    {
+        var uri = new Uri(Navigation.Uri);
+        _isOnSettingsPage = uri.AbsolutePath.TrimEnd('/').EndsWith("/settings", StringComparison.OrdinalIgnoreCase);
+    }
+
     public override void Dispose()
     {
+        Navigation.LocationChanged -= OnLocationChanged;
         _searchSubject.Dispose();
         base.Dispose();
     }

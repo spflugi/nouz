@@ -212,6 +212,15 @@
                         console.error('Tab key error:', err);
                     }
                 }
+                if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                        await ref.invokeMethodAsync('OnSaveKeyPressed');
+                    } catch (err) {
+                        console.error('Save key error:', err);
+                    }
+                }
             });
         }
     },

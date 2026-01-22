@@ -1,6 +1,10 @@
 <div class="note-card @(IsEditing ? "editing" : "")">
     <div class="note-header">
-        <span class="note-date">@Note.CreatedAt.LocalDateTime.ToString("MMM d, yyyy h:mm tt")</span>
+        <span class="note-date">@Note.CreatedAt.LocalDateTime.ToString("dd. MMM yyyy hh:mm")</span>
+        @if (_showSavedNotification)
+        {
+            <span class="note-saved-info">Saved</span>
+        }
         <div class="note-actions">
             @if (IsEditing)
             {
@@ -45,7 +49,8 @@
                            OnEnterPressed="@(args => HandleBlockEnterPressed(args))"
                            OnTypeChange="@(args => HandleBlockTypeChange(args))"
                            OnDelete="@(blockId => HandleBlockDelete(blockId))"
-                           OnReorder="@(args => HandleBlockReorder(args.BlockId, args.NewIndex))" />
+                           OnReorder="@(args => HandleBlockReorder(args.BlockId, args.NewIndex))"
+                           OnSaveRequested="@HandleSave" />
         }
     </div>
 </div>
