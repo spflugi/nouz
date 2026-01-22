@@ -71,6 +71,15 @@
     </div>
     <div class="menu-divider"></div>
     <div class="menu-section">
+        <span class="menu-section-title">Insert</span>
+        <button class="menu-item"
+                @onclick="@(() => OnInsertImageRequested.InvokeAsync())">
+            <RadzenIcon Icon="image" />
+            <span>Image</span>
+        </button>
+    </div>
+    <div class="menu-divider"></div>
+    <div class="menu-section">
         <button class="menu-item menu-item-danger" @onclick="@(() => OnDeleteSelected.InvokeAsync())">
             <RadzenIcon Icon="delete" />
             <span>Delete</span>

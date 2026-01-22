@@ -50,7 +50,11 @@
                            OnTypeChange="@(args => HandleBlockTypeChange(args))"
                            OnDelete="@(blockId => HandleBlockDelete(blockId))"
                            OnReorder="@(args => HandleBlockReorder(args.BlockId, args.NewIndex))"
-                           OnSaveRequested="@HandleSave" />
+                           OnSaveRequested="@HandleSave"
+                           OnImagePasted="@(args => HandleImagePasted(args))"
+                           OnImageCaptionChanged="@(args => HandleImageCaptionChanged(args))"
+                           OnImageWidthChanged="@(args => HandleImageWidthChanged(args))"
+                           OnImagePreviewRequested="@(args => HandleImagePreviewRequested(args))" />
         }
     </div>
 </div>

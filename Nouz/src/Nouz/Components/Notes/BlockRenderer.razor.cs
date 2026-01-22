@@ -2,16 +2,19 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Nouz.Domain.Entities;
 using Nouz.Domain.Extensions;
+using Nouz.Domain.Repositories;
 
 namespace Nouz.Components.Notes;
 
 public partial class BlockRenderer : IAsyncDisposable
 {
     private ElementReference _contentRef;
+    private ElementReference _imageFileInputRef;
     private bool _showMenu;
     private bool _showContextMenu;
     private bool _contentInitialized;
     private bool _formattingInitialized;
+    private bool _imagePasteInitialized;
     private bool _wasEditing;
     private bool _shouldFocus;
     private BlockType? _previousBlockType;
@@ -30,6 +33,15 @@ public partial class BlockRenderer : IAsyncDisposable
     private string? _selectionColor;
     private int _selectionStart;
     private int _selectionEnd;
+
+    // Image block state
+    private string? _imageDataUrl;
+    private Guid? _loadedImageAttachmentId;
+    private ElementReference _resizeHandleRef;
+    private bool _resizeHandlerInitialized;
+
+    [Inject]
+    private IAttachmentRepository AttachmentRepository { get; set; } = null!;
 
     [Parameter, EditorRequired]
     public Block Block { get; set; } = null!;
@@ -63,6 +75,18 @@ public partial class BlockRenderer : IAsyncDisposable
 
     [Parameter]
     public EventCallback OnSaveRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid? AfterBlockId, string ImageData, string FileName, string MimeType)> OnImagePasted { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, string Caption)> OnImageCaptionChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int WidthPercent)> OnImageWidthChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ImageDataUrl, string? Caption)> OnImagePreviewRequested { get; set; }
 
     private bool SupportsFormatting => Block.Type == BlockType.Paragraph;
 
@@ -100,6 +124,29 @@ public partial class BlockRenderer : IAsyncDisposable
             return;
         }
 
+        // Image blocks need to load their image data and initialize resize handler
+        if (Block.Type == BlockType.Image)
+        {
+            await LoadImageDataAsync();
+
+            // Initialize resize handler after image is loaded
+            if (!_resizeHandlerInitialized && _resizeHandleRef.Context is not null)
+            {
+                try
+                {
+                    await JsRuntime.InvokeVoidAsync("nouz.initImageResizeHandler", _resizeHandleRef, _contentRef, _dotNetRef);
+                    _resizeHandlerInitialized = true;
+                }
+                catch
+                {
+                    // Ignore JS interop errors
+                }
+            }
+
+            _contentInitialized = true;
+            return;
+        }
+
         if (_contentRef.Context is not null)
         {
             try
@@ -129,6 +176,13 @@ public partial class BlockRenderer : IAsyncDisposable
                 {
                     await JsRuntime.InvokeVoidAsync("nouz.initFormattingToolbar", _contentRef, _dotNetRef);
                     _formattingInitialized = true;
+                }
+
+                // Initialize image paste handler for editable blocks
+                if (!_imagePasteInitialized && Block.Type != BlockType.Divider)
+                {
+                    await JsRuntime.InvokeVoidAsync("nouz.initImagePasteHandler", _contentRef, _dotNetRef);
+                    _imagePasteInitialized = true;
                 }
 
                 // Focus the block if it became the editing block
@@ -259,6 +313,33 @@ public partial class BlockRenderer : IAsyncDisposable
     {
         _showContextMenu = false;
         await OnDelete.InvokeAsync(Block.Id);
+    }
+
+    private async Task HandleInsertImageRequested()
+    {
+        _showContextMenu = false;
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("nouz.triggerImageFileInput", _imageFileInputRef);
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
+    }
+
+    private async Task HandleImageFileSelected(ChangeEventArgs e)
+    {
+        // File handling is done via JavaScript - the onchange event provides limited info in Blazor
+        // We need to read the file via JS and then invoke our method
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("nouz.processImageFileInput", _imageFileInputRef, _dotNetRef);
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
     }
 
     private async Task HandleClick()
@@ -456,6 +537,132 @@ public partial class BlockRenderer : IAsyncDisposable
         {
             await OnReorder.InvokeAsync((_draggedBlockId.Value, Index));
         }
+    }
+
+    // Image block methods
+    private async Task LoadImageDataAsync()
+    {
+        if (Block.Type != BlockType.Image)
+        {
+            return;
+        }
+
+        var attachmentId = GetImageAttachmentId();
+        if (attachmentId == Guid.Empty || attachmentId == _loadedImageAttachmentId)
+        {
+            return;
+        }
+
+        try
+        {
+            var imageData = await AttachmentRepository.LoadAsync(attachmentId);
+            if (imageData is not null)
+            {
+                var mimeType = GetImageMimeType();
+                _imageDataUrl = $"data:{mimeType};base64,{Convert.ToBase64String(imageData)}";
+                _loadedImageAttachmentId = attachmentId;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // Ignore errors loading image
+        }
+    }
+
+    private Guid GetImageAttachmentId()
+    {
+        if (Block.Metadata.TryGetValue("attachmentId", out var attachmentIdObj))
+        {
+            return attachmentIdObj switch
+            {
+                Guid guid => guid,
+                string str => Guid.TryParse(str, out var parsed) ? parsed : Guid.Empty,
+                System.Text.Json.JsonElement jsonElement => Guid.TryParse(jsonElement.GetString(), out var parsed) ? parsed : Guid.Empty,
+                _ => Guid.Empty
+            };
+        }
+        return Guid.Empty;
+    }
+
+    private string GetImageMimeType()
+    {
+        if (Block.Metadata.TryGetValue("mimeType", out var mimeTypeObj))
+        {
+            return mimeTypeObj switch
+            {
+                string str => str,
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetString() ?? "image/png",
+                _ => "image/png"
+            };
+        }
+        return "image/png";
+    }
+
+    private string GetImageCaption()
+    {
+        if (Block.Metadata.TryGetValue("caption", out var captionObj))
+        {
+            return captionObj switch
+            {
+                string str => str,
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetString() ?? string.Empty,
+                _ => string.Empty
+            };
+        }
+        return string.Empty;
+    }
+
+    private async Task HandleCaptionChange(ChangeEventArgs e)
+    {
+        var caption = e.Value?.ToString() ?? string.Empty;
+        await OnImageCaptionChanged.InvokeAsync((NoteId, Block.Id, caption));
+    }
+
+    private void HandleImageDragOver()
+    {
+        // Allow drop
+    }
+
+    private async Task HandleImageDrop()
+    {
+        // This will be handled by JavaScript for file drops
+        await Task.CompletedTask;
+    }
+
+    private int GetImageWidthPercent()
+    {
+        if (Block.Metadata.TryGetValue("widthPercent", out var widthObj))
+        {
+            return widthObj switch
+            {
+                int intValue => intValue,
+                long longValue => (int)longValue,
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetInt32(),
+                _ => 50
+            };
+        }
+        return 50; // Default to 50%
+    }
+
+    private async Task HandleImageClick()
+    {
+        if (!string.IsNullOrEmpty(_imageDataUrl))
+        {
+            await OnImagePreviewRequested.InvokeAsync((_imageDataUrl, GetImageCaption()));
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnImageResized(int newWidthPercent)
+    {
+        await OnImageWidthChanged.InvokeAsync((NoteId, Block.Id, newWidthPercent));
+    }
+
+    [JSInvokable]
+    public async Task OnImagePastedFromClipboard(string imageData, string fileName, string mimeType)
+    {
+        await OnImagePasted.InvokeAsync((NoteId, Block.Id, imageData, fileName, mimeType));
     }
 
     public class SelectionData

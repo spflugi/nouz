@@ -49,6 +49,18 @@ public partial class NoteCard
     [Parameter]
     public EventCallback<Note> OnSave { get; set; }
 
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid? AfterBlockId, string ImageData, string FileName, string MimeType)> OnImagePasted { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, string Caption)> OnImageCaptionChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int WidthPercent)> OnImageWidthChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<(string ImageDataUrl, string? Caption)> OnImagePreviewRequested { get; set; }
+
     private async Task HandleBlockClick(Guid blockId)
     {
         await OnBlockClick.InvokeAsync((Note.Id, blockId));
@@ -130,5 +142,25 @@ public partial class NoteCard
     {
         _showContextMenu = false;
         await OnDelete.InvokeAsync(Note.Id);
+    }
+
+    private async Task HandleImagePasted((Guid NoteId, Guid? AfterBlockId, string ImageData, string FileName, string MimeType) args)
+    {
+        await OnImagePasted.InvokeAsync(args);
+    }
+
+    private async Task HandleImageCaptionChanged((Guid NoteId, Guid BlockId, string Caption) args)
+    {
+        await OnImageCaptionChanged.InvokeAsync(args);
+    }
+
+    private async Task HandleImageWidthChanged((Guid NoteId, Guid BlockId, int WidthPercent) args)
+    {
+        await OnImageWidthChanged.InvokeAsync(args);
+    }
+
+    private async Task HandleImagePreviewRequested((string ImageDataUrl, string? Caption) args)
+    {
+        await OnImagePreviewRequested.InvokeAsync(args);
     }
 }

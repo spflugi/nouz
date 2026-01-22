@@ -419,5 +419,182 @@
     scrollToBottom: function (element) {
         if (!element) return;
         element.scrollTop = element.scrollHeight;
+    },
+
+    // Initialize image paste handling for a block
+    initImagePasteHandler: function (element, dotNetRef) {
+        if (!element || !dotNetRef) return;
+        if (element._imagePasteInit) {
+            element._imagePasteDotNetRef = dotNetRef;
+            return;
+        }
+
+        element._imagePasteInit = true;
+        element._imagePasteDotNetRef = dotNetRef;
+
+        element.addEventListener('paste', async function (e) {
+            const ref = element._imagePasteDotNetRef;
+            if (!ref) return;
+
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.type.startsWith('image/')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const file = item.getAsFile();
+                    if (file) {
+                        const base64 = await window.nouz.fileToBase64(file);
+                        const fileName = file.name || 'pasted-image.' + item.type.split('/')[1];
+                        try {
+                            await ref.invokeMethodAsync('OnImagePastedFromClipboard', base64, fileName, item.type);
+                        } catch (err) {
+                            console.error('Image paste error:', err);
+                        }
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Handle drag and drop for images
+        element.addEventListener('dragover', function (e) {
+            if (e.dataTransfer?.types?.includes('Files')) {
+                e.preventDefault();
+                e.stopPropagation();
+                element.classList.add('drag-over-image');
+            }
+        });
+
+        element.addEventListener('dragleave', function (e) {
+            element.classList.remove('drag-over-image');
+        });
+
+        element.addEventListener('drop', async function (e) {
+            element.classList.remove('drag-over-image');
+            const ref = element._imagePasteDotNetRef;
+            if (!ref) return;
+
+            const files = e.dataTransfer?.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('image/')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const base64 = await window.nouz.fileToBase64(file);
+                    try {
+                        await ref.invokeMethodAsync('OnImagePastedFromClipboard', base64, file.name, file.type);
+                    } catch (err) {
+                        console.error('Image drop error:', err);
+                    }
+                    break;
+                }
+            }
+        });
+    },
+
+    // Convert a file to base64 string
+    fileToBase64: function (file) {
+        return new Promise(function (resolve, reject) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                // Remove the data URL prefix to get just the base64 string
+                const base64 = reader.result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    },
+
+    // Trigger file input click for image selection
+    triggerImageFileInput: function (inputElement) {
+        if (inputElement) {
+            inputElement.click();
+        }
+    },
+
+    // Process image file input and invoke C# method
+    processImageFileInput: async function (inputElement, dotNetRef) {
+        if (!inputElement || !dotNetRef) return;
+
+        const files = inputElement.files;
+        if (!files || files.length === 0) return;
+
+        const file = files[0];
+        if (!file.type.startsWith('image/')) return;
+
+        try {
+            const base64 = await window.nouz.fileToBase64(file);
+            await dotNetRef.invokeMethodAsync('OnImagePastedFromClipboard', base64, file.name, file.type);
+        } catch (err) {
+            console.error('Image file processing error:', err);
+        }
+
+        // Clear the input so the same file can be selected again
+        inputElement.value = '';
+    },
+
+    // Initialize image resize handler on element
+    initImageResizeHandler: function (resizeHandle, blockElement, dotNetRef) {
+        if (!resizeHandle || !blockElement || !dotNetRef) return;
+        if (resizeHandle._resizeInitialized) return;
+        resizeHandle._resizeInitialized = true;
+
+        resizeHandle.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const container = blockElement.querySelector('.image-resizable-container');
+            if (!container) return;
+
+            const parentWidth = blockElement.offsetWidth;
+            const startX = e.clientX;
+            const startWidth = container.offsetWidth;
+
+            document.body.classList.add('image-resizing');
+
+            const onMouseMove = function (moveEvent) {
+                const deltaX = moveEvent.clientX - startX;
+                let newWidth = startWidth + deltaX;
+
+                // Calculate percentage based on parent width
+                let newPercent = Math.round((newWidth / parentWidth) * 100);
+                newPercent = Math.max(10, Math.min(100, newPercent));
+
+                container.style.width = newPercent + '%';
+
+                // Update caption width too
+                const caption = blockElement.querySelector('.image-caption');
+                if (caption) {
+                    caption.style.width = newPercent + '%';
+                }
+            };
+
+            const onMouseUp = async function () {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.body.classList.remove('image-resizing');
+
+                // Get final percentage
+                const finalWidth = container.offsetWidth;
+                const finalPercent = Math.round((finalWidth / parentWidth) * 100);
+
+                try {
+                    await dotNetRef.invokeMethodAsync('OnImageResized', finalPercent);
+                } catch (err) {
+                    console.error('Image resize error:', err);
+                }
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
     }
 };

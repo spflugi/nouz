@@ -24,12 +24,16 @@ internal sealed class NoteHandler :
     ICommandHandler<NoteCommands.SearchNotes>,
     ICommandHandler<NoteCommands.ClearSearch>,
     ICommandHandler<NoteCommands.MoveNote>,
-    ICommandHandler<NoteCommands.ReorderBlocks>
+    ICommandHandler<NoteCommands.ReorderBlocks>,
+    ICommandHandler<NoteCommands.AddImageBlock>,
+    ICommandHandler<NoteCommands.UpdateImageCaption>,
+    ICommandHandler<NoteCommands.UpdateImageWidth>
 {
     private readonly IMediator _mediator;
     private readonly INoteRepository _noteRepository;
     private readonly IEmbeddingService _embeddingService;
     private readonly IEmbeddingRepository _embeddingRepository;
+    private readonly IAttachmentRepository _attachmentRepository;
     private readonly IStateProvider _stateProvider;
     private readonly IActionDispatcher _actionDispatcher;
     private readonly ILoggerAdapter<NoteHandler> _logger;
@@ -39,6 +43,7 @@ internal sealed class NoteHandler :
         INoteRepository noteRepository,
         IEmbeddingService embeddingService,
         IEmbeddingRepository embeddingRepository,
+        IAttachmentRepository attachmentRepository,
         IStateProvider stateProvider,
         IActionDispatcher actionDispatcher,
         ILoggerAdapter<NoteHandler> logger)
@@ -47,6 +52,7 @@ internal sealed class NoteHandler :
         _noteRepository = noteRepository;
         _embeddingService = embeddingService;
         _embeddingRepository = embeddingRepository;
+        _attachmentRepository = attachmentRepository;
         _stateProvider = stateProvider;
         _actionDispatcher = actionDispatcher;
         _logger = logger;
@@ -132,6 +138,15 @@ internal sealed class NoteHandler :
 
         try
         {
+            // Get note from state to access its blocks for attachment cleanup
+            var note = GetNoteFromState(command.NoteId);
+
+            // Delete all image attachments associated with this note
+            if (note is not null)
+            {
+                await DeleteImageAttachmentsForNote(note, cancellationToken).ConfigureAwait(false);
+            }
+
             await _noteRepository.Delete(command.NoteId, cancellationToken).ConfigureAwait(false);
             await _actionDispatcher.Dispatch(new NoteActions.NoteDeleted(command.NoteId)).ConfigureAwait(false);
 
@@ -321,6 +336,25 @@ internal sealed class NoteHandler :
                 Blocks = updatedBlocks,
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
+
+            // If deleting an image block, also delete the attachment file
+            if (blockToDelete.Type == BlockType.Image &&
+                blockToDelete.Metadata.TryGetValue("attachmentId", out var attachmentIdObj))
+            {
+                var attachmentId = attachmentIdObj switch
+                {
+                    Guid guid => guid,
+                    string str => Guid.TryParse(str, out var parsed) ? parsed : Guid.Empty,
+                    System.Text.Json.JsonElement jsonElement => Guid.TryParse(jsonElement.GetString(), out var parsed) ? parsed : Guid.Empty,
+                    _ => Guid.Empty
+                };
+
+                if (attachmentId != Guid.Empty)
+                {
+                    await _attachmentRepository.DeleteAsync(attachmentId, cancellationToken).ConfigureAwait(false);
+                    _logger.LogDebug("Deleted attachment '{AttachmentId}' for image block", attachmentId);
+                }
+            }
 
             // Only update state, don't persist - will be saved when user clicks Save
             await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
@@ -534,6 +568,197 @@ internal sealed class NoteHandler :
         return Unit.Value;
     }
 
+    public async ValueTask<Unit> Handle(NoteCommands.AddImageBlock command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Adding image block to note '{NoteId}'", command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            // Decode and save the image
+            var imageBytes = Convert.FromBase64String(command.ImageData);
+            var attachmentId = Guid.NewGuid();
+            var extension = GetExtensionFromMimeType(command.MimeType);
+
+            await _attachmentRepository.SaveAsync(attachmentId, imageBytes, extension, cancellationToken).ConfigureAwait(false);
+
+            // Create the image block with metadata
+            var blocks = note.Blocks.ToList();
+            var insertIndex = command.AfterBlockId is null
+                ? 0
+                : blocks.FindIndex(b => b.Id == command.AfterBlockId) + 1;
+
+            if (insertIndex < 0)
+            {
+                insertIndex = blocks.Count;
+            }
+
+            var metadata = new Dictionary<string, object>
+            {
+                ["attachmentId"] = attachmentId.ToString(),
+                ["fileName"] = command.FileName,
+                ["mimeType"] = command.MimeType,
+                ["caption"] = string.Empty,
+                ["widthPercent"] = 50 // Default to 50% width
+            };
+
+            var newBlock = new Block
+            {
+                Id = Guid.NewGuid(),
+                Type = BlockType.Image,
+                Content = string.Empty,
+                Metadata = metadata,
+                Order = insertIndex
+            };
+
+            blocks.Insert(insertIndex, newBlock);
+
+            // Update Order for all blocks based on their position
+            var orderedBlocks = blocks.Select((b, i) => b with { Order = i }).ToImmutableList();
+
+            var updatedNote = note with
+            {
+                Blocks = orderedBlocks,
+                LastModifiedAt = DateTimeOffset.UtcNow
+            };
+
+            await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+            await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(command.NoteId, newBlock.Id)).ConfigureAwait(false);
+
+            _logger.LogDebug("Image block '{BlockId}' added to note '{NoteId}'", newBlock.Id, command.NoteId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add image block to note '{NoteId}'", command.NoteId);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to add image.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.UpdateImageCaption command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Updating caption for image block '{BlockId}' in note '{NoteId}'", command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Image)
+            {
+                _logger.LogWarning("Image block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["caption"] = command.Caption
+            };
+
+            var updatedBlock = block with { Metadata = updatedMetadata };
+            var updatedBlocks = note.Blocks.Replace(block, updatedBlock);
+            var updatedNote = note with
+            {
+                Blocks = updatedBlocks,
+                LastModifiedAt = DateTimeOffset.UtcNow
+            };
+
+            await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            _logger.LogDebug("Caption updated for image block '{BlockId}'", command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update caption for image block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.UpdateImageWidth command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Updating width for image block '{BlockId}' in note '{NoteId}'", command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Image)
+            {
+                _logger.LogWarning("Image block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            // Clamp width between 10% and 100%
+            var widthPercent = Math.Clamp(command.WidthPercent, 10, 100);
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["widthPercent"] = widthPercent
+            };
+
+            var updatedBlock = block with { Metadata = updatedMetadata };
+            var updatedBlocks = note.Blocks.Replace(block, updatedBlock);
+            var updatedNote = note with
+            {
+                Blocks = updatedBlocks,
+                LastModifiedAt = DateTimeOffset.UtcNow
+            };
+
+            // Persist to database
+            await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
+
+            await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            _logger.LogDebug("Width updated for image block '{BlockId}' to {WidthPercent}%", command.BlockId, widthPercent);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update width for image block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    private static string GetExtensionFromMimeType(string mimeType)
+    {
+        return mimeType.ToLowerInvariant() switch
+        {
+            "image/png" => ".png",
+            "image/jpeg" or "image/jpg" => ".jpg",
+            "image/gif" => ".gif",
+            "image/webp" => ".webp",
+            "image/svg+xml" => ".svg",
+            "image/bmp" => ".bmp",
+            _ => ".png"
+        };
+    }
+
     private Note? GetNoteFromState(Guid noteId)
     {
         return _stateProvider.State.Notes.Notes.FirstOrDefault(n => n.Id == noteId);
@@ -579,6 +804,39 @@ internal sealed class NoteHandler :
         {
             // Log but don't fail the note operation - embedding is supplementary
             _logger.LogWarning(ex, "Failed to update embedding for note '{NoteId}'", note.Id);
+        }
+    }
+
+    private async Task DeleteImageAttachmentsForNote(Note note, CancellationToken cancellationToken)
+    {
+        var imageBlocks = note.Blocks.Where(b => b.Type == BlockType.Image);
+
+        foreach (var block in imageBlocks)
+        {
+            if (block.Metadata.TryGetValue("attachmentId", out var attachmentIdObj))
+            {
+                var attachmentId = attachmentIdObj switch
+                {
+                    Guid guid => guid,
+                    string str => Guid.TryParse(str, out var parsed) ? parsed : Guid.Empty,
+                    System.Text.Json.JsonElement jsonElement => Guid.TryParse(jsonElement.GetString(), out var parsed) ? parsed : Guid.Empty,
+                    _ => Guid.Empty
+                };
+
+                if (attachmentId != Guid.Empty)
+                {
+                    try
+                    {
+                        await _attachmentRepository.DeleteAsync(attachmentId, cancellationToken).ConfigureAwait(false);
+                        _logger.LogDebug("Deleted attachment '{AttachmentId}' for image block in note '{NoteId}'", attachmentId, note.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log but don't fail note deletion - attachment cleanup is supplementary
+                        _logger.LogWarning(ex, "Failed to delete attachment '{AttachmentId}' for image block in note '{NoteId}'", attachmentId, note.Id);
+                    }
+                }
+            }
         }
     }
 }

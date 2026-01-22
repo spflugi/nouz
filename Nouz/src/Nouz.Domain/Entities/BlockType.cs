@@ -14,5 +14,6 @@ public enum BlockType
     Quote,
     Decision,
     Warning,
-    Divider
+    Divider,
+    Image
 }
