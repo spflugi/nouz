@@ -17,6 +17,7 @@ public class NoteHandlerMoveNoteTests
     private readonly IEmbeddingService _embeddingService = Substitute.For<IEmbeddingService>();
     private readonly IEmbeddingRepository _embeddingRepository = Substitute.For<IEmbeddingRepository>();
     private readonly IAttachmentRepository _attachmentRepository = Substitute.For<IAttachmentRepository>();
+    private readonly INoteAttachmentRepository _noteAttachmentRepository = Substitute.For<INoteAttachmentRepository>();
     private readonly IStateProvider _stateProvider = Substitute.For<IStateProvider>();
     private readonly IActionDispatcher _actionDispatcher = Substitute.For<IActionDispatcher>();
     private readonly ILoggerAdapter<NoteHandler> _logger = Substitute.For<ILoggerAdapter<NoteHandler>>();
@@ -30,6 +31,7 @@ public class NoteHandlerMoveNoteTests
             _embeddingService,
             _embeddingRepository,
             _attachmentRepository,
+            _noteAttachmentRepository,
             _stateProvider,
             _actionDispatcher,
             _logger);

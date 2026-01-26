@@ -21,6 +21,9 @@ public partial class NoteCardContextMenu
     public EventCallback OnDeleteSelected { get; set; }
 
     [Parameter]
+    public EventCallback OnAddAttachment { get; set; }
+
+    [Parameter]
     public EventCallback OnClose { get; set; }
 
     private void ToggleSubmenu()
@@ -35,5 +38,10 @@ public partial class NoteCardContextMenu
             await OnMoveToNotebook.InvokeAsync(notebook.Id);
             await OnClose.InvokeAsync();
         }
+    }
+
+    private async Task HandleAddAttachment()
+    {
+        await OnAddAttachment.InvokeAsync();
     }
 }

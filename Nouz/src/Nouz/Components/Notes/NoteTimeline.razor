@@ -23,6 +23,7 @@
                     <NoteCard @key="note.Id"
                               Note="@note"
                               Notebooks="@_notebooks"
+                              Attachments="@GetAttachmentsForNote(note.Id)"
                               IsEditing="@(_editingNoteId == note.Id)"
                               EditingBlockId="@(_editingNoteId == note.Id ? _editingBlockId : null)"
                               OnDelete="@(noteId => DeleteNote(noteId))"
@@ -37,7 +38,10 @@
                               OnImagePasted="@(args => HandleImagePasted(args.NoteId, args.AfterBlockId, args.ImageData, args.FileName, args.MimeType))"
                               OnImageCaptionChanged="@(args => HandleImageCaptionChanged(args.NoteId, args.BlockId, args.Caption))"
                               OnImageWidthChanged="@(args => HandleImageWidthChanged(args.NoteId, args.BlockId, args.WidthPercent))"
-                              OnImagePreviewRequested="@(args => ShowImagePreview(args.ImageDataUrl, args.Caption))" />
+                              OnImagePreviewRequested="@(args => ShowImagePreview(args.ImageDataUrl, args.Caption))"
+                              OnAddAttachment="@(args => HandleAddAttachment(args.NoteId, args.FileStream, args.FileName))"
+                              OnDeleteAttachment="@(args => HandleDeleteAttachment(args.NoteId, args.AttachmentId))"
+                              OnOpenAttachment="@(attachmentId => HandleOpenAttachment(attachmentId))" />
                 }
             }
         </div>

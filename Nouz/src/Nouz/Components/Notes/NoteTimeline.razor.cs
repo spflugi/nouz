@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Reactive.Linq;
+using Nouz.Application.Attachments;
 using Nouz.Application.Notes;
 using Nouz.Components.Modals;
 using Nouz.Domain.Entities;
@@ -11,6 +12,8 @@ public partial class NoteTimeline
 {
     private ImmutableList<Note> _notes = [];
     private ImmutableList<Notebook> _notebooks = [];
+    private ImmutableDictionary<Guid, ImmutableList<NoteAttachment>> _attachmentsByNoteId =
+        ImmutableDictionary<Guid, ImmutableList<NoteAttachment>>.Empty;
     private Guid? _selectedNotebookId;
     private Guid? _editingNoteId;
     private Guid? _editingBlockId;
@@ -25,7 +28,21 @@ public partial class NoteTimeline
             .Subscribe(notes =>
             {
                 _notes = notes;
-                StateHasChanged();
+
+                // Load attachments for all notes (fire-and-forget, state subscription handles updates)
+                _ = LoadAttachmentsForNotes(notes);
+
+                InvokeAsync(StateHasChanged);
+            });
+
+        StateProvider.StateObservable
+            .Select(s => s.Notes.AttachmentsByNoteId)
+            .DistinctUntilChanged()
+            .TakeUntilDisappearing(this)
+            .Subscribe(attachments =>
+            {
+                _attachmentsByNoteId = attachments;
+                InvokeAsync(StateHasChanged);
             });
 
         StateProvider.StateObservable
@@ -35,27 +52,27 @@ public partial class NoteTimeline
             .Subscribe(notebooks =>
             {
                 _notebooks = notebooks;
-                StateHasChanged();
+                InvokeAsync(StateHasChanged);
             });
 
         StateProvider.StateObservable
             .Select(s => s.Notebooks.SelectedNotebook)
             .DistinctUntilChanged()
             .TakeUntilDisappearing(this)
-            .Subscribe(async notebookId =>
+            .Subscribe(notebookId =>
             {
                 _selectedNotebookId = notebookId == Guid.Empty ? null : notebookId;
 
                 if (_selectedNotebookId is not null)
                 {
-                    await Mediator.Send(new NoteCommands.LoadNotesForNotebook(_selectedNotebookId.Value));
+                    _ = Mediator.Send(new NoteCommands.LoadNotesForNotebook(_selectedNotebookId.Value));
                 }
                 else
                 {
-                    await Mediator.Send(new NoteCommands.ClearNotes());
+                    _ = Mediator.Send(new NoteCommands.ClearNotes());
                 }
 
-                StateHasChanged();
+                InvokeAsync(StateHasChanged);
             });
 
         StateProvider.StateObservable
@@ -66,8 +83,23 @@ public partial class NoteTimeline
             {
                 _editingNoteId = editing.EditingNoteId;
                 _editingBlockId = editing.EditingBlockId;
-                StateHasChanged();
+                InvokeAsync(StateHasChanged);
             });
+    }
+
+    private async Task LoadAttachmentsForNotes(ImmutableList<Note> notes)
+    {
+        foreach (var note in notes)
+        {
+            await Mediator.Send(new AttachmentCommands.LoadAttachments(note.Id));
+        }
+    }
+
+    private ImmutableList<NoteAttachment> GetAttachmentsForNote(Guid noteId)
+    {
+        return _attachmentsByNoteId.TryGetValue(noteId, out var attachments)
+            ? attachments
+            : [];
     }
 
     private async Task DeleteNote(Guid noteId)
@@ -140,5 +172,26 @@ public partial class NoteTimeline
     private void ShowImagePreview(string imageDataUrl, string? caption)
     {
         _imagePreviewModal.Show(imageDataUrl, caption);
+    }
+
+    private async Task HandleAddAttachment(Guid noteId, Stream fileStream, string fileName)
+    {
+        await Mediator.Send(new AttachmentCommands.AddAttachment(noteId, fileStream, fileName));
+    }
+
+    private async Task HandleDeleteAttachment(Guid noteId, Guid attachmentId)
+    {
+        var confirmed = await ShowConfirmationModal("Remove attachment",
+            "Are you sure you want to remove this attachment?", "Remove", "Cancel");
+
+        if (confirmed)
+        {
+            await Mediator.Send(new AttachmentCommands.DeleteAttachment(noteId, attachmentId));
+        }
+    }
+
+    private async Task HandleOpenAttachment(Guid attachmentId)
+    {
+        await Mediator.Send(new AttachmentCommands.OpenAttachment(attachmentId));
     }
 }

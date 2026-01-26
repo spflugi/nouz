@@ -8,7 +8,9 @@
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     min-width: 200px;
+    max-width: calc(100vw - 40px);
     padding: var(--space-2) 0;
+    white-space: nowrap;
 }
 
 .menu-backdrop {

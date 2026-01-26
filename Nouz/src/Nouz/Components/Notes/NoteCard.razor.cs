@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
 using Nouz.Domain.Entities;
 
 namespace Nouz.Components.Notes;
@@ -8,13 +10,20 @@ public partial class NoteCard
 {
     private readonly Dictionary<Guid, BlockRenderer> _blockRenderers = new();
     private bool _showContextMenu;
-    private bool _showSavedNotification = false;
+    private bool _showSavedNotification;
+    private InputFile? _fileInput;
+
+    [Inject]
+    private IJSRuntime JsRuntime { get; set; } = null!;
 
     [Parameter, EditorRequired]
     public Note Note { get; set; } = null!;
 
     [Parameter]
     public ImmutableList<Notebook> Notebooks { get; set; } = [];
+
+    [Parameter]
+    public ImmutableList<NoteAttachment> Attachments { get; set; } = [];
 
     [Parameter]
     public bool IsEditing { get; set; }
@@ -60,6 +69,15 @@ public partial class NoteCard
 
     [Parameter]
     public EventCallback<(string ImageDataUrl, string? Caption)> OnImagePreviewRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Stream FileStream, string FileName)> OnAddAttachment { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid AttachmentId)> OnDeleteAttachment { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnOpenAttachment { get; set; }
 
     private async Task HandleBlockClick(Guid blockId)
     {
@@ -162,5 +180,46 @@ public partial class NoteCard
     private async Task HandleImagePreviewRequested((string ImageDataUrl, string? Caption) args)
     {
         await OnImagePreviewRequested.InvokeAsync(args);
+    }
+
+    private async Task HandleAddAttachment((Guid NoteId, Stream FileStream, string FileName) args)
+    {
+        await OnAddAttachment.InvokeAsync(args);
+    }
+
+    private async Task HandleDeleteAttachment((Guid NoteId, Guid AttachmentId) args)
+    {
+        await OnDeleteAttachment.InvokeAsync(args);
+    }
+
+    private async Task HandleOpenAttachment(Guid attachmentId)
+    {
+        await OnOpenAttachment.InvokeAsync(attachmentId);
+    }
+
+    private async Task HandleAddAttachmentFromMenu()
+    {
+        _showContextMenu = false;
+        // Trigger the hidden file input via JS interop
+        if (_fileInput?.Element is not null)
+        {
+            await JsRuntime.InvokeVoidAsync("nouz.triggerFileInput", _fileInput.Element);
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        if (file is null)
+        {
+            return;
+        }
+
+        // Max 50MB
+        const long maxFileSize = 50 * 1024 * 1024;
+        var stream = file.OpenReadStream(maxFileSize);
+
+        await OnAddAttachment.InvokeAsync((Note.Id, stream, file.Name));
     }
 }

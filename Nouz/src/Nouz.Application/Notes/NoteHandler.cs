@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using Mediator;
+using Nouz.Application.Attachments;
 using Nouz.Application.Embeddings;
 using Nouz.Application.Logger;
 using Nouz.Application.Notifications;
@@ -34,6 +35,7 @@ internal sealed class NoteHandler :
     private readonly IEmbeddingService _embeddingService;
     private readonly IEmbeddingRepository _embeddingRepository;
     private readonly IAttachmentRepository _attachmentRepository;
+    private readonly INoteAttachmentRepository _noteAttachmentRepository;
     private readonly IStateProvider _stateProvider;
     private readonly IActionDispatcher _actionDispatcher;
     private readonly ILoggerAdapter<NoteHandler> _logger;
@@ -44,6 +46,7 @@ internal sealed class NoteHandler :
         IEmbeddingService embeddingService,
         IEmbeddingRepository embeddingRepository,
         IAttachmentRepository attachmentRepository,
+        INoteAttachmentRepository noteAttachmentRepository,
         IStateProvider stateProvider,
         IActionDispatcher actionDispatcher,
         ILoggerAdapter<NoteHandler> logger)
@@ -53,6 +56,7 @@ internal sealed class NoteHandler :
         _embeddingService = embeddingService;
         _embeddingRepository = embeddingRepository;
         _attachmentRepository = attachmentRepository;
+        _noteAttachmentRepository = noteAttachmentRepository;
         _stateProvider = stateProvider;
         _actionDispatcher = actionDispatcher;
         _logger = logger;
@@ -141,14 +145,18 @@ internal sealed class NoteHandler :
             // Get note from state to access its blocks for attachment cleanup
             var note = GetNoteFromState(command.NoteId);
 
-            // Delete all image attachments associated with this note
+            // Delete all image attachments associated with this note (block-level attachments)
             if (note is not null)
             {
                 await DeleteImageAttachmentsForNote(note, cancellationToken).ConfigureAwait(false);
             }
 
+            // Delete all note-level attachments
+            await _noteAttachmentRepository.DeleteAllForNoteAsync(command.NoteId, cancellationToken).ConfigureAwait(false);
+
             await _noteRepository.Delete(command.NoteId, cancellationToken).ConfigureAwait(false);
             await _actionDispatcher.Dispatch(new NoteActions.NoteDeleted(command.NoteId)).ConfigureAwait(false);
+            await _actionDispatcher.Dispatch(new AttachmentActions.AttachmentsCleared(command.NoteId)).ConfigureAwait(false);
 
             _logger.LogInformation("Note '{NoteId}' deleted", command.NoteId);
 
