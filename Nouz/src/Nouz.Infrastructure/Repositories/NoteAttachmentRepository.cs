@@ -14,7 +14,13 @@ internal sealed class NoteAttachmentRepository : INoteAttachmentRepository
     public NoteAttachmentRepository(IDbContextFactory<NouzDbContext> contextFactory)
     {
         _contextFactory = contextFactory;
+
+#if DEBUG
+        _baseDirectory = Path.Combine(FileSystem.AppDataDirectory, "dev", "note-attachments");
+#else
         _baseDirectory = Path.Combine(FileSystem.AppDataDirectory, "note-attachments");
+#endif
+
         Directory.CreateDirectory(_baseDirectory);
     }
 

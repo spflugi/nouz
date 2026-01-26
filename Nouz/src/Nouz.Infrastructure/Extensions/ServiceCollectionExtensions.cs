@@ -47,9 +47,15 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection RegisterPersistence(this IServiceCollection services)
     {
+#if DEBUG
+        var dataSource = Path.Combine(FileSystem.AppDataDirectory, "dev", "nouz.db");
+#else
+        var dataSource = Path.Combine(FileSystem.AppDataDirectory, "nouz.db");
+#endif
+
         var connectionString = new SqliteConnectionStringBuilder
         {
-            DataSource = Path.Combine(FileSystem.AppDataDirectory, "nouz.db"),
+            DataSource = dataSource,
             Mode = SqliteOpenMode.ReadWriteCreate
         }.ToString();
 

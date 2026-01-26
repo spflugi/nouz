@@ -8,7 +8,12 @@ internal sealed class AttachmentRepository : IAttachmentRepository
 
     public AttachmentRepository()
     {
+#if DEBUG
+        _attachmentsDirectory = Path.Combine(FileSystem.AppDataDirectory, "dev", "attachments");
+#else
         _attachmentsDirectory = Path.Combine(FileSystem.AppDataDirectory, "attachments");
+#endif
+
         Directory.CreateDirectory(_attachmentsDirectory);
     }
 
