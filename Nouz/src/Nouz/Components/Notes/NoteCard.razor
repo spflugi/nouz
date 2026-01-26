@@ -15,6 +15,14 @@
                               Click="@HandleSave"
                               title="Save note" />
             }
+            @if (Attachments.Count > 0)
+            {
+                <AttachmentPanel NoteId="@Note.Id"
+                                 Attachments="@Attachments"
+                                 OnAddAttachment="@HandleAddAttachment"
+                                 OnDeleteAttachment="@HandleDeleteAttachment"
+                                 OnOpenAttachment="@HandleOpenAttachment" />
+            }
             <div class="context-menu-wrapper">
                 <RadzenButton Icon="more_vert"
                               Variant="Variant.Text"
@@ -28,10 +36,12 @@
                                          CurrentNotebookId="@Note.NotebookId"
                                          OnMoveToNotebook="@HandleMoveToNotebook"
                                          OnDeleteSelected="@HandleDeleteSelected"
+                                         OnAddAttachment="@HandleAddAttachmentFromMenu"
                                          OnClose="@CloseContextMenu" />
                 }
             </div>
         </div>
+        <InputFile @ref="_fileInput" OnChange="HandleFileSelected" style="display: none;" />
     </div>
     <div class="note-content">
         @for (var i = 0; i < Note.Blocks.Count; i++)

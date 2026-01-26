@@ -69,6 +69,29 @@ namespace Nouz.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "NoteAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    NoteId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    FileName = table.Column<string>(type: "TEXT", nullable: false),
+                    Extension = table.Column<string>(type: "TEXT", nullable: false),
+                    FileSizeBytes = table.Column<long>(type: "INTEGER", nullable: false),
+                    ContentHash = table.Column<string>(type: "TEXT", nullable: false),
+                    AddedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NoteAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NoteAttachments_Notes_NoteId",
+                        column: x => x.NoteId,
+                        principalTable: "Notes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "NoteEmbeddings",
                 columns: table => new
                 {
@@ -93,6 +116,16 @@ namespace Nouz.Infrastructure.Migrations
                 column: "NoteId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NoteAttachments_NoteId",
+                table: "NoteAttachments",
+                column: "NoteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NoteAttachments_NoteId_ContentHash",
+                table: "NoteAttachments",
+                columns: new[] { "NoteId", "ContentHash" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notebooks_Name",
                 table: "Notebooks",
                 column: "Name");
@@ -113,6 +146,9 @@ namespace Nouz.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Block");
+
+            migrationBuilder.DropTable(
+                name: "NoteAttachments");
 
             migrationBuilder.DropTable(
                 name: "NoteEmbeddings");

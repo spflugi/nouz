@@ -70,6 +70,42 @@ namespace Nouz.Infrastructure.Migrations
                     b.ToTable("Notes");
                 });
 
+            modelBuilder.Entity("Nouz.Domain.Entities.NoteAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("NoteId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoteId");
+
+                    b.HasIndex("NoteId", "ContentHash");
+
+                    b.ToTable("NoteAttachments");
+                });
+
             modelBuilder.Entity("Nouz.Domain.Entities.NoteEmbedding", b =>
                 {
                     b.Property<Guid>("NoteId")
@@ -133,6 +169,15 @@ namespace Nouz.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Notebook");
+                });
+
+            modelBuilder.Entity("Nouz.Domain.Entities.NoteAttachment", b =>
+                {
+                    b.HasOne("Nouz.Domain.Entities.Note", null)
+                        .WithMany()
+                        .HasForeignKey("NoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Nouz.Domain.Entities.NoteEmbedding", b =>

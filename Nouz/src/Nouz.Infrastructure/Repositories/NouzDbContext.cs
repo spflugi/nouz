@@ -10,6 +10,7 @@ internal sealed class NouzDbContext : DbContext
     public DbSet<Note> Notes { get; set; } = null!;
     public DbSet<Notebook> Notebooks { get; set; } = null!;
     public DbSet<NoteEmbedding> NoteEmbeddings { get; set; } = null!;
+    public DbSet<NoteAttachment> NoteAttachments { get; set; } = null!;
 
     public NouzDbContext(DbContextOptions<NouzDbContext> options) : base(options)
     {
@@ -91,6 +92,23 @@ internal sealed class NouzDbContext : DbContext
                 .WithOne()
                 .HasForeignKey<NoteEmbedding>(x => x.NoteId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<NoteAttachment>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.FileName).IsRequired();
+            e.Property(x => x.Extension).IsRequired();
+            e.Property(x => x.FileSizeBytes).IsRequired();
+            e.Property(x => x.ContentHash).IsRequired();
+            e.Property(x => x.AddedAt).IsRequired();
+            e.Ignore(x => x.Note);
+            e.HasOne<Note>()
+                .WithMany()
+                .HasForeignKey(x => x.NoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => x.NoteId);
+            e.HasIndex(x => new { x.NoteId, x.ContentHash });
         });
     }
 

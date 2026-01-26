@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
             .AddTransient<INoteRepository, NoteRepository>()
             .AddTransient<IEmbeddingRepository, EmbeddingRepository>()
             .AddTransient<IAttachmentRepository, AttachmentRepository>()
+            .AddTransient<INoteAttachmentRepository, NoteAttachmentRepository>()
             .AddSingleton(SecureStorage.Default)
             .AddSingleton<Nouz.Application.Preferences.IPreferences, Nouz.Infrastructure.Preferences.Preferences>()
             .AddDbContextFactory<NouzDbContext>(options => { options.UseSqlite(connectionString); });

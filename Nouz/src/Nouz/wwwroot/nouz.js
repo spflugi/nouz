@@ -596,5 +596,12 @@
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
         });
+    },
+
+    // Trigger a file input element click
+    triggerFileInput: function (inputElement) {
+        if (inputElement) {
+            inputElement.click();
+        }
     }
 };
