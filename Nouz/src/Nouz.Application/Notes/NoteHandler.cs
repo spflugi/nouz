@@ -246,11 +246,12 @@ internal sealed class NoteHandler :
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
 
-            // Only update state, don't persist - will be saved when user clicks Save
             await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
             await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(command.NoteId, newBlock.Id)).ConfigureAwait(false);
 
-            _logger.LogDebug("Block '{BlockId}' added to note '{NoteId}' (state only)", newBlock.Id, command.NoteId);
+            // Auto-save on new block insertion
+            await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("Block '{BlockId}' added to note '{NoteId}' (auto-saved)", newBlock.Id, command.NoteId);
         }
         catch (Exception ex)
         {
@@ -290,8 +291,22 @@ internal sealed class NoteHandler :
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
 
-            // Only update state, don't persist - will be saved when user clicks Save
             await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            // Auto-save on todo checkbox toggle
+            if (command.Block.Type == BlockType.TodoItem)
+            {
+                var oldChecked = oldBlock.Metadata.TryGetValue("checked", out var ov) && ov is true or "True";
+                var newChecked = command.Block.Metadata.TryGetValue("checked", out var nv) && nv is true or "True";
+
+                if (oldChecked != newChecked)
+                {
+                    await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
+                    await UpdateNoteEmbeddingAsync(updatedNote, cancellationToken).ConfigureAwait(false);
+                    _logger.LogDebug("Block '{BlockId}' updated in note '{NoteId}' (auto-saved after todo toggle)", command.Block.Id, command.NoteId);
+                    return Unit.Value;
+                }
+            }
 
             _logger.LogDebug("Block '{BlockId}' updated in note '{NoteId}' (state only)", command.Block.Id, command.NoteId);
         }
