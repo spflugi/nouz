@@ -1,11 +1,12 @@
-using System.ComponentModel;
-using System.Text;
-using System.Text.Json;
 using Microsoft.SemanticKernel;
 using Nouz.Application.Chat;
 using Nouz.Application.Chat.Models;
 using Nouz.Application.Logger;
 using Nouz.Domain.Entities;
+using System.ComponentModel;
+using System.Net.NetworkInformation;
+using System.Text;
+using System.Text.Json;
 
 namespace Nouz.Infrastructure.Chat.Plugins;
 
@@ -176,7 +177,59 @@ internal sealed class NoteManagementPlugin
 
             foreach (var block in note.Blocks.OrderBy(b => b.Order))
             {
-                sb.AppendLine($"[{block.Type}] {block.Content}");
+                switch (block.Type)
+                {
+                    case BlockType.AgendaItem:
+                        sb.AppendLine($"[Agenda item] - {block.Content}");
+                        break;
+                    case BlockType.Paragraph:
+                        sb.AppendLine(block.Content);
+                        break;
+                    case BlockType.H1:
+                        sb.AppendLine($"# {block.Content}");
+                        break;
+                    case BlockType.H2:
+                        sb.AppendLine($"## {block.Content}");
+                        break;
+                    case BlockType.H3:
+                        sb.AppendLine($"### {block.Content}");
+                        break;
+                    case BlockType.H4:
+                        sb.AppendLine($"#### {block.Content}");
+                        break;
+                    case BlockType.ListItem:
+                        sb.AppendLine($"- {block.Content}");
+                        break;
+                    case BlockType.TodoItem:
+                        if (block.Metadata.TryGetValue("checked", out var checkedValue) && bool.TryParse(checkedValue!.ToString(), out var isChecked))
+                        {
+                            var status = isChecked ? "x" : " ";
+                            sb.AppendLine($"- [{status}] {block.Content}");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"- [ ] {block.Content}");
+                        }
+                        break;
+                    case BlockType.Code:
+                        sb.AppendLine($"```{block.Content}```");
+                        break;
+                    case BlockType.Quote:
+                        sb.AppendLine($"> {block.Content}");
+                        break;
+                    case BlockType.Decision:
+                        sb.AppendLine($"[Decision] - {block.Content}");
+                        break;
+                    case BlockType.Warning:
+                        sb.AppendLine($"[Warning] - {block.Content}");
+                        break;
+                    case BlockType.Divider:
+                        break;
+                    case BlockType.Image:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
 
             return sb.ToString();

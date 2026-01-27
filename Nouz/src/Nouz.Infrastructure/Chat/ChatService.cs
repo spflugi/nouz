@@ -207,7 +207,18 @@ internal sealed class ChatService : IChatService
             {
                 if (!string.IsNullOrWhiteSpace(block.Content))
                 {
-                    sb.AppendLine(block.Content);
+                    // For todo items, include the checked status
+                    if (block.Type == BlockType.TodoItem)
+                    {
+                        var isChecked = block.Metadata.TryGetValue("checked", out var checkedValue) &&
+                                        checkedValue is true or "True" or "true";
+                        var checkbox = isChecked ? "[x]" : "[ ]";
+                        sb.AppendLine($"{checkbox} {block.Content}");
+                    }
+                    else
+                    {
+                        sb.AppendLine(block.Content);
+                    }
                 }
             }
 
