@@ -28,9 +28,9 @@ internal sealed class ChatService : IChatService
         When creating or editing notes, use structured blocks. Available block types:
         - h1, h2, h3, h4: Headings (use h1 for main title)
         - paragraph: Regular text
+        - todoitem: Checkbox/task item or action items
+        - agendaitem: Agenda item. Used when planning a meeting. Things to talk about
         - listitem: Bullet point
-        - todoitem: Checkbox/task item
-        - agendaitem: Agenda item
         - code: Code block
         - quote: Block quote
         - decision: Decision block (for recording decisions)

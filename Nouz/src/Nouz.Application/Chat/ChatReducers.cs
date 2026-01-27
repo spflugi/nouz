@@ -34,7 +34,7 @@ public static class ChatReducers
                 return state with
                 {
                     Messages = state.Messages.Add(emptyMessage),
-                    IsTyping = false,
+                    // Keep IsTyping true until first chunk arrives
                     StreamingMessageId = action.MessageId
                 };
             })
@@ -54,7 +54,8 @@ public static class ChatReducers
 
                 return state with
                 {
-                    Messages = state.Messages.SetItem(messageIndex, updatedMessage)
+                    Messages = state.Messages.SetItem(messageIndex, updatedMessage),
+                    IsTyping = false // Turn off typing indicator when first chunk arrives
                 };
             })
             .On<ChatActions.StreamingMessageCompleted>((state, _) =>
