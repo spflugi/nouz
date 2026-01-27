@@ -9,6 +9,7 @@ using Nouz.Application.OpenAi;
 using Nouz.Application.Store;
 using Nouz.Domain.Repositories;
 using Nouz.Infrastructure.Chat;
+using Nouz.Infrastructure.Chat.Plugins;
 using Nouz.Infrastructure.Embeddings;
 using Nouz.Infrastructure.Logger;
 using Nouz.Infrastructure.OpenAi;
@@ -77,6 +78,8 @@ public static class ServiceCollectionExtensions
             .AddHttpClient()
             .AddTransient<IEmbeddingService, EmbeddingService>()
             .AddTransient<INoteContextService, NoteContextService>()
+            .AddTransient<INoteManagementService, NoteManagementService>()
+            .AddTransient<NoteManagementPlugin>()
             .AddTransient<IChatService, ChatService>()
             .AddTransient<IOpenAiUsageService, OpenAiUsageService>();
     }
