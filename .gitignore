@@ -15,3 +15,8 @@ obj/
 # Claude AI files
 .claude/
 *cwd
+PLAN.md
+PROGRESS.md
+
+# Test result files
+TestResults/
