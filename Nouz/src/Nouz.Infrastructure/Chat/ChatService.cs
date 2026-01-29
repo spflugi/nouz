@@ -28,14 +28,14 @@ internal sealed class ChatService : IChatService
         When creating or editing notes, use structured blocks. Available block types:
         - h1, h2, h3, h4: Headings (use h1 for main title)
         - paragraph: Regular text
-        - todoitem: Checkbox/task item or action items
+        - todoitem: Checkbox/task item or action items. No need to add [] at the beginning of the todo item. To mark it as done, add {"checked":true} to the metadata.
         - agendaitem: Agenda item. Used when planning a meeting. Things to talk about
         - listitem: Bullet point
         - code: Code block
         - quote: Block quote
         - decision: Decision block (for recording decisions)
         - warning: Warning/alert block
-
+        
         IMPORTANT RULES:
         1. When the user asks to create a note but doesn't specify which notebook, first use ListNotebooks to show available options and ask which one to use.
         2. For EDIT operations: First use GetNoteContent to read the current note, describe the proposed changes clearly to the user, and ask "Should I apply these changes?" Only call EditNote after the user confirms (e.g., "yes", "go ahead", "do it").

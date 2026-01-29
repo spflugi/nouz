@@ -35,7 +35,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiApiKey(apiKey), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiApiKey, apiKey);
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiApiKey, apiKey);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(model), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, model);
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, model);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(""), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4o-mini");
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4o-mini");
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel("   "), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4o-mini");
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4o-mini");
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel("  gpt-4  "), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4");
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4");
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(model), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiEmbeddingModel, model);
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiEmbeddingModel, model);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(""), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.OpenAiEmbeddingModel, "text-embedding-3-small");
+        await _preferences.Received(1).Set(PreferenceKeys.OpenAiEmbeddingModel, "text-embedding-3-small");
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(count), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "5");
+        await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "5");
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(-5), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "0");
+        await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "0");
         await _actionDispatcher.Received(1).Dispatch(
             Arg.Is<SettingsActions.TopNRelevantNotesUpdated>(a => a.Count == 0));
     }
@@ -190,7 +190,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(15), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "10");
+        await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "10");
         await _actionDispatcher.Received(1).Dispatch(
             Arg.Is<SettingsActions.TopNRelevantNotesUpdated>(a => a.Count == 10));
     }
@@ -202,7 +202,7 @@ public class SettingsHandlerTests
         await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(7), CancellationToken.None);
 
         // Assert
-        _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "7");
+        await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "7");
         await _actionDispatcher.Received(1).Dispatch(
             Arg.Is<SettingsActions.TopNRelevantNotesUpdated>(a => a.Count == 7));
     }

@@ -6,13 +6,13 @@ namespace Nouz.Components.Sidebar;
 public partial class RightSidebar
 {
     private const int MinWidth = 200;
-    private const int MaxWidth = 600;
+    private const int MaxWidth = 800;
 
     private ElementReference _sidebarRef;
     private ElementReference _resizeHandleRef;
     private DotNetObjectReference<RightSidebar>? _dotNetRef;
 
-    private int _sidebarWidth = 320;
+    private int _sidebarWidth = 400;
     private bool _isResizingInitialized;
     private bool _isCollapsed = true;
 

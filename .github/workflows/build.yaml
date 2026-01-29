@@ -9,6 +9,11 @@ on:
     branches:
       - develop
 
+env:
+  # Coverage threshold for meaningful code (excludes generated code, library overloads, and ReduxSimple)
+  # Current: 69.6% (Application: 74.2%, Domain: 99.5%, Infrastructure: 52%)
+  COVERAGE_THRESHOLD: 60
+
 jobs:
   Windows:
     permissions: write-all
@@ -23,8 +28,13 @@ jobs:
         run: dotnet workload install maui-desktop
       - name: Build
         run: dotnet build Nouz/src/Nouz/Nouz.csproj -c Release -f:net10.0-windows10.0.19041.0 -p:RuntimeIdentifierOverride=win10-x64
-      - name: Unit Tests
-        run: dotnet test Nouz/Nouz.slnx -c Release --logger "trx;LogFileName=test-results.trx" || true
+      - name: Unit Tests with Coverage
+        run: |
+          dotnet test Nouz/Nouz.slnx -c Release `
+            --settings Nouz/coverage.runsettings `
+            --collect:"XPlat Code Coverage" `
+            --results-directory ./TestResults `
+            --logger "trx;LogFileName=test-results.trx"
       - name: Upload test report
         uses: dorny/test-reporter@v1
         if: always()
@@ -33,3 +43,42 @@ jobs:
           path: ./**/*.trx
           reporter: dotnet-trx
           fail-on-error: true
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      - name: Generate Coverage Report
+        run: |
+          reportgenerator `
+            "-reports:TestResults/**/coverage.cobertura.xml" `
+            "-targetdir:TestResults/CoverageReport" `
+            "-reporttypes:Cobertura;TextSummary;MarkdownSummary" `
+            "-assemblyfilters:-Nouz.ReduxSimple"
+      - name: Display Coverage Summary
+        run: Get-Content TestResults/CoverageReport/Summary.txt
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: TestResults/CoverageReport/
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          header: coverage
+          path: TestResults/CoverageReport/Summary.md
+      - name: Check Coverage Threshold
+        run: |
+          $summaryFile = "TestResults/CoverageReport/Summary.txt"
+          $content = Get-Content $summaryFile -Raw
+          if ($content -match "Line coverage:\s+(\d+\.?\d*)%") {
+            $coverage = [double]$matches[1]
+            Write-Host "Current line coverage: $coverage%"
+            Write-Host "Threshold: ${{ env.COVERAGE_THRESHOLD }}%"
+            if ($coverage -lt ${{ env.COVERAGE_THRESHOLD }}) {
+              Write-Error "Coverage ($coverage%) is below threshold (${{ env.COVERAGE_THRESHOLD }}%)"
+              exit 1
+            }
+            Write-Host "Coverage check passed!"
+          } else {
+            Write-Error "Could not parse coverage from summary"
+            exit 1
+          }
