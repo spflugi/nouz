@@ -185,6 +185,60 @@ public class NoteManagementPluginTests
         result.ShouldContain("At least one block is required");
     }
 
+    [Fact]
+    public async Task CreateNoteAsync_WhenJsonHasTrailingText_ShouldExtractJsonAndSucceed()
+    {
+        // Arrange - simulates AI appending text after JSON
+        var notebookId = Guid.NewGuid();
+        var note = CreateNoteWithContent(notebookId, "Test Title");
+        _noteManagementService.CreateNoteAsync(notebookId, Arg.Any<IReadOnlyList<BlockDefinition>>(), Arg.Any<CancellationToken>())
+            .Returns(note);
+
+        var jsonWithTrailingText = "[{\"type\":\"h1\",\"content\":\"Test Title\"}] I have created the note for you.";
+
+        // Act
+        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithTrailingText);
+
+        // Assert
+        result.ShouldContain("Successfully created");
+    }
+
+    [Fact]
+    public async Task CreateNoteAsync_WhenJsonHasLeadingText_ShouldExtractJsonAndSucceed()
+    {
+        // Arrange - simulates AI prepending text before JSON
+        var notebookId = Guid.NewGuid();
+        var note = CreateNoteWithContent(notebookId, "Test Title");
+        _noteManagementService.CreateNoteAsync(notebookId, Arg.Any<IReadOnlyList<BlockDefinition>>(), Arg.Any<CancellationToken>())
+            .Returns(note);
+
+        var jsonWithLeadingText = "Here is the JSON: [{\"type\":\"h1\",\"content\":\"Test Title\"}]";
+
+        // Act
+        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithLeadingText);
+
+        // Assert
+        result.ShouldContain("Successfully created");
+    }
+
+    [Fact]
+    public async Task CreateNoteAsync_WhenJsonHasNestedArrays_ShouldParseCorrectly()
+    {
+        // Arrange - ensures bracket matching handles nested structures
+        var notebookId = Guid.NewGuid();
+        var note = CreateNoteWithContent(notebookId, "Test [with brackets]");
+        _noteManagementService.CreateNoteAsync(notebookId, Arg.Any<IReadOnlyList<BlockDefinition>>(), Arg.Any<CancellationToken>())
+            .Returns(note);
+
+        var jsonWithNestedBrackets = "[{\"type\":\"h1\",\"content\":\"Test [with brackets]\"}] Done!";
+
+        // Act
+        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithNestedBrackets);
+
+        // Assert
+        result.ShouldContain("Successfully created");
+    }
+
     #endregion
 
     #region GetNoteContentAsync Tests
