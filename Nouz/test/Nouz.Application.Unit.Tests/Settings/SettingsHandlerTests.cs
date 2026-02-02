@@ -222,4 +222,48 @@ public class SettingsHandlerTests
     }
 
     #endregion
+
+    #region SaveThemeMode Tests
+
+    [Fact]
+    public async Task SaveThemeMode_ShouldSaveModeToPreferences()
+    {
+        // Arrange
+        var mode = ThemeMode.Dark;
+
+        // Act
+        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), CancellationToken.None);
+
+        // Assert
+        await _preferences.Received(1).Set(PreferenceKeys.ThemeMode, "Dark");
+    }
+
+    [Fact]
+    public async Task SaveThemeMode_ShouldDispatchUpdatedAction()
+    {
+        // Arrange
+        var mode = ThemeMode.Dark;
+
+        // Act
+        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), CancellationToken.None);
+
+        // Assert
+        await _actionDispatcher.Received(1).Dispatch(
+            Arg.Is<SettingsActions.ThemeModeUpdated>(a => a.Mode == mode));
+    }
+
+    [Fact]
+    public async Task SaveThemeMode_WhenLightMode_ShouldSaveLightToPreferences()
+    {
+        // Arrange
+        var mode = ThemeMode.Light;
+
+        // Act
+        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), CancellationToken.None);
+
+        // Assert
+        await _preferences.Received(1).Set(PreferenceKeys.ThemeMode, "Light");
+    }
+
+    #endregion
 }

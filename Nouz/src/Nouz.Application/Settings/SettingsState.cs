@@ -4,6 +4,8 @@ namespace Nouz.Application.Settings;
 
 public sealed record SettingsState
 {
+    public ThemeMode ThemeMode { get; init; } = ThemeMode.Light;
+
     public string? OpenAiApiKey { get; init; }
     public string? OpenAiAdminKey { get; init; }
     public string OpenAiChatModel { get; init; } = "gpt-4o-mini";

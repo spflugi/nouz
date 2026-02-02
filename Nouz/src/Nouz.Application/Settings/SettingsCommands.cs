@@ -33,4 +33,9 @@ public static class SettingsCommands
     /// Load OpenAI usage data for the current billing period.
     /// </summary>
     public sealed record LoadOpenAiUsage : ICommand;
+
+    /// <summary>
+    /// Save the theme mode (Light/Dark) to preferences.
+    /// </summary>
+    public sealed record SaveThemeMode(ThemeMode Mode) : ICommand;
 }

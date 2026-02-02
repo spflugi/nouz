@@ -39,4 +39,9 @@ public static class SettingsActions
     /// Triggered when usage data is loaded.
     /// </summary>
     public sealed record OpenAiUsageLoaded(OpenAiUsageData? Usage) : IAction;
+
+    /// <summary>
+    /// Triggered when the theme mode is updated.
+    /// </summary>
+    public sealed record ThemeModeUpdated(ThemeMode Mode) : IAction;
 }

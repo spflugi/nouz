@@ -227,3 +227,60 @@
     .refresh-button ::deep .rzi {
         font-size: 12px;
     }
+
+/* Theme toggle */
+.theme-toggle {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.theme-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+    .theme-button:hover {
+        background-color: var(--bg-hover);
+        border-color: var(--text-muted);
+    }
+
+    .theme-button.active {
+        background-color: var(--accent);
+        border-color: var(--accent);
+        color: var(--bg-card);
+    }
+
+    .theme-button.active:hover {
+        background-color: var(--accent-hover);
+        border-color: var(--accent-hover);
+    }
+
+    .theme-button ::deep .rzi {
+        font-size: 16px;
+    }
+
+.theme-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-md);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+    .theme-note ::deep .rzi {
+        font-size: 14px;
+        opacity: 0.7;
+    }

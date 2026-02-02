@@ -1,4 +1,5 @@
 ﻿@page "/settings"
+@using Nouz.Application.Settings
 @inherits SharedComponentBase
 
 <div class="settings-page">
@@ -6,6 +7,38 @@
         <RadzenIcon Icon="arrow_back" />
         <span>Back</span>
     </button>
+
+    <div class="settings-card">
+        <div class="settings-header">
+            <RadzenIcon Icon="palette" />
+            <span>Appearance</span>
+        </div>
+
+        <div class="settings-body">
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Theme</span>
+                    <span class="setting-description">Choose your preferred color scheme</span>
+                </div>
+                <div class="theme-toggle">
+                    <button class="theme-button @(_themeMode == ThemeMode.Light ? "active" : "")"
+                            @onclick="() => SetTheme(ThemeMode.Light)">
+                        <RadzenIcon Icon="light_mode" />
+                        <span>Light</span>
+                    </button>
+                    <button class="theme-button @(_themeMode == ThemeMode.Dark ? "active" : "")"
+                            @onclick="() => SetTheme(ThemeMode.Dark)">
+                        <RadzenIcon Icon="dark_mode" />
+                        <span>Dark</span>
+                    </button>
+                </div>
+            </div>
+            <div class="theme-note">
+                <RadzenIcon Icon="info" />
+                <span>A restart may be required for the full theme to take effect</span>
+            </div>
+        </div>
+    </div>
 
     <div class="settings-card">
         <div class="settings-header">

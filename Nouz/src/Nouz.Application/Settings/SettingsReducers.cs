@@ -21,6 +21,8 @@ public static class SettingsReducers
                 state with { IsLoadingUsage = true })
             .On<SettingsActions.OpenAiUsageLoaded>((state, action) =>
                 state with { OpenAiUsage = action.Usage, IsLoadingUsage = false })
+            .On<SettingsActions.ThemeModeUpdated>((state, action) =>
+                state with { ThemeMode = action.Mode })
             .ToList();
     }
 }

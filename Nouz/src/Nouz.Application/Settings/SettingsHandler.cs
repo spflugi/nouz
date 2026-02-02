@@ -13,7 +13,8 @@ internal sealed class SettingsHandler :
     ICommandHandler<SettingsCommands.SaveOpenAiChatModel>,
     ICommandHandler<SettingsCommands.SaveOpenAiEmbeddingModel>,
     ICommandHandler<SettingsCommands.SaveTopNRelevantNotes>,
-    ICommandHandler<SettingsCommands.LoadOpenAiUsage>
+    ICommandHandler<SettingsCommands.LoadOpenAiUsage>,
+    ICommandHandler<SettingsCommands.SaveThemeMode>
 {
     private readonly IMediator _mediator;
     private readonly IPreferences _preferences;
@@ -145,6 +146,19 @@ internal sealed class SettingsHandler :
             _logger.LogWarning(ex, "Failed to load OpenAI usage data");
             await _actionDispatcher.Dispatch(new SettingsActions.OpenAiUsageLoaded(null)).ConfigureAwait(false);
         }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(SettingsCommands.SaveThemeMode command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Saving theme mode: {Mode}", command.Mode);
+
+        await _preferences.Set(PreferenceKeys.ThemeMode, command.Mode.ToString()).ConfigureAwait(false);
+
+        await _actionDispatcher.Dispatch(new SettingsActions.ThemeModeUpdated(command.Mode)).ConfigureAwait(false);
+
+        _logger.LogInformation("Theme mode saved: {Mode}", command.Mode);
 
         return Unit.Value;
     }
