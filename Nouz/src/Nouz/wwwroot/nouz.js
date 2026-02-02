@@ -1,4 +1,13 @@
 ﻿window.nouz = {
+    setTheme: function (isDark) {
+        if (isDark) {
+            document.documentElement.classList.add('dark-mode');
+        } else {
+            document.documentElement.classList.remove('dark-mode');
+        }
+    },
+
+
     initSidebarResize: function (handleElement, sidebarElement, dotNetRef, minWidth, maxWidth) {
         if (!handleElement || !sidebarElement) return;
         if (handleElement._nouzResizeInitialized) return;

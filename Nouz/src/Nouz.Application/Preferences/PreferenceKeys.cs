@@ -8,4 +8,5 @@ public static class PreferenceKeys
     public const string OpenAiChatModel = "OpenAiChatModel";
     public const string OpenAiEmbeddingModel = "OpenAiEmbeddingModel";
     public const string TopNRelevantNotes = "TopNRelevantNotes";
+    public const string ThemeMode = "ThemeMode";
 }

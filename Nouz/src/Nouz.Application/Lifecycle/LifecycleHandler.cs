@@ -94,5 +94,12 @@ internal sealed class LifecycleHandler :
         {
             await _actionDispatcher.Dispatch(new SettingsActions.OpenAiEmbeddingModelUpdated(embeddingModel)).ConfigureAwait(false);
         }
+
+        var themeModeValue = await _preferences.Get(PreferenceKeys.ThemeMode).ConfigureAwait(false);
+
+        if (themeModeValue is not null && Enum.TryParse<ThemeMode>(themeModeValue, out var themeMode))
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.ThemeModeUpdated(themeMode)).ConfigureAwait(false);
+        }
     }
 }

@@ -10,6 +10,8 @@ public partial class Settings
 {
     private const int DebounceDelayMs = 800;
 
+    private ThemeMode _themeMode = ThemeMode.Light;
+
     private string _openAiApiKey = string.Empty;
     private string _openAiAdminKey = string.Empty;
     private string _chatModel = string.Empty;
@@ -44,6 +46,7 @@ public partial class Settings
             .TakeUntilDisappearing(this)
             .Subscribe(settings =>
             {
+                _themeMode = settings.ThemeMode;
                 _openAiApiKey = settings.OpenAiApiKey ?? string.Empty;
                 _openAiAdminKey = settings.OpenAiAdminKey ?? string.Empty;
                 _chatModel = settings.OpenAiChatModel;
@@ -73,6 +76,14 @@ public partial class Settings
     private void NavigateBack()
     {
         Navigation.NavigateTo("..");
+    }
+
+    private async Task SetTheme(ThemeMode mode)
+    {
+        if (_themeMode != mode)
+        {
+            await Mediator.Send(new SettingsCommands.SaveThemeMode(mode));
+        }
     }
 
     private async Task HandleApiKeyInput(ChangeEventArgs e)
