@@ -28,7 +28,8 @@ internal sealed class NoteHandler :
     ICommandHandler<NoteCommands.ReorderBlocks>,
     ICommandHandler<NoteCommands.AddImageBlock>,
     ICommandHandler<NoteCommands.UpdateImageCaption>,
-    ICommandHandler<NoteCommands.UpdateImageWidth>
+    ICommandHandler<NoteCommands.UpdateImageWidth>,
+    ICommandHandler<NoteCommands.ExportNoteAsHtml, string>
 {
     private readonly IMediator _mediator;
     private readonly INoteRepository _noteRepository;
@@ -39,6 +40,7 @@ internal sealed class NoteHandler :
     private readonly IStateProvider _stateProvider;
     private readonly IActionDispatcher _actionDispatcher;
     private readonly ILoggerAdapter<NoteHandler> _logger;
+    private readonly NoteExportService _noteExportService;
 
     public NoteHandler(
         IMediator mediator,
@@ -49,7 +51,8 @@ internal sealed class NoteHandler :
         INoteAttachmentRepository noteAttachmentRepository,
         IStateProvider stateProvider,
         IActionDispatcher actionDispatcher,
-        ILoggerAdapter<NoteHandler> logger)
+        ILoggerAdapter<NoteHandler> logger,
+        NoteExportService noteExportService)
     {
         _mediator = mediator;
         _noteRepository = noteRepository;
@@ -60,6 +63,7 @@ internal sealed class NoteHandler :
         _stateProvider = stateProvider;
         _actionDispatcher = actionDispatcher;
         _logger = logger;
+        _noteExportService = noteExportService;
     }
 
     
@@ -860,6 +864,38 @@ internal sealed class NoteHandler :
                     }
                 }
             }
+        }
+    }
+
+    public async ValueTask<string> Handle(NoteCommands.ExportNoteAsHtml command, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Exporting note '{NoteId}' as HTML", command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state for export", command.NoteId);
+                await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Note not found.",
+                    NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+                return string.Empty;
+            }
+
+            var html = await _noteExportService.GenerateHtmlAsync(note, cancellationToken).ConfigureAwait(false);
+
+            _logger.LogInformation("Note '{NoteId}' exported successfully", command.NoteId);
+            return html;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export note '{NoteId}' as HTML", command.NoteId);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to export note.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+
+            return string.Empty;
         }
     }
 }

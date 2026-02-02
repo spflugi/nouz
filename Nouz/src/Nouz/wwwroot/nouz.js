@@ -612,5 +612,53 @@
         if (inputElement) {
             inputElement.click();
         }
+    },
+
+    // Download a file with the given content
+    downloadFile: function (content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    },
+
+    // Open print dialog for HTML content (for PDF export)
+    printHtml: function (htmlContent, title) {
+        // Use iframe approach which works better in WebView environments
+        var printFrame = document.getElementById('nouz-print-frame');
+
+        // Create hidden iframe if it doesn't exist
+        if (!printFrame) {
+            printFrame = document.createElement('iframe');
+            printFrame.id = 'nouz-print-frame';
+            printFrame.style.position = 'fixed';
+            printFrame.style.right = '0';
+            printFrame.style.bottom = '0';
+            printFrame.style.width = '0';
+            printFrame.style.height = '0';
+            printFrame.style.border = 'none';
+            document.body.appendChild(printFrame);
+        }
+
+        // Write content to iframe and print
+        var frameDoc = printFrame.contentWindow || printFrame.contentDocument;
+        if (frameDoc.document) {
+            frameDoc = frameDoc.document;
+        }
+
+        frameDoc.open();
+        frameDoc.write(htmlContent);
+        frameDoc.close();
+
+        // Wait for content to render, then print
+        setTimeout(function () {
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+        }, 300);
     }
 };

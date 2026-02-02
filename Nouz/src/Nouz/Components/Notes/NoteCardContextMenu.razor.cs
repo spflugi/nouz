@@ -6,7 +6,8 @@ namespace Nouz.Components.Notes;
 
 public partial class NoteCardContextMenu
 {
-    private bool _showSubmenu;
+    private bool _showMoveSubmenu;
+    private bool _showExportSubmenu;
 
     [Parameter, EditorRequired]
     public ImmutableList<Notebook> Notebooks { get; set; } = [];
@@ -24,11 +25,24 @@ public partial class NoteCardContextMenu
     public EventCallback OnAddAttachment { get; set; }
 
     [Parameter]
+    public EventCallback OnExportHtml { get; set; }
+
+    [Parameter]
+    public EventCallback OnExportPdf { get; set; }
+
+    [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private void ToggleSubmenu()
+    private void ToggleMoveSubmenu()
     {
-        _showSubmenu = !_showSubmenu;
+        _showMoveSubmenu = !_showMoveSubmenu;
+        _showExportSubmenu = false;
+    }
+
+    private void ToggleExportSubmenu()
+    {
+        _showExportSubmenu = !_showExportSubmenu;
+        _showMoveSubmenu = false;
     }
 
     private async Task SelectNotebook(Notebook notebook)
@@ -43,5 +57,17 @@ public partial class NoteCardContextMenu
     private async Task HandleAddAttachment()
     {
         await OnAddAttachment.InvokeAsync();
+    }
+
+    private async Task HandleExportHtml()
+    {
+        await OnExportHtml.InvokeAsync();
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleExportPdf()
+    {
+        await OnExportPdf.InvokeAsync();
+        await OnClose.InvokeAsync();
     }
 }

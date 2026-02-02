@@ -7,12 +7,12 @@
             <span>Add attachment</span>
         </button>
         <div class="menu-item-with-submenu">
-            <button class="menu-item" @onclick="ToggleSubmenu">
+            <button class="menu-item" @onclick="ToggleMoveSubmenu">
                 <RadzenIcon Icon="drive_file_move" />
                 <span>Move to notebook</span>
-                <RadzenIcon Icon="@(_showSubmenu ? "expand_less" : "expand_more")" class="submenu-arrow" />
+                <RadzenIcon Icon="@(_showMoveSubmenu ? "expand_less" : "expand_more")" class="submenu-arrow" />
             </button>
-            @if (_showSubmenu)
+            @if (_showMoveSubmenu)
             {
                 <div class="submenu">
                     @foreach (var notebook in Notebooks)
@@ -28,6 +28,26 @@
                             }
                         </button>
                     }
+                </div>
+            }
+        </div>
+        <div class="menu-item-with-submenu">
+            <button class="menu-item" @onclick="ToggleExportSubmenu">
+                <RadzenIcon Icon="download" />
+                <span>Export</span>
+                <RadzenIcon Icon="@(_showExportSubmenu ? "expand_less" : "expand_more")" class="submenu-arrow" />
+            </button>
+            @if (_showExportSubmenu)
+            {
+                <div class="submenu">
+                    <button class="menu-item" @onclick="HandleExportHtml">
+                        <RadzenIcon Icon="code" />
+                        <span>As HTML</span>
+                    </button>
+                    <button class="menu-item" @onclick="HandleExportPdf">
+                        <RadzenIcon Icon="picture_as_pdf" />
+                        <span>As PDF</span>
+                    </button>
                 </div>
             }
         </div>
