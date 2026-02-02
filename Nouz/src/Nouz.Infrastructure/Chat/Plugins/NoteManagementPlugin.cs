@@ -117,10 +117,10 @@ internal sealed class NoteManagementPlugin
     }
 
     [KernelFunction("CreateNote")]
-    [Description("Creates a new note in the specified notebook with structured content. The blocks parameter should be a JSON array of objects with 'type' and 'content' properties. Block types: paragraph, h1, h2, h3, h4, listitem, todoitem, agendaitem, code, quote, decision, warning.")]
+    [Description("Creates a new note in the specified notebook with structured content. The blocks parameter must be ONLY a valid JSON array with no additional text before or after. Block types: paragraph, h1, h2, h3, h4, listitem, todoitem, agendaitem, code, quote, decision, warning.")]
     public async Task<string> CreateNoteAsync(
         [Description("The ID of the notebook to create the note in")] Guid notebookId,
-        [Description("JSON array of blocks, e.g. [{\"type\":\"h1\",\"content\":\"Title\"},{\"type\":\"paragraph\",\"content\":\"Content\"}]")] string blocks,
+        [Description("ONLY a JSON array of blocks with no other text. Example: [{\"type\":\"h1\",\"content\":\"Title\"},{\"type\":\"paragraph\",\"content\":\"Content\"}]")] string blocks,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("AI calling CreateNote in notebook '{NotebookId}'", notebookId);
@@ -245,7 +245,7 @@ internal sealed class NoteManagementPlugin
     [Description("Updates an existing note with new content. IMPORTANT: Only call this after the user has confirmed they want to make the changes. First use GetNoteContent to show the current content, describe your proposed changes, and ask for confirmation.")]
     public async Task<string> EditNoteAsync(
         [Description("The ID of the note to edit")] Guid noteId,
-        [Description("JSON array of the complete new block structure, e.g. [{\"type\":\"h1\",\"content\":\"Title\"},{\"type\":\"paragraph\",\"content\":\"Content\"}]")] string newBlocks,
+        [Description("ONLY a JSON array of the complete new block structure with no other text. Example: [{\"type\":\"h1\",\"content\":\"Title\"},{\"type\":\"paragraph\",\"content\":\"Content\"}]")] string newBlocks,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("AI calling EditNote for note '{NoteId}'", noteId);
@@ -363,8 +363,43 @@ internal sealed class NoteManagementPlugin
             PropertyNameCaseInsensitive = true
         };
 
-        var definitions = JsonSerializer.Deserialize<List<BlockDefinition>>(blocksJson, options);
+        var json = ExtractJsonArray(blocksJson);
+        var definitions = JsonSerializer.Deserialize<List<BlockDefinition>>(json, options);
         return definitions ?? [];
+    }
+
+    /// <summary>
+    /// Extracts a JSON array from a string that may contain additional text before or after the JSON.
+    /// This handles cases where the AI model appends explanatory text to its JSON output.
+    /// </summary>
+    private static string ExtractJsonArray(string input)
+    {
+        var startIndex = input.IndexOf('[');
+        if (startIndex == -1)
+        {
+            return input; // No array found, let JSON deserializer handle the error
+        }
+
+        var bracketCount = 0;
+        for (var i = startIndex; i < input.Length; i++)
+        {
+            switch (input[i])
+            {
+                case '[':
+                    bracketCount++;
+                    break;
+                case ']':
+                    bracketCount--;
+                    if (bracketCount == 0)
+                    {
+                        return input[startIndex..(i + 1)];
+                    }
+                    break;
+            }
+        }
+
+        // Unbalanced brackets, return from start of array to end
+        return input[startIndex..];
     }
 
     private static string? GetNoteTitle(Note note)
