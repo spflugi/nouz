@@ -166,8 +166,8 @@ internal sealed class NoteManagementService : INoteManagementService
         await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
         await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
 
-        // Update embedding
-        await UpdateNoteEmbeddingAsync(updatedNote, cancellationToken).ConfigureAwait(false);
+        // Update embedding - do not await to speed up - but we cannot use the original cancellation token
+        _ = UpdateNoteEmbeddingAsync(updatedNote, CancellationToken.None).ConfigureAwait(false);
 
         await _mediator.Send(new NotificationCommands.ShowNotification(
             "Updated",
