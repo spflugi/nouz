@@ -97,4 +97,10 @@ public static class NoteCommands
     /// <param name="BlockId">The image block to update</param>
     /// <param name="WidthPercent">Width as a percentage (10-100)</param>
     public sealed record UpdateImageWidth(Guid NoteId, Guid BlockId, int WidthPercent) : ICommand;
+
+    /// <summary>
+    /// Export a note as a self-contained HTML document.
+    /// </summary>
+    /// <param name="NoteId">The note to export</param>
+    public sealed record ExportNoteAsHtml(Guid NoteId) : ICommand<string>;
 }

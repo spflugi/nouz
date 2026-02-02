@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
+using Mediator;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using Nouz.Application.Notes;
 using Nouz.Domain.Entities;
 
 namespace Nouz.Components.Notes;
@@ -15,6 +17,9 @@ public partial class NoteCard
 
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = null!;
+
+    [Inject]
+    private IMediator Mediator { get; set; } = null!;
 
     [Parameter, EditorRequired]
     public Note Note { get; set; } = null!;
@@ -221,5 +226,24 @@ public partial class NoteCard
         var stream = file.OpenReadStream(maxFileSize);
 
         await OnAddAttachment.InvokeAsync((Note.Id, stream, file.Name));
+    }
+
+    private async Task HandleExportHtml()
+    {
+        var html = await Mediator.Send(new NoteCommands.ExportNoteAsHtml(Note.Id));
+        if (!string.IsNullOrEmpty(html))
+        {
+            var filename = $"note-{Note.CreatedAt.LocalDateTime:yyyy-MM-dd}.html";
+            await JsRuntime.InvokeVoidAsync("nouz.downloadFile", html, filename, "text/html");
+        }
+    }
+
+    private async Task HandleExportPdf()
+    {
+        var html = await Mediator.Send(new NoteCommands.ExportNoteAsHtml(Note.Id));
+        if (!string.IsNullOrEmpty(html))
+        {
+            await JsRuntime.InvokeVoidAsync("nouz.printHtml", html, "Note Export");
+        }
     }
 }

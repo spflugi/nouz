@@ -24,10 +24,12 @@ public class NoteHandlerTests
     private readonly IStateProvider _stateProvider = Substitute.For<IStateProvider>();
     private readonly IActionDispatcher _actionDispatcher = Substitute.For<IActionDispatcher>();
     private readonly ILoggerAdapter<NoteHandler> _logger = Substitute.For<ILoggerAdapter<NoteHandler>>();
+    private readonly NoteExportService _noteExportService;
     private readonly NoteHandler _handler;
 
     public NoteHandlerTests()
     {
+        _noteExportService = new NoteExportService(_attachmentRepository);
         _handler = new NoteHandler(
             _mediator,
             _noteRepository,
@@ -37,7 +39,8 @@ public class NoteHandlerTests
             _noteAttachmentRepository,
             _stateProvider,
             _actionDispatcher,
-            _logger);
+            _logger,
+            _noteExportService);
     }
 
     #region LoadNotesForNotebook Tests
