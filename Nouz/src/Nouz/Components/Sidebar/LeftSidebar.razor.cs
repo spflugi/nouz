@@ -50,7 +50,7 @@ public partial class LeftSidebar
             .TakeUntilDisappearing(this)
             .Subscribe(notebooks =>
             {
-                _notebooks = notebooks;
+                _notebooks = notebooks.OrderBy(n => n.Name).ToImmutableList();
                 StateHasChanged();
             });
 
