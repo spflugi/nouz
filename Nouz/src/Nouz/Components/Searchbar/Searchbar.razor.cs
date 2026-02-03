@@ -85,6 +85,14 @@ public partial class Searchbar
         }
     }
 
+    private async Task CreateMeeting()
+    {
+        if (_selectedNotebookId is not null)
+        {
+            await Mediator.Send(new NoteCommands.CreateMeetingNote(_selectedNotebookId.Value));
+        }
+    }
+
     private void OpenSettings()
     {
         Navigation.NavigateTo("/settings");

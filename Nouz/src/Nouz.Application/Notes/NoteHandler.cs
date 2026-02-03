@@ -14,6 +14,7 @@ namespace Nouz.Application.Notes;
 internal sealed class NoteHandler :
     ICommandHandler<NoteCommands.LoadNotesForNotebook>,
     ICommandHandler<NoteCommands.CreateNote>,
+    ICommandHandler<NoteCommands.CreateMeetingNote>,
     ICommandHandler<NoteCommands.DeleteNote>,
     ICommandHandler<NoteCommands.UpdateNote>,
     ICommandHandler<NoteCommands.AddBlock>,
@@ -100,7 +101,6 @@ internal sealed class NoteHandler :
 
         try
         {
-            var now = DateTimeOffset.UtcNow;
             var initialBlock = new Block
             {
                 Id = Guid.NewGuid(),
@@ -109,31 +109,130 @@ internal sealed class NoteHandler :
                 Order = 0
             };
 
-            var note = new Note
-            {
-                Id = Guid.NewGuid(),
-                NotebookId = command.NotebookId,
-                CreatedAt = now,
-                LastModifiedAt = now,
-                Blocks = [initialBlock]
-            };
-
-            await _noteRepository.Add(note, cancellationToken).ConfigureAwait(false);
-            await _actionDispatcher.Dispatch(new NoteActions.NoteCreated(note)).ConfigureAwait(false);
-
-            // Set the initial block as the editing block
-            await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(note.Id, initialBlock.Id)).ConfigureAwait(false);
-
-            // Generate embedding for the new note (if it has content)
-            await UpdateNoteEmbeddingAsync(note, cancellationToken).ConfigureAwait(false);
-
-            _logger.LogInformation("New note '{NoteId}' created in notebook '{NotebookId}'", note.Id, command.NotebookId);
+            await CreateNoteWithBlocks(command.NotebookId, [initialBlock], cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create note in notebook '{NotebookId}'", command.NotebookId);
 
             await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to create note.",
+                NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.CreateMeetingNote command, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Creating a new meeting note in notebook '{NotebookId}'", command.NotebookId);
+
+        try
+        {
+            var formatting = new List<TextFormat>
+            {
+                new()
+                {
+                    Start = 0,
+                    End = 100000,
+                    Type = TextFormatType.Color,
+                    Value = "#6b7280"
+                },
+                new()
+                {
+                    Start = 0,
+                    End = 100000,
+                    Type = TextFormatType.Italic
+                }
+            };
+
+            ImmutableList<Block> blocks = [
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.H1,
+                    Content = "Meeting Title",
+                    Order = 0
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.Paragraph,
+                    Content = "Date: ...",
+                    Order = 1,
+                    Metadata =
+                    {
+                        {"formatting", formatting }
+                    }
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.Paragraph,
+                    Content = "Attendance: ...",
+                    Order = 2,
+                    Metadata =
+                    {
+                        {"formatting", formatting }
+                    }
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.H2,
+                    Content = "Agenda",
+                    Order = 3
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.AgendaItem,
+                    Content = "...",
+                    Order = 4
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.AgendaItem,
+                    Content = "...",
+                    Order = 5
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.H2,
+                    Content = "Notes",
+                    Order = 6
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.ListItem,
+                    Content = "...",
+                    Order = 7
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.H2,
+                    Content = "Action items",
+                    Order = 8
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Type = BlockType.TodoItem,
+                    Content = "...",
+                    Order = 9
+                },
+            ];
+
+            await CreateNoteWithBlocks(command.NotebookId, blocks, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create meeting note in notebook '{NotebookId}'", command.NotebookId);
+
+            await _mediator.Send(new NotificationCommands.ShowNotification("Error", "Failed to create meeting note.",
                 NotificationSeverity.Error), cancellationToken).ConfigureAwait(false);
         }
 
@@ -897,5 +996,36 @@ internal sealed class NoteHandler :
 
             return string.Empty;
         }
+    }
+
+    private async Task CreateNoteWithBlocks(Guid notebookId, ImmutableList<Block> blocks,
+        CancellationToken cancellationToken)
+    {
+        if (blocks.Count <= 0)
+        {
+            throw new InvalidOperationException("Note needs at least one block");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+
+        var note = new Note
+        {
+            Id = Guid.NewGuid(),
+            NotebookId = notebookId,
+            CreatedAt = now,
+            LastModifiedAt = now,
+            Blocks = blocks
+        };
+
+        await _noteRepository.Add(note, cancellationToken).ConfigureAwait(false);
+        await _actionDispatcher.Dispatch(new NoteActions.NoteCreated(note)).ConfigureAwait(false);
+
+        // Set the initial block as the editing block
+        await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(note.Id, blocks[0].Id)).ConfigureAwait(false);
+
+        // Generate embedding for the new note (if it has content)
+        await UpdateNoteEmbeddingAsync(note, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation("New note '{NoteId}' created in notebook '{NotebookId}'", note.Id, notebookId);
     }
 }

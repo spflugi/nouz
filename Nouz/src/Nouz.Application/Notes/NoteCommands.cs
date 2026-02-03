@@ -16,6 +16,11 @@ public static class NoteCommands
     public sealed record CreateNote(Guid NotebookId) : ICommand;
 
     /// <summary>
+    /// Create a new note with a meeting template.
+    /// </summary>
+    public sealed record CreateMeetingNote(Guid NotebookId) : ICommand;
+
+    /// <summary>
     /// Delete an existing note.
     /// </summary>
     public sealed record DeleteNote(Guid NoteId) : ICommand;
