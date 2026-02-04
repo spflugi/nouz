@@ -118,16 +118,7 @@
     focusElement: function (element) {
         if (!element) return;
         element.focus();
-
-        // Move cursor to end of content (for contenteditable elements)
-        if (element.isContentEditable) {
-            const range = document.createRange();
-            const selection = window.getSelection();
-            range.selectNodeContents(element);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
+        // Don't move cursor position - let the browser place it at the click location
     },
 
     focusInput: function (element) {
