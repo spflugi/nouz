@@ -30,7 +30,13 @@ internal sealed class NoteHandler :
     ICommandHandler<NoteCommands.AddImageBlock>,
     ICommandHandler<NoteCommands.UpdateImageCaption>,
     ICommandHandler<NoteCommands.UpdateImageWidth>,
-    ICommandHandler<NoteCommands.ExportNoteAsHtml, string>
+    ICommandHandler<NoteCommands.ExportNoteAsHtml, string>,
+    ICommandHandler<NoteCommands.ToggleMermaidEditMode>,
+    ICommandHandler<NoteCommands.AddTableRow>,
+    ICommandHandler<NoteCommands.RemoveTableRow>,
+    ICommandHandler<NoteCommands.AddTableColumn>,
+    ICommandHandler<NoteCommands.RemoveTableColumn>,
+    ICommandHandler<NoteCommands.UpdateTableCell>
 {
     private readonly IMediator _mediator;
     private readonly INoteRepository _noteRepository;
@@ -525,21 +531,52 @@ internal sealed class NoteHandler :
             }
 
             var updatedBlock = oldBlock with { Type = command.NewType };
+
+            // Initialize special block types with default content and metadata
+            if (command.NewType == BlockType.Mermaid)
+            {
+                updatedBlock = updatedBlock with
+                {
+                    Content = "graph TD\n    A[Start] --> B{Decision}\n    B -->|Yes| C[Result 1]\n    B -->|No| D[Result 2]",
+                    Metadata = new Dictionary<string, object> { ["isEditMode"] = true }
+                };
+            }
+            else if (command.NewType == BlockType.Table)
+            {
+                var tableData = new List<List<string>>
+                {
+                    new() { "Column 1", "Column 2", "Column 3" },
+                    new() { "", "", "" },
+                    new() { "", "", "" }
+                };
+                updatedBlock = updatedBlock with
+                {
+                    Content = string.Empty,
+                    Metadata = new Dictionary<string, object>
+                    {
+                        ["rows"] = 3,
+                        ["columns"] = 3,
+                        ["data"] = tableData,
+                        ["hasHeader"] = true
+                    }
+                };
+            }
+
             var blocks = note.Blocks.Replace(oldBlock, updatedBlock).ToList();
             var focusBlockId = updatedBlock.Id;
 
-            // If changing to Divider, add a paragraph block after it for continued editing
-            if (command.NewType == BlockType.Divider)
+            // If changing to Divider, Mermaid, or Table, add a paragraph block after it for continued editing
+            if (command.NewType is BlockType.Divider or BlockType.Mermaid or BlockType.Table)
             {
-                var dividerIndex = blocks.FindIndex(b => b.Id == updatedBlock.Id);
+                var blockIndex = blocks.FindIndex(b => b.Id == updatedBlock.Id);
                 var newParagraph = new Block
                 {
                     Id = Guid.NewGuid(),
                     Type = BlockType.Paragraph,
                     Content = string.Empty,
-                    Order = dividerIndex + 1
+                    Order = blockIndex + 1
                 };
-                blocks.Insert(dividerIndex + 1, newParagraph);
+                blocks.Insert(blockIndex + 1, newParagraph);
                 focusBlockId = newParagraph.Id;
             }
 
@@ -552,13 +589,21 @@ internal sealed class NoteHandler :
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
 
-            // Only update state, don't persist - will be saved when user clicks Save
+            // Auto-save for Mermaid and Table blocks to persist their template content
+            if (command.NewType is BlockType.Mermaid or BlockType.Table)
+            {
+                await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug("Block '{BlockId}' type changed to '{NewType}' (auto-saved)", command.BlockId, command.NewType);
+            }
+            else
+            {
+                _logger.LogDebug("Block '{BlockId}' type changed to '{NewType}' (state only)", command.BlockId, command.NewType);
+            }
+
             await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
 
             // Focus the block (or the new paragraph after a divider)
             await _actionDispatcher.Dispatch(new NoteActions.EditingBlockChanged(command.NoteId, focusBlockId)).ConfigureAwait(false);
-
-            _logger.LogDebug("Block '{BlockId}' type changed to '{NewType}' (state only)", command.BlockId, command.NewType);
         }
         catch (Exception ex)
         {
@@ -996,6 +1041,441 @@ internal sealed class NoteHandler :
 
             return string.Empty;
         }
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.ToggleMermaidEditMode command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Toggling Mermaid edit mode for block '{BlockId}' in note '{NoteId}'",
+            command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Mermaid)
+            {
+                _logger.LogWarning("Mermaid block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var isEditMode = GetMermaidEditMode(block);
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["isEditMode"] = !isEditMode
+            };
+
+            var updatedBlock = block with { Metadata = updatedMetadata };
+            var updatedBlocks = note.Blocks.Replace(block, updatedBlock);
+            var updatedNote = note with
+            {
+                Blocks = updatedBlocks,
+                LastModifiedAt = DateTimeOffset.UtcNow
+            };
+
+            // Auto-save when switching to preview mode to persist the diagram content
+            if (isEditMode)
+            {
+                await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug("Mermaid block content auto-saved for block '{BlockId}'", command.BlockId);
+            }
+
+            await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
+
+            _logger.LogDebug("Mermaid edit mode toggled for block '{BlockId}'", command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to toggle Mermaid edit mode for block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.AddTableRow command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Adding row to table block '{BlockId}' in note '{NoteId}'",
+            command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Table)
+            {
+                _logger.LogWarning("Table block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var tableData = GetTableData(block);
+            var columns = GetTableColumns(block);
+
+            // Create a new empty row
+            var newRow = new List<string>();
+            for (var i = 0; i < columns; i++)
+            {
+                newRow.Add(string.Empty);
+            }
+
+            // Insert at the specified position or at the end
+            var insertIndex = command.AfterRowIndex.HasValue
+                ? Math.Min(command.AfterRowIndex.Value + 1, tableData.Count)
+                : tableData.Count;
+            tableData.Insert(insertIndex, newRow);
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["rows"] = tableData.Count,
+                ["data"] = tableData
+            };
+
+            await UpdateTableBlock(note, block, updatedMetadata).ConfigureAwait(false);
+
+            _logger.LogDebug("Row added to table block '{BlockId}'", command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add row to table block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.RemoveTableRow command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Removing row {RowIndex} from table block '{BlockId}' in note '{NoteId}'",
+            command.RowIndex, command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Table)
+            {
+                _logger.LogWarning("Table block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var tableData = GetTableData(block);
+
+            // Prevent removing if only one row left
+            if (tableData.Count <= 1)
+            {
+                _logger.LogDebug("Cannot remove the last row from table block '{BlockId}'", command.BlockId);
+                return Unit.Value;
+            }
+
+            if (command.RowIndex < 0 || command.RowIndex >= tableData.Count)
+            {
+                _logger.LogWarning("Invalid row index {RowIndex} for table block '{BlockId}'", command.RowIndex, command.BlockId);
+                return Unit.Value;
+            }
+
+            tableData.RemoveAt(command.RowIndex);
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["rows"] = tableData.Count,
+                ["data"] = tableData
+            };
+
+            await UpdateTableBlock(note, block, updatedMetadata).ConfigureAwait(false);
+
+            _logger.LogDebug("Row {RowIndex} removed from table block '{BlockId}'", command.RowIndex, command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove row from table block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.AddTableColumn command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Adding column to table block '{BlockId}' in note '{NoteId}'",
+            command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Table)
+            {
+                _logger.LogWarning("Table block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var tableData = GetTableData(block);
+            var columns = GetTableColumns(block);
+
+            // Insert at the specified position or at the end
+            var insertIndex = command.AfterColumnIndex.HasValue
+                ? Math.Min(command.AfterColumnIndex.Value + 1, columns)
+                : columns;
+
+            foreach (var row in tableData)
+            {
+                row.Insert(insertIndex, string.Empty);
+            }
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["columns"] = columns + 1,
+                ["data"] = tableData
+            };
+
+            await UpdateTableBlock(note, block, updatedMetadata).ConfigureAwait(false);
+
+            _logger.LogDebug("Column added to table block '{BlockId}'", command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add column to table block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.RemoveTableColumn command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Removing column {ColumnIndex} from table block '{BlockId}' in note '{NoteId}'",
+            command.ColumnIndex, command.BlockId, command.NoteId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Table)
+            {
+                _logger.LogWarning("Table block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var tableData = GetTableData(block);
+            var columns = GetTableColumns(block);
+
+            // Prevent removing if only one column left
+            if (columns <= 1)
+            {
+                _logger.LogDebug("Cannot remove the last column from table block '{BlockId}'", command.BlockId);
+                return Unit.Value;
+            }
+
+            if (command.ColumnIndex < 0 || command.ColumnIndex >= columns)
+            {
+                _logger.LogWarning("Invalid column index {ColumnIndex} for table block '{BlockId}'", command.ColumnIndex, command.BlockId);
+                return Unit.Value;
+            }
+
+            foreach (var row in tableData)
+            {
+                if (command.ColumnIndex < row.Count)
+                {
+                    row.RemoveAt(command.ColumnIndex);
+                }
+            }
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["columns"] = columns - 1,
+                ["data"] = tableData
+            };
+
+            await UpdateTableBlock(note, block, updatedMetadata).ConfigureAwait(false);
+
+            _logger.LogDebug("Column {ColumnIndex} removed from table block '{BlockId}'", command.ColumnIndex, command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove column from table block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(NoteCommands.UpdateTableCell command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Updating cell [{RowIndex},{ColIndex}] in table block '{BlockId}'",
+            command.RowIndex, command.ColIndex, command.BlockId);
+
+        try
+        {
+            var note = GetNoteFromState(command.NoteId);
+
+            if (note is null)
+            {
+                _logger.LogWarning("Note '{NoteId}' not found in state", command.NoteId);
+                return Unit.Value;
+            }
+
+            var block = note.Blocks.FirstOrDefault(b => b.Id == command.BlockId);
+
+            if (block is null || block.Type != BlockType.Table)
+            {
+                _logger.LogWarning("Table block '{BlockId}' not found in note '{NoteId}'", command.BlockId, command.NoteId);
+                return Unit.Value;
+            }
+
+            var tableData = GetTableData(block);
+
+            if (command.RowIndex < 0 || command.RowIndex >= tableData.Count)
+            {
+                _logger.LogWarning("Invalid row index {RowIndex} for table block '{BlockId}'", command.RowIndex, command.BlockId);
+                return Unit.Value;
+            }
+
+            var row = tableData[command.RowIndex];
+            if (command.ColIndex < 0 || command.ColIndex >= row.Count)
+            {
+                _logger.LogWarning("Invalid column index {ColIndex} for table block '{BlockId}'", command.ColIndex, command.BlockId);
+                return Unit.Value;
+            }
+
+            row[command.ColIndex] = command.Content;
+
+            var updatedMetadata = new Dictionary<string, object>(block.Metadata)
+            {
+                ["data"] = tableData
+            };
+
+            await UpdateTableBlock(note, block, updatedMetadata).ConfigureAwait(false);
+
+            _logger.LogDebug("Cell [{RowIndex},{ColIndex}] updated in table block '{BlockId}'",
+                command.RowIndex, command.ColIndex, command.BlockId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update cell in table block '{BlockId}'", command.BlockId);
+        }
+
+        return Unit.Value;
+    }
+
+    private static bool GetMermaidEditMode(Block block)
+    {
+        if (block.Metadata.TryGetValue("isEditMode", out var isEditModeObj))
+        {
+            return isEditModeObj switch
+            {
+                bool boolValue => boolValue,
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetBoolean(),
+                _ => true
+            };
+        }
+        return true;
+    }
+
+    private static List<List<string>> GetTableData(Block block)
+    {
+        if (block.Metadata.TryGetValue("data", out var dataObj))
+        {
+            return dataObj switch
+            {
+                List<List<string>> list => list.Select(row => row.ToList()).ToList(),
+                System.Text.Json.JsonElement jsonElement => ParseJsonTableData(jsonElement),
+                _ => CreateDefaultTableData()
+            };
+        }
+        return CreateDefaultTableData();
+    }
+
+    private static List<List<string>> ParseJsonTableData(System.Text.Json.JsonElement jsonElement)
+    {
+        var result = new List<List<string>>();
+        if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+        {
+            foreach (var rowElement in jsonElement.EnumerateArray())
+            {
+                var row = new List<string>();
+                if (rowElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                {
+                    foreach (var cellElement in rowElement.EnumerateArray())
+                    {
+                        row.Add(cellElement.GetString() ?? string.Empty);
+                    }
+                }
+                result.Add(row);
+            }
+        }
+        return result.Count > 0 ? result : CreateDefaultTableData();
+    }
+
+    private static List<List<string>> CreateDefaultTableData()
+    {
+        return new List<List<string>>
+        {
+            new() { "Column 1", "Column 2", "Column 3" },
+            new() { "", "", "" },
+            new() { "", "", "" }
+        };
+    }
+
+    private static int GetTableColumns(Block block)
+    {
+        if (block.Metadata.TryGetValue("columns", out var columnsObj))
+        {
+            return columnsObj switch
+            {
+                int intValue => intValue,
+                long longValue => (int)longValue,
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetInt32(),
+                _ => 3
+            };
+        }
+        return 3;
+    }
+
+    private async Task UpdateTableBlock(Note note, Block block, Dictionary<string, object> updatedMetadata)
+    {
+        var updatedBlock = block with { Metadata = updatedMetadata };
+        var updatedBlocks = note.Blocks.Replace(block, updatedBlock);
+        var updatedNote = note with
+        {
+            Blocks = updatedBlocks,
+            LastModifiedAt = DateTimeOffset.UtcNow
+        };
+
+        await _actionDispatcher.Dispatch(new NoteActions.NoteUpdated(updatedNote)).ConfigureAwait(false);
     }
 
     private async Task CreateNoteWithBlocks(Guid notebookId, ImmutableList<Block> blocks,

@@ -188,6 +188,25 @@
                 </div>
                 break;
 
+            case BlockType.Mermaid:
+                <MermaidBlock @ref="_mermaidBlockRef"
+                              Block="Block"
+                              NoteId="NoteId"
+                              OnContentChanged="HandleMermaidContentChanged"
+                              OnToggleEditMode="HandleMermaidToggleEditMode"
+                              OnSaveRequested="OnSaveRequested" />
+                break;
+
+            case BlockType.Table:
+                <TableBlock Block="Block"
+                            NoteId="NoteId"
+                            OnAddRow="HandleTableAddRow"
+                            OnRemoveRow="HandleTableRemoveRow"
+                            OnAddColumn="HandleTableAddColumn"
+                            OnRemoveColumn="HandleTableRemoveColumn"
+                            OnCellChanged="HandleTableCellChanged" />
+                break;
+
             default:
                 <p class="block block-paragraph"
                    contenteditable="true"

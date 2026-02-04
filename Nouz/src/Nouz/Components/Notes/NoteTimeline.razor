@@ -41,7 +41,13 @@
                               OnImagePreviewRequested="@(args => ShowImagePreview(args.ImageDataUrl, args.Caption))"
                               OnAddAttachment="@(args => HandleAddAttachment(args.NoteId, args.FileStream, args.FileName))"
                               OnDeleteAttachment="@(args => HandleDeleteAttachment(args.NoteId, args.AttachmentId))"
-                              OnOpenAttachment="@(attachmentId => HandleOpenAttachment(attachmentId))" />
+                              OnOpenAttachment="@(attachmentId => HandleOpenAttachment(attachmentId))"
+                              OnMermaidToggleEditMode="@(args => HandleMermaidToggleEditMode(args.NoteId, args.BlockId))"
+                              OnTableAddRow="@(args => HandleTableAddRow(args.NoteId, args.BlockId, args.AfterRowIndex))"
+                              OnTableRemoveRow="@(args => HandleTableRemoveRow(args.NoteId, args.BlockId, args.RowIndex))"
+                              OnTableAddColumn="@(args => HandleTableAddColumn(args.NoteId, args.BlockId, args.AfterColumnIndex))"
+                              OnTableRemoveColumn="@(args => HandleTableRemoveColumn(args.NoteId, args.BlockId, args.ColumnIndex))"
+                              OnTableCellChanged="@(args => HandleTableCellChanged(args.NoteId, args.BlockId, args.RowIndex, args.ColIndex, args.Content))" />
                 }
             }
         </div>

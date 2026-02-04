@@ -40,6 +40,9 @@ public partial class BlockRenderer : IAsyncDisposable
     private ElementReference _resizeHandleRef;
     private bool _resizeHandlerInitialized;
 
+    // Mermaid block state
+    private MermaidBlock? _mermaidBlockRef;
+
     [Inject]
     private IAttachmentRepository AttachmentRepository { get; set; } = null!;
 
@@ -87,6 +90,24 @@ public partial class BlockRenderer : IAsyncDisposable
 
     [Parameter]
     public EventCallback<(string ImageDataUrl, string? Caption)> OnImagePreviewRequested { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnMermaidToggleEditMode { get; set; }
+
+    [Parameter]
+    public EventCallback OnTableAddRow { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnTableRemoveRow { get; set; }
+
+    [Parameter]
+    public EventCallback OnTableAddColumn { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnTableRemoveColumn { get; set; }
+
+    [Parameter]
+    public EventCallback<(int RowIndex, int ColIndex, string Content)> OnTableCellChanged { get; set; }
 
     private bool SupportsFormatting => Block.Type == BlockType.Paragraph;
 
@@ -265,6 +286,18 @@ public partial class BlockRenderer : IAsyncDisposable
 
     public async Task<string> GetCurrentContent()
     {
+        // Handle Mermaid blocks specially - they have their own component
+        if (Block.Type == BlockType.Mermaid && _mermaidBlockRef is not null)
+        {
+            return await _mermaidBlockRef.GetCurrentContent();
+        }
+
+        // Table blocks store data in metadata, not content
+        if (Block.Type == BlockType.Table)
+        {
+            return Block.Content;
+        }
+
         if (_contentRef.Context is not null)
         {
             try
@@ -663,6 +696,52 @@ public partial class BlockRenderer : IAsyncDisposable
     public async Task OnImagePastedFromClipboard(string imageData, string fileName, string mimeType)
     {
         await OnImagePasted.InvokeAsync((NoteId, Block.Id, imageData, fileName, mimeType));
+    }
+
+    // Mermaid block handlers
+    private async Task HandleMermaidContentChanged(Block updatedBlock)
+    {
+        await OnContentChanged.InvokeAsync(updatedBlock);
+    }
+
+    private async Task HandleMermaidToggleEditMode()
+    {
+        await OnMermaidToggleEditMode.InvokeAsync(Block.Id);
+    }
+
+    public async Task<string> GetMermaidContent()
+    {
+        if (_mermaidBlockRef is not null)
+        {
+            return await _mermaidBlockRef.GetCurrentContent();
+        }
+        return Block.Content;
+    }
+
+    // Table block handlers
+    private async Task HandleTableAddRow()
+    {
+        await OnTableAddRow.InvokeAsync();
+    }
+
+    private async Task HandleTableRemoveRow(int rowIndex)
+    {
+        await OnTableRemoveRow.InvokeAsync(rowIndex);
+    }
+
+    private async Task HandleTableAddColumn()
+    {
+        await OnTableAddColumn.InvokeAsync();
+    }
+
+    private async Task HandleTableRemoveColumn(int colIndex)
+    {
+        await OnTableRemoveColumn.InvokeAsync(colIndex);
+    }
+
+    private async Task HandleTableCellChanged((int RowIndex, int ColIndex, string Content) args)
+    {
+        await OnTableCellChanged.InvokeAsync(args);
     }
 
     public class SelectionData

@@ -72,7 +72,13 @@
                            OnImagePasted="@(args => HandleImagePasted(args))"
                            OnImageCaptionChanged="@(args => HandleImageCaptionChanged(args))"
                            OnImageWidthChanged="@(args => HandleImageWidthChanged(args))"
-                           OnImagePreviewRequested="@(args => HandleImagePreviewRequested(args))" />
+                           OnImagePreviewRequested="@(args => HandleImagePreviewRequested(args))"
+                           OnMermaidToggleEditMode="@(blockId => HandleMermaidToggleEditMode(blockId))"
+                           OnTableAddRow="@(() => HandleTableAddRow(block.Id))"
+                           OnTableRemoveRow="@(rowIndex => HandleTableRemoveRow(block.Id, rowIndex))"
+                           OnTableAddColumn="@(() => HandleTableAddColumn(block.Id))"
+                           OnTableRemoveColumn="@(colIndex => HandleTableRemoveColumn(block.Id, colIndex))"
+                           OnTableCellChanged="@(args => HandleTableCellChanged(block.Id, args))" />
         }
     </div>
 </div>

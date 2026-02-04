@@ -108,4 +108,51 @@ public static class NoteCommands
     /// </summary>
     /// <param name="NoteId">The note to export</param>
     public sealed record ExportNoteAsHtml(Guid NoteId) : ICommand<string>;
+
+    /// <summary>
+    /// Toggle between edit mode and preview mode for a Mermaid diagram block.
+    /// </summary>
+    public sealed record ToggleMermaidEditMode(Guid NoteId, Guid BlockId) : ICommand;
+
+    /// <summary>
+    /// Add a new row to a table block.
+    /// </summary>
+    /// <param name="NoteId">The note containing the table</param>
+    /// <param name="BlockId">The table block to modify</param>
+    /// <param name="AfterRowIndex">Insert after this row index (null for end)</param>
+    public sealed record AddTableRow(Guid NoteId, Guid BlockId, int? AfterRowIndex = null) : ICommand;
+
+    /// <summary>
+    /// Remove a row from a table block.
+    /// </summary>
+    /// <param name="NoteId">The note containing the table</param>
+    /// <param name="BlockId">The table block to modify</param>
+    /// <param name="RowIndex">The index of the row to remove</param>
+    public sealed record RemoveTableRow(Guid NoteId, Guid BlockId, int RowIndex) : ICommand;
+
+    /// <summary>
+    /// Add a new column to a table block.
+    /// </summary>
+    /// <param name="NoteId">The note containing the table</param>
+    /// <param name="BlockId">The table block to modify</param>
+    /// <param name="AfterColumnIndex">Insert after this column index (null for end)</param>
+    public sealed record AddTableColumn(Guid NoteId, Guid BlockId, int? AfterColumnIndex = null) : ICommand;
+
+    /// <summary>
+    /// Remove a column from a table block.
+    /// </summary>
+    /// <param name="NoteId">The note containing the table</param>
+    /// <param name="BlockId">The table block to modify</param>
+    /// <param name="ColumnIndex">The index of the column to remove</param>
+    public sealed record RemoveTableColumn(Guid NoteId, Guid BlockId, int ColumnIndex) : ICommand;
+
+    /// <summary>
+    /// Update the content of a cell in a table block.
+    /// </summary>
+    /// <param name="NoteId">The note containing the table</param>
+    /// <param name="BlockId">The table block to modify</param>
+    /// <param name="RowIndex">The row index of the cell</param>
+    /// <param name="ColIndex">The column index of the cell</param>
+    /// <param name="Content">The new cell content</param>
+    public sealed record UpdateTableCell(Guid NoteId, Guid BlockId, int RowIndex, int ColIndex, string Content) : ICommand;
 }

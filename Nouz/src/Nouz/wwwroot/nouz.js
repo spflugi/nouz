@@ -605,6 +605,124 @@
         }
     },
 
+    // Mermaid diagram support
+    _mermaidLoaded: false,
+    _mermaidLoading: false,
+    _mermaidLoadCallbacks: [],
+
+    loadMermaid: async function () {
+        if (this._mermaidLoaded) {
+            return Promise.resolve();
+        }
+
+        if (this._mermaidLoading) {
+            return new Promise(function (resolve) {
+                window.nouz._mermaidLoadCallbacks.push(resolve);
+            });
+        }
+
+        this._mermaidLoading = true;
+
+        return new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+            script.async = true;
+
+            script.onload = function () {
+                window.mermaid.initialize({
+                    startOnLoad: false,
+                    theme: 'neutral',
+                    securityLevel: 'strict',
+                    fontFamily: 'inherit'
+                });
+
+                window.nouz._mermaidLoaded = true;
+                window.nouz._mermaidLoading = false;
+
+                // Resolve any waiting callbacks
+                window.nouz._mermaidLoadCallbacks.forEach(function (cb) { cb(); });
+                window.nouz._mermaidLoadCallbacks = [];
+
+                resolve();
+            };
+
+            script.onerror = function () {
+                window.nouz._mermaidLoading = false;
+                reject(new Error('Failed to load Mermaid library'));
+            };
+
+            document.head.appendChild(script);
+        });
+    },
+
+    initMermaidEditor: function (element, dotNetRef, initialContent) {
+        if (!element) return;
+
+        element._dotNetRef = dotNetRef;
+
+        if (!element._mermaidEditorInit) {
+            element._mermaidEditorInit = true;
+
+            if (initialContent !== undefined && initialContent !== null) {
+                element.innerText = initialContent;
+            }
+
+            element.addEventListener('keydown', async function (e) {
+                var ref = element._dotNetRef;
+                if (!ref) return;
+
+                if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                        await ref.invokeMethodAsync('OnSaveKeyPressed');
+                    } catch (err) {
+                        console.error('Save key error:', err);
+                    }
+                }
+            });
+        }
+    },
+
+    renderMermaidDiagram: async function (element, code, dotNetRef) {
+        if (!element || !code) {
+            if (dotNetRef) {
+                try {
+                    await dotNetRef.invokeMethodAsync('OnMermaidRenderError', 'No diagram code provided');
+                } catch (err) { }
+            }
+            return;
+        }
+
+        try {
+            await this.loadMermaid();
+
+            // Generate unique ID for this diagram
+            var diagramId = 'mermaid-' + Math.random().toString(36).substring(7);
+
+            // Clear previous content
+            element.innerHTML = '';
+
+            // Render the diagram
+            var result = await window.mermaid.render(diagramId, code);
+            element.innerHTML = result.svg;
+
+            if (dotNetRef) {
+                try {
+                    await dotNetRef.invokeMethodAsync('OnMermaidRenderSuccess');
+                } catch (err) { }
+            }
+        } catch (err) {
+            console.error('Mermaid render error:', err);
+            if (dotNetRef) {
+                try {
+                    var errorMsg = err.message || 'Failed to render diagram';
+                    await dotNetRef.invokeMethodAsync('OnMermaidRenderError', errorMsg);
+                } catch (callErr) { }
+            }
+        }
+    },
+
     // Download a file with the given content
     downloadFile: function (content, filename, mimeType) {
         const blob = new Blob([content], { type: mimeType });
