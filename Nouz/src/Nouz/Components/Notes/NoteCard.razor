@@ -1,6 +1,12 @@
 <div class="note-card @(IsEditing ? "editing" : "")">
     <div class="note-header">
-        <span class="note-date">@Note.CreatedAt.LocalDateTime.ToString("dd. MMM yyyy HH:mm")</span>
+        <div class="note-dates">
+            <span class="note-date">@Note.CreatedAt.LocalDateTime.ToString("dd. MMM yyyy HH:mm")</span>
+            @if (Note.LastModifiedAt != Note.CreatedAt)
+            {
+                <span class="note-date note-modified">· Modified @Note.LastModifiedAt.LocalDateTime.ToString("dd. MMM yyyy HH:mm")</span>
+            }
+        </div>
         @if (_showSavedNotification)
         {
             <span class="note-saved-info">Saved</span>

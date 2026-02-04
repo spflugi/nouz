@@ -157,7 +157,7 @@ internal sealed class NoteHandler :
                 {
                     Id = Guid.NewGuid(),
                     Type = BlockType.Paragraph,
-                    Content = "Date: ...",
+                    Content = $"Date: {DateTime.Now:dd. MMM yyyy}",
                     Order = 1,
                     Metadata =
                     {
