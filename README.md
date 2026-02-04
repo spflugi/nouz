@@ -4,9 +4,13 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A minimalist, AI-powered note-taking application built with .NET MAUI and Blazor. Nouz combines the flexibility of block-based editing with intelligent AI assistance to help you capture, organize, and retrieve your thoughts effortlessly.
+A minimalist, fully local, AI-powered note-taking application built with .NET MAUI and Blazor. Nouz combines the flexibility of block-based editing with intelligent AI assistance to help you capture, organize, and retrieve your thoughts effortlessly.
 
 ## Features
+
+### Local, no cloud
+
+- All data is saved locally in a sqlite database
 
 ### Block-Based Note Editing
 
