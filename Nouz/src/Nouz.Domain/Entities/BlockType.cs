@@ -15,5 +15,7 @@ public enum BlockType
     Decision,
     Warning,
     Divider,
-    Image
+    Image,
+    Mermaid,
+    Table
 }

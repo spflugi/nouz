@@ -1,0 +1,133 @@
+.block-table {
+    margin: var(--space-2) 0;
+}
+
+.table-toolbar {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.block-table:hover .table-toolbar,
+.block-table:focus-within .table-toolbar {
+    opacity: 1;
+}
+
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border: none;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-hover);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+    .toolbar-btn:hover {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+
+    .toolbar-btn .rz-icon {
+        font-size: 14px;
+    }
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+    .table-grid th,
+    .table-grid td {
+        border: 1px solid var(--border-subtle);
+        padding: 0;
+        vertical-align: middle;
+    }
+
+    .table-grid th {
+        background-color: var(--bg-hover);
+    }
+
+    .table-grid thead th {
+        font-weight: 600;
+    }
+
+.table-cell-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: var(--space-2);
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+}
+
+    .table-cell-input:focus {
+        background-color: var(--bg-hover);
+    }
+
+    .table-cell-input::placeholder {
+        color: var(--text-placeholder);
+    }
+
+    .table-cell-input.header-cell {
+        font-weight: 600;
+    }
+
+.row-actions {
+    width: 32px;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.column-actions-row td {
+    border: none !important;
+    background: transparent !important;
+    padding: var(--space-1) 0 0 0 !important;
+    text-align: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+    .action-btn .rz-icon {
+        font-size: 14px;
+    }
+
+.block-table:hover .action-btn,
+.block-table:focus-within .action-btn {
+    opacity: 1;
+}
+
+.action-btn:hover {
+    background-color: var(--notification-error-bg);
+    color: var(--notification-error);
+}
+
+.row-actions .action-btn {
+    margin: 0 auto;
+}

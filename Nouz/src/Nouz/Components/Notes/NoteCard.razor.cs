@@ -84,6 +84,24 @@ public partial class NoteCard
     [Parameter]
     public EventCallback<Guid> OnOpenAttachment { get; set; }
 
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId)> OnMermaidToggleEditMode { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int? AfterRowIndex)> OnTableAddRow { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int RowIndex)> OnTableRemoveRow { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int? AfterColumnIndex)> OnTableAddColumn { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int ColumnIndex)> OnTableRemoveColumn { get; set; }
+
+    [Parameter]
+    public EventCallback<(Guid NoteId, Guid BlockId, int RowIndex, int ColIndex, string Content)> OnTableCellChanged { get; set; }
+
     private async Task HandleBlockClick(Guid blockId)
     {
         await OnBlockClick.InvokeAsync((Note.Id, blockId));
@@ -245,5 +263,35 @@ public partial class NoteCard
         {
             await JsRuntime.InvokeVoidAsync("nouz.printHtml", html, "Note Export");
         }
+    }
+
+    private async Task HandleMermaidToggleEditMode(Guid blockId)
+    {
+        await OnMermaidToggleEditMode.InvokeAsync((Note.Id, blockId));
+    }
+
+    private async Task HandleTableAddRow(Guid blockId)
+    {
+        await OnTableAddRow.InvokeAsync((Note.Id, blockId, null));
+    }
+
+    private async Task HandleTableRemoveRow(Guid blockId, int rowIndex)
+    {
+        await OnTableRemoveRow.InvokeAsync((Note.Id, blockId, rowIndex));
+    }
+
+    private async Task HandleTableAddColumn(Guid blockId)
+    {
+        await OnTableAddColumn.InvokeAsync((Note.Id, blockId, null));
+    }
+
+    private async Task HandleTableRemoveColumn(Guid blockId, int colIndex)
+    {
+        await OnTableRemoveColumn.InvokeAsync((Note.Id, blockId, colIndex));
+    }
+
+    private async Task HandleTableCellChanged(Guid blockId, (int RowIndex, int ColIndex, string Content) args)
+    {
+        await OnTableCellChanged.InvokeAsync((Note.Id, blockId, args.RowIndex, args.ColIndex, args.Content));
     }
 }

@@ -1,0 +1,76 @@
+@using Nouz.Domain.Entities
+
+<div class="block block-table">
+    <div class="table-toolbar">
+        <button class="toolbar-btn" @onclick="HandleAddColumn" title="Add column">
+            <RadzenIcon Icon="add" />
+            <span>Column</span>
+        </button>
+        <button class="toolbar-btn" @onclick="HandleAddRow" title="Add row">
+            <RadzenIcon Icon="add" />
+            <span>Row</span>
+        </button>
+    </div>
+    <div class="table-container">
+        <table class="table-grid">
+            <tbody>
+                @for (var rowIndex = 0; rowIndex < TableData.Count; rowIndex++)
+                {
+                    var row = TableData[rowIndex];
+                    var isHeader = HasHeader && rowIndex == 0;
+                    var currentRowIndex = rowIndex;
+
+                    <tr class="@(isHeader ? "header-row" : "")">
+                        @for (var colIndex = 0; colIndex < row.Count; colIndex++)
+                        {
+                            var currentColIndex = colIndex;
+                            @if (isHeader)
+                            {
+                                <th>
+                                    <input type="text"
+                                           class="table-cell-input header-cell"
+                                           value="@row[colIndex]"
+                                           @onchange="@(e => HandleCellChange(currentRowIndex, currentColIndex, e))"
+                                           placeholder="Header" />
+                                </th>
+                            }
+                            else
+                            {
+                                <td>
+                                    <input type="text"
+                                           class="table-cell-input"
+                                           value="@row[colIndex]"
+                                           @onchange="@(e => HandleCellChange(currentRowIndex, currentColIndex, e))"
+                                           placeholder="" />
+                                </td>
+                            }
+                        }
+                        <td class="row-actions">
+                            @if (TableData.Count > 1)
+                            {
+                                <button class="action-btn remove-btn" @onclick="@(() => HandleRemoveRow(currentRowIndex))" title="Remove row">
+                                    <RadzenIcon Icon="remove" />
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+                <tr class="column-actions-row">
+                    @for (var colIndex = 0; colIndex < Columns; colIndex++)
+                    {
+                        var currentColIndex = colIndex;
+                        <td>
+                            @if (Columns > 1)
+                            {
+                                <button class="action-btn remove-btn" @onclick="@(() => HandleRemoveColumn(currentColIndex))" title="Remove column">
+                                    <RadzenIcon Icon="remove" />
+                                </button>
+                            }
+                        </td>
+                    }
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -68,6 +68,16 @@
             <RadzenIcon Icon="horizontal_rule" />
             <span>Divider</span>
         </button>
+        <button class="menu-item @(CurrentType == BlockType.Mermaid ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Mermaid))">
+            <RadzenIcon Icon="account_tree" />
+            <span>Diagram</span>
+        </button>
+        <button class="menu-item @(CurrentType == BlockType.Table ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Table))">
+            <RadzenIcon Icon="table_chart" />
+            <span>Table</span>
+        </button>
     </div>
     <div class="menu-divider"></div>
     <div class="menu-section">

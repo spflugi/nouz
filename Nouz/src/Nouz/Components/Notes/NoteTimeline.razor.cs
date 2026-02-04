@@ -194,4 +194,34 @@ public partial class NoteTimeline
     {
         await Mediator.Send(new AttachmentCommands.OpenAttachment(attachmentId));
     }
+
+    private async Task HandleMermaidToggleEditMode(Guid noteId, Guid blockId)
+    {
+        await Mediator.Send(new NoteCommands.ToggleMermaidEditMode(noteId, blockId));
+    }
+
+    private async Task HandleTableAddRow(Guid noteId, Guid blockId, int? afterRowIndex)
+    {
+        await Mediator.Send(new NoteCommands.AddTableRow(noteId, blockId, afterRowIndex));
+    }
+
+    private async Task HandleTableRemoveRow(Guid noteId, Guid blockId, int rowIndex)
+    {
+        await Mediator.Send(new NoteCommands.RemoveTableRow(noteId, blockId, rowIndex));
+    }
+
+    private async Task HandleTableAddColumn(Guid noteId, Guid blockId, int? afterColumnIndex)
+    {
+        await Mediator.Send(new NoteCommands.AddTableColumn(noteId, blockId, afterColumnIndex));
+    }
+
+    private async Task HandleTableRemoveColumn(Guid noteId, Guid blockId, int columnIndex)
+    {
+        await Mediator.Send(new NoteCommands.RemoveTableColumn(noteId, blockId, columnIndex));
+    }
+
+    private async Task HandleTableCellChanged(Guid noteId, Guid blockId, int rowIndex, int colIndex, string content)
+    {
+        await Mediator.Send(new NoteCommands.UpdateTableCell(noteId, blockId, rowIndex, colIndex, content));
+    }
 }
