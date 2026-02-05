@@ -30,6 +30,9 @@ public partial class MermaidBlock : IAsyncDisposable
     [Parameter]
     public EventCallback OnSaveRequested { get; set; }
 
+    [Parameter]
+    public EventCallback OnInsertBlockAfter { get; set; }
+
     public bool IsEditMode => GetIsEditMode();
 
     protected override void OnInitialized()
@@ -181,9 +184,14 @@ public partial class MermaidBlock : IAsyncDisposable
         await OnSaveRequested.InvokeAsync();
     }
 
+    private async Task HandleInsertBlockAfter()
+    {
+        await OnInsertBlockAfter.InvokeAsync();
+    }
+
     public async Task<string> GetCurrentContent()
     {
-        if (_codeRef.Context is not null)
+        if (IsEditMode && _codeRef.Context is not null)
         {
             try
             {

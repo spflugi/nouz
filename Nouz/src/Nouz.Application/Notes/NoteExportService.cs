@@ -107,6 +107,8 @@ internal sealed partial class NoteExportService
             BlockType.Warning => RenderWarningBlock(block),
             BlockType.Divider => "            <hr>",
             BlockType.Image => await RenderImageBlockAsync(block, cancellationToken).ConfigureAwait(false),
+            BlockType.Table => RenderTableBlock(block),
+            BlockType.Mermaid => RenderMermaidBlock(block),
             _ => $"            <p>{content}</p>"
         };
     }
@@ -188,6 +190,70 @@ internal sealed partial class NoteExportService
         }
         sb.Append("            </figure>");
         return sb.ToString();
+    }
+
+    private static string RenderTableBlock(Block block)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("            <table class=\"export-table\">");
+
+        var data = GetTableData(block);
+        var hasHeader = GetMetadataValue<bool>(block, "hasHeader");
+
+        for (var rowIndex = 0; rowIndex < data.Count; rowIndex++)
+        {
+            var row = data[rowIndex];
+            var isHeader = hasHeader && rowIndex == 0;
+            sb.AppendLine("                <tr>");
+            foreach (var cell in row)
+            {
+                var tag = isHeader ? "th" : "td";
+                sb.AppendLine($"                    <{tag}>{HtmlEncode(cell)}</{tag}>");
+            }
+            sb.AppendLine("                </tr>");
+        }
+
+        sb.Append("            </table>");
+        return sb.ToString();
+    }
+
+    private static List<List<string>> GetTableData(Block block)
+    {
+        if (!block.Metadata.TryGetValue("data", out var dataObj))
+        {
+            return [];
+        }
+
+        if (dataObj is List<List<string>> list)
+        {
+            return list;
+        }
+
+        if (dataObj is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+        {
+            var result = new List<List<string>>();
+            foreach (var rowElement in jsonElement.EnumerateArray())
+            {
+                var row = new List<string>();
+                if (rowElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var cellElement in rowElement.EnumerateArray())
+                    {
+                        row.Add(cellElement.GetString() ?? string.Empty);
+                    }
+                }
+                result.Add(row);
+            }
+            return result;
+        }
+
+        return [];
+    }
+
+    private static string RenderMermaidBlock(Block block)
+    {
+        var escapedContent = HtmlEncode(block.Content);
+        return $"            <div class=\"mermaid-export\"><pre><code class=\"language-mermaid\">{escapedContent}</code></pre></div>";
     }
 
     private static string FormatInlineContent(string content)
@@ -490,6 +556,43 @@ internal sealed partial class NoteExportService
                     border: none;
                     border-top: 1px solid #E0DFDD;
                     margin: 8px 0;
+                }
+
+                .export-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 13px;
+                }
+
+                .export-table th,
+                .export-table td {
+                    border: 1px solid #E0DFDD;
+                    padding: 8px 12px;
+                    text-align: left;
+                }
+
+                .export-table th {
+                    background-color: #F7F6F4;
+                    font-weight: 600;
+                }
+
+                .mermaid-export {
+                    background-color: #F7F6F4;
+                    border: 1px solid #E0DFDD;
+                    border-radius: 6px;
+                    padding: 12px 16px;
+                }
+
+                .mermaid-export pre {
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .mermaid-export code {
+                    background: none;
+                    padding: 0;
                 }
 
                 figure {

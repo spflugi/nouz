@@ -2,6 +2,12 @@
 @inject IJSRuntime JsRuntime
 
 <div class="block block-mermaid @(IsEditMode ? "edit-mode" : "preview-mode")">
+    <div class="mermaid-toolbar">
+        <button class="toolbar-btn" @onclick="HandleInsertBlockAfter" title="Insert block after diagram">
+            <RadzenIcon Icon="add_circle_outline" />
+            <span>Block</span>
+        </button>
+    </div>
     @if (IsEditMode)
     {
         <pre class="mermaid-code">

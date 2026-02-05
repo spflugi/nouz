@@ -68,7 +68,7 @@ public class NoteHandlerMermaidTableTests
     }
 
     [Fact]
-    public async Task ChangeBlockType_ToMermaid_ShouldAddParagraphAfter()
+    public async Task ChangeBlockType_ToMermaid_ShouldNotAddParagraphAfter()
     {
         // Arrange
         var noteId = Guid.NewGuid();
@@ -84,13 +84,12 @@ public class NoteHandlerMermaidTableTests
 
         // Assert
         capturedAction.ShouldNotBeNull();
-        capturedAction.Note.Blocks.Count.ShouldBe(2);
+        capturedAction.Note.Blocks.Count.ShouldBe(1);
         capturedAction.Note.Blocks[0].Type.ShouldBe(BlockType.Mermaid);
-        capturedAction.Note.Blocks[1].Type.ShouldBe(BlockType.Paragraph);
     }
 
     [Fact]
-    public async Task ChangeBlockType_ToMermaid_ShouldFocusNewParagraph()
+    public async Task ChangeBlockType_ToMermaid_ShouldFocusMermaidBlock()
     {
         // Arrange
         var noteId = Guid.NewGuid();
@@ -103,7 +102,7 @@ public class NoteHandlerMermaidTableTests
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
-            Arg.Is<NoteActions.EditingBlockChanged>(a => a.BlockId != block.Id));
+            Arg.Is<NoteActions.EditingBlockChanged>(a => a.BlockId == block.Id));
     }
 
     #endregion
@@ -214,7 +213,7 @@ public class NoteHandlerMermaidTableTests
     }
 
     [Fact]
-    public async Task ChangeBlockType_ToTable_ShouldAddParagraphAfter()
+    public async Task ChangeBlockType_ToTable_ShouldNotAddParagraphAfter()
     {
         // Arrange
         var noteId = Guid.NewGuid();
@@ -230,13 +229,12 @@ public class NoteHandlerMermaidTableTests
 
         // Assert
         capturedAction.ShouldNotBeNull();
-        capturedAction.Note.Blocks.Count.ShouldBe(2);
+        capturedAction.Note.Blocks.Count.ShouldBe(1);
         capturedAction.Note.Blocks[0].Type.ShouldBe(BlockType.Table);
-        capturedAction.Note.Blocks[1].Type.ShouldBe(BlockType.Paragraph);
     }
 
     [Fact]
-    public async Task ChangeBlockType_ToTable_ShouldFocusNewParagraph()
+    public async Task ChangeBlockType_ToTable_ShouldFocusTableBlock()
     {
         // Arrange
         var noteId = Guid.NewGuid();
@@ -249,7 +247,7 @@ public class NoteHandlerMermaidTableTests
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
-            Arg.Is<NoteActions.EditingBlockChanged>(a => a.BlockId != block.Id));
+            Arg.Is<NoteActions.EditingBlockChanged>(a => a.BlockId == block.Id));
     }
 
     #endregion

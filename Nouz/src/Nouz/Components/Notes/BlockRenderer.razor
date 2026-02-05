@@ -194,7 +194,8 @@
                               NoteId="NoteId"
                               OnContentChanged="HandleMermaidContentChanged"
                               OnToggleEditMode="HandleMermaidToggleEditMode"
-                              OnSaveRequested="OnSaveRequested" />
+                              OnSaveRequested="OnSaveRequested"
+                              OnInsertBlockAfter="HandleMermaidInsertBlockAfter" />
                 break;
 
             case BlockType.Table:
@@ -204,7 +205,8 @@
                             OnRemoveRow="HandleTableRemoveRow"
                             OnAddColumn="HandleTableAddColumn"
                             OnRemoveColumn="HandleTableRemoveColumn"
-                            OnCellChanged="HandleTableCellChanged" />
+                            OnCellChanged="HandleTableCellChanged"
+                            OnInsertBlockAfter="HandleTableInsertBlockAfter" />
                 break;
 
             default:
