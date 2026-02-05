@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
+using Converto;
 using Mediator;
 using Nouz.Application.Attachments;
 using Nouz.Application.Embeddings;
@@ -566,7 +567,7 @@ internal sealed class NoteHandler :
             var focusBlockId = updatedBlock.Id;
 
             // If changing to Divider, Mermaid, or Table, add a paragraph block after it for continued editing
-            if (command.NewType is BlockType.Divider or BlockType.Mermaid or BlockType.Table)
+            if (command.NewType is BlockType.Divider)
             {
                 var blockIndex = blocks.FindIndex(b => b.Id == updatedBlock.Id);
                 var newParagraph = new Block
@@ -940,13 +941,56 @@ internal sealed class NoteHandler :
         var sb = new StringBuilder();
         foreach (var block in note.Blocks.OrderBy(b => b.Order))
         {
-            if (!string.IsNullOrWhiteSpace(block.Content))
+            switch (block.Type)
             {
-                if (sb.Length > 0)
-                {
-                    sb.AppendLine();
-                }
-                sb.Append(block.Content);
+                case BlockType.Paragraph:
+                case BlockType.H1:
+                case BlockType.H2:
+                case BlockType.H3:
+                case BlockType.H4:
+                case BlockType.ListItem:
+                case BlockType.TodoItem:
+                case BlockType.AgendaItem:
+                case BlockType.Code:
+                case BlockType.Quote:
+                case BlockType.Decision:
+                case BlockType.Warning:
+                    if (!string.IsNullOrWhiteSpace(block.Content))
+                    {
+                        if (sb.Length > 0)
+                        {
+                            sb.AppendLine();
+                        }
+                        sb.Append(block.Content);
+                    }
+
+                    break;
+                case BlockType.Divider:
+                    break;
+                case BlockType.Image:
+                    break;
+                case BlockType.Mermaid:
+                    if (!string.IsNullOrWhiteSpace(block.Content))
+                    {
+                        sb.AppendLine("Mermaid diagram:");
+
+                        if (sb.Length > 0)
+                        {
+                            sb.AppendLine();
+                        }
+                        sb.Append(block.Content);
+                    }
+                    break;
+                case BlockType.Table:
+                    var tableData = GetTableData(block);
+
+                    foreach (var inner in tableData)
+                    {
+                        sb.AppendLine(string.Join(", ", inner));
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
         return sb.ToString();

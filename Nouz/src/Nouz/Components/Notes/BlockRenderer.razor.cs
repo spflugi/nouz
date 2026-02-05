@@ -109,6 +109,12 @@ public partial class BlockRenderer : IAsyncDisposable
     [Parameter]
     public EventCallback<(int RowIndex, int ColIndex, string Content)> OnTableCellChanged { get; set; }
 
+    [Parameter]
+    public EventCallback OnTableInsertBlockAfter { get; set; }
+
+    [Parameter]
+    public EventCallback OnMermaidInsertBlockAfter { get; set; }
+
     private bool SupportsFormatting => Block.Type == BlockType.Paragraph;
 
     protected override void OnInitialized()
@@ -742,6 +748,16 @@ public partial class BlockRenderer : IAsyncDisposable
     private async Task HandleTableCellChanged((int RowIndex, int ColIndex, string Content) args)
     {
         await OnTableCellChanged.InvokeAsync(args);
+    }
+
+    private async Task HandleTableInsertBlockAfter()
+    {
+        await OnTableInsertBlockAfter.InvokeAsync();
+    }
+
+    private async Task HandleMermaidInsertBlockAfter()
+    {
+        await OnMermaidInsertBlockAfter.InvokeAsync();
     }
 
     public class SelectionData

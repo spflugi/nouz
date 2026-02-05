@@ -432,6 +432,158 @@ public class NoteExportServiceTests
         html.ShouldNotContain("<figcaption>");
     }
 
+    [Fact]
+    public async Task GenerateHtmlAsync_Table_ShouldRenderAsHtmlTable()
+    {
+        // Arrange
+        var tableData = new List<List<string>>
+        {
+            new() { "Name", "Age" },
+            new() { "Alice", "30" },
+            new() { "Bob", "25" }
+        };
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Table,
+            Content = string.Empty,
+            Metadata = new Dictionary<string, object>
+            {
+                ["rows"] = 3,
+                ["columns"] = 2,
+                ["data"] = tableData,
+                ["hasHeader"] = true
+            },
+            Order = 0
+        };
+        var note = CreateNoteWithBlocks(block);
+
+        // Act
+        var html = await _service.GenerateHtmlAsync(note);
+
+        // Assert
+        html.ShouldContain("<table class=\"export-table\">");
+        html.ShouldContain("<th>Name</th>");
+        html.ShouldContain("<th>Age</th>");
+        html.ShouldContain("<td>Alice</td>");
+        html.ShouldContain("<td>30</td>");
+        html.ShouldContain("<td>Bob</td>");
+        html.ShouldContain("<td>25</td>");
+        html.ShouldContain("</table>");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlAsync_Table_WithoutHeader_ShouldRenderAllAsTd()
+    {
+        // Arrange
+        var tableData = new List<List<string>>
+        {
+            new() { "A", "B" },
+            new() { "C", "D" }
+        };
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Table,
+            Content = string.Empty,
+            Metadata = new Dictionary<string, object>
+            {
+                ["rows"] = 2,
+                ["columns"] = 2,
+                ["data"] = tableData,
+                ["hasHeader"] = false
+            },
+            Order = 0
+        };
+        var note = CreateNoteWithBlocks(block);
+
+        // Act
+        var html = await _service.GenerateHtmlAsync(note);
+
+        // Assert
+        html.ShouldNotContain("<th>");
+        html.ShouldContain("<td>A</td>");
+        html.ShouldContain("<td>B</td>");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlAsync_Table_ShouldEscapeHtmlInCells()
+    {
+        // Arrange
+        var tableData = new List<List<string>>
+        {
+            new() { "<script>alert('xss')</script>" }
+        };
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Table,
+            Content = string.Empty,
+            Metadata = new Dictionary<string, object>
+            {
+                ["rows"] = 1,
+                ["columns"] = 1,
+                ["data"] = tableData,
+                ["hasHeader"] = false
+            },
+            Order = 0
+        };
+        var note = CreateNoteWithBlocks(block);
+
+        // Act
+        var html = await _service.GenerateHtmlAsync(note);
+
+        // Assert
+        html.ShouldContain("&lt;script&gt;");
+        html.ShouldNotContain("<script>alert");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlAsync_Mermaid_ShouldRenderAsCodeBlock()
+    {
+        // Arrange
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Mermaid,
+            Content = "graph TD\n    A --> B",
+            Metadata = new Dictionary<string, object> { ["isEditMode"] = false },
+            Order = 0
+        };
+        var note = CreateNoteWithBlocks(block);
+
+        // Act
+        var html = await _service.GenerateHtmlAsync(note);
+
+        // Assert
+        html.ShouldContain("<div class=\"mermaid-export\">");
+        html.ShouldContain("<pre><code class=\"language-mermaid\">");
+        html.ShouldContain("graph TD");
+        html.ShouldContain("A --&gt; B");
+    }
+
+    [Fact]
+    public async Task GenerateHtmlAsync_Mermaid_ShouldEscapeHtml()
+    {
+        // Arrange
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Mermaid,
+            Content = "graph TD\n    A[\"<b>Node</b>\"] --> B",
+            Metadata = new Dictionary<string, object> { ["isEditMode"] = true },
+            Order = 0
+        };
+        var note = CreateNoteWithBlocks(block);
+
+        // Act
+        var html = await _service.GenerateHtmlAsync(note);
+
+        // Assert
+        html.ShouldContain("&lt;b&gt;Node&lt;/b&gt;");
+        html.ShouldNotContain("<b>Node</b>");
+    }
+
     #endregion
 
     #region HTML Escaping Tests

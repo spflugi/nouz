@@ -26,6 +26,9 @@ public partial class TableBlock
     [Parameter]
     public EventCallback<(int RowIndex, int ColIndex, string Content)> OnCellChanged { get; set; }
 
+    [Parameter]
+    public EventCallback OnInsertBlockAfter { get; set; }
+
     private List<List<string>> TableData => GetTableData();
     private int Columns => GetColumns();
     private bool HasHeader => GetHasHeader();
@@ -128,5 +131,10 @@ public partial class TableBlock
     {
         var content = e.Value?.ToString() ?? string.Empty;
         await OnCellChanged.InvokeAsync((rowIndex, colIndex, content));
+    }
+
+    private async Task HandleInsertBlockAfter()
+    {
+        await OnInsertBlockAfter.InvokeAsync();
     }
 }

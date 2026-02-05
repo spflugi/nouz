@@ -294,4 +294,14 @@ public partial class NoteCard
     {
         await OnTableCellChanged.InvokeAsync((Note.Id, blockId, args.RowIndex, args.ColIndex, args.Content));
     }
+
+    private async Task HandleTableInsertBlockAfter(Guid blockId)
+    {
+        await OnBlockAdd.InvokeAsync((Note.Id, blockId, BlockType.Paragraph, null));
+    }
+
+    private async Task HandleMermaidInsertBlockAfter(Guid blockId)
+    {
+        await OnBlockAdd.InvokeAsync((Note.Id, blockId, BlockType.Paragraph, null));
+    }
 }

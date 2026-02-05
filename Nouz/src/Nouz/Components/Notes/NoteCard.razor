@@ -78,7 +78,9 @@
                            OnTableRemoveRow="@(rowIndex => HandleTableRemoveRow(block.Id, rowIndex))"
                            OnTableAddColumn="@(() => HandleTableAddColumn(block.Id))"
                            OnTableRemoveColumn="@(colIndex => HandleTableRemoveColumn(block.Id, colIndex))"
-                           OnTableCellChanged="@(args => HandleTableCellChanged(block.Id, args))" />
+                           OnTableCellChanged="@(args => HandleTableCellChanged(block.Id, args))"
+                           OnTableInsertBlockAfter="@(() => HandleTableInsertBlockAfter(block.Id))"
+                           OnMermaidInsertBlockAfter="@(() => HandleMermaidInsertBlockAfter(block.Id))" />
         }
     </div>
 </div>
