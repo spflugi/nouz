@@ -1,5 +1,5 @@
+using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Embeddings;
 using Nouz.Application.Embeddings;
 using Nouz.Application.Preferences;
 using IPreferences = Nouz.Application.Preferences.IPreferences;
@@ -38,14 +38,12 @@ internal sealed class EmbeddingService : IEmbeddingService
 
         var kernel = CreateKernel(apiKey, await GetEmbeddingModel().ConfigureAwait(false));
 
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only
-        var embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-        var embeddings = await embeddingService.GenerateEmbeddingsAsync(
+        var embeddingGenerator = kernel.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
+        var embeddings = await embeddingGenerator.GenerateAsync(
             [text],
             cancellationToken: cancellationToken).ConfigureAwait(false);
-#pragma warning restore SKEXP0001
 
-        return embeddings[0].ToArray();
+        return embeddings[0].Vector.ToArray();
     }
 
     private static Kernel CreateKernel(string apiKey, string modelId)
@@ -53,7 +51,7 @@ internal sealed class EmbeddingService : IEmbeddingService
         var builder = Kernel.CreateBuilder();
 
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only
-        builder.AddOpenAITextEmbeddingGeneration(
+        builder.AddOpenAIEmbeddingGenerator(
             modelId: modelId,
             apiKey: apiKey);
 #pragma warning restore SKEXP0010
