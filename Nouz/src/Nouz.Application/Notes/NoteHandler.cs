@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Text;
-using Converto;
 using Mediator;
 using Nouz.Application.Attachments;
 using Nouz.Application.Embeddings;
@@ -185,15 +184,14 @@ internal sealed class NoteHandler :
                 new()
                 {
                     Id = Guid.NewGuid(),
-                    Type = BlockType.H2,
-                    Content = "Agenda",
+                    Type = BlockType.Divider,
                     Order = 3
                 },
                 new()
                 {
                     Id = Guid.NewGuid(),
-                    Type = BlockType.AgendaItem,
-                    Content = "...",
+                    Type = BlockType.H2,
+                    Content = "Agenda",
                     Order = 4
                 },
                 new()
@@ -206,30 +204,37 @@ internal sealed class NoteHandler :
                 new()
                 {
                     Id = Guid.NewGuid(),
+                    Type = BlockType.AgendaItem,
+                    Content = "...",
+                    Order = 6
+                },
+                new()
+                {
+                    Id = Guid.NewGuid(),
                     Type = BlockType.H2,
                     Content = "Notes",
-                    Order = 6
+                    Order = 7
                 },
                 new()
                 {
                     Id = Guid.NewGuid(),
                     Type = BlockType.ListItem,
                     Content = "...",
-                    Order = 7
+                    Order = 8
                 },
                 new()
                 {
                     Id = Guid.NewGuid(),
                     Type = BlockType.H2,
                     Content = "Action items",
-                    Order = 8
+                    Order = 9
                 },
                 new()
                 {
                     Id = Guid.NewGuid(),
                     Type = BlockType.TodoItem,
                     Content = "...",
-                    Order = 9
+                    Order = 10
                 },
             ];
 
