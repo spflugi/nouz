@@ -34,15 +34,15 @@ public class DbMigratorTests : IDisposable
         var migrator = new DbMigrator(factory);
 
         // Act
-        await migrator.ApplyMigrations();
+        await migrator.ApplyMigrations(TestContext.Current.CancellationToken);
 
         // Assert
         await using var context = factory.CreateDbContext();
         var tableExists = await context.Database
-            .ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Notebooks'");
+            .ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Notebooks'", [], TestContext.Current.CancellationToken);
 
         // If the table exists, we can query from it without errors
-        var notebooks = await context.Notebooks.ToListAsync();
+        var notebooks = await context.Notebooks.ToListAsync(TestContext.Current.CancellationToken);
         notebooks.ShouldBeEmpty();
     }
 
@@ -54,12 +54,12 @@ public class DbMigratorTests : IDisposable
         var migrator = new DbMigrator(factory);
 
         // Act - Apply migrations twice
-        await migrator.ApplyMigrations();
-        await migrator.ApplyMigrations();
+        await migrator.ApplyMigrations(TestContext.Current.CancellationToken);
+        await migrator.ApplyMigrations(TestContext.Current.CancellationToken);
 
         // Assert - Should not throw and database should still work
         await using var context = factory.CreateDbContext();
-        var notebooks = await context.Notebooks.ToListAsync();
+        var notebooks = await context.Notebooks.ToListAsync(TestContext.Current.CancellationToken);
         notebooks.ShouldBeEmpty();
     }
 

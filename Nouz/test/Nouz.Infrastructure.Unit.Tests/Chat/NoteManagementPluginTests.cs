@@ -31,7 +31,7 @@ public class NoteManagementPluginTests
             .Returns(new List<Notebook>());
 
         // Act
-        var result = await _plugin.ListNotebooksAsync();
+        var result = await _plugin.ListNotebooksAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("No notebooks found");
@@ -50,7 +50,7 @@ public class NoteManagementPluginTests
             .Returns(notebooks);
 
         // Act
-        var result = await _plugin.ListNotebooksAsync();
+        var result = await _plugin.ListNotebooksAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Work");
@@ -66,7 +66,7 @@ public class NoteManagementPluginTests
     public async Task CreateNotebookAsync_WhenNameIsEmpty_ShouldReturnError()
     {
         // Act
-        var result = await _plugin.CreateNotebookAsync("");
+        var result = await _plugin.CreateNotebookAsync("", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Error");
@@ -82,7 +82,7 @@ public class NoteManagementPluginTests
             .Returns(notebook);
 
         // Act
-        var result = await _plugin.CreateNotebookAsync("Test");
+        var result = await _plugin.CreateNotebookAsync("Test", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully created");
@@ -97,7 +97,7 @@ public class NoteManagementPluginTests
             .Throws(new Exception("Database error"));
 
         // Act
-        var result = await _plugin.CreateNotebookAsync("Test");
+        var result = await _plugin.CreateNotebookAsync("Test", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Error");
@@ -117,7 +117,7 @@ public class NoteManagementPluginTests
             .Returns(new List<Note>());
 
         // Act
-        var result = await _plugin.GetNotebookNotesAsync(notebookId);
+        var result = await _plugin.GetNotebookNotesAsync(notebookId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("no notes");
@@ -137,7 +137,7 @@ public class NoteManagementPluginTests
             .Returns(notes);
 
         // Act
-        var result = await _plugin.GetNotebookNotesAsync(notebookId);
+        var result = await _plugin.GetNotebookNotesAsync(notebookId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("2 note(s)");
@@ -157,7 +157,7 @@ public class NoteManagementPluginTests
             .Returns(note);
 
         // Act
-        var result = await _plugin.CreateNoteAsync(notebookId, "[{\"type\":\"h1\",\"content\":\"Test Title\"}]");
+        var result = await _plugin.CreateNoteAsync(notebookId, "[{\"type\":\"h1\",\"content\":\"Test Title\"}]", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully created");
@@ -167,7 +167,7 @@ public class NoteManagementPluginTests
     public async Task CreateNoteAsync_WhenInvalidJson_ShouldReturnError()
     {
         // Act
-        var result = await _plugin.CreateNoteAsync(Guid.NewGuid(), "invalid json");
+        var result = await _plugin.CreateNoteAsync(Guid.NewGuid(), "invalid json", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Error");
@@ -178,7 +178,7 @@ public class NoteManagementPluginTests
     public async Task CreateNoteAsync_WhenEmptyBlocks_ShouldReturnError()
     {
         // Act
-        var result = await _plugin.CreateNoteAsync(Guid.NewGuid(), "[]");
+        var result = await _plugin.CreateNoteAsync(Guid.NewGuid(), "[]", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Error");
@@ -197,7 +197,7 @@ public class NoteManagementPluginTests
         var jsonWithTrailingText = "[{\"type\":\"h1\",\"content\":\"Test Title\"}] I have created the note for you.";
 
         // Act
-        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithTrailingText);
+        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithTrailingText, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully created");
@@ -215,7 +215,7 @@ public class NoteManagementPluginTests
         var jsonWithLeadingText = "Here is the JSON: [{\"type\":\"h1\",\"content\":\"Test Title\"}]";
 
         // Act
-        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithLeadingText);
+        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithLeadingText, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully created");
@@ -233,7 +233,7 @@ public class NoteManagementPluginTests
         var jsonWithNestedBrackets = "[{\"type\":\"h1\",\"content\":\"Test [with brackets]\"}] Done!";
 
         // Act
-        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithNestedBrackets);
+        var result = await _plugin.CreateNoteAsync(notebookId, jsonWithNestedBrackets, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully created");
@@ -253,7 +253,7 @@ public class NoteManagementPluginTests
             .Returns(note);
 
         // Act
-        var result = await _plugin.GetNoteContentAsync(noteId);
+        var result = await _plugin.GetNoteContentAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Test Content");
@@ -269,7 +269,7 @@ public class NoteManagementPluginTests
             .Returns((Note?)null);
 
         // Act
-        var result = await _plugin.GetNoteContentAsync(noteId);
+        var result = await _plugin.GetNoteContentAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("not found");
@@ -289,7 +289,7 @@ public class NoteManagementPluginTests
             .Returns(note);
 
         // Act
-        var result = await _plugin.EditNoteAsync(noteId, "[{\"type\":\"paragraph\",\"content\":\"Updated\"}]");
+        var result = await _plugin.EditNoteAsync(noteId, "[{\"type\":\"paragraph\",\"content\":\"Updated\"}]", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully updated");
@@ -304,7 +304,7 @@ public class NoteManagementPluginTests
             .Throws(new InvalidOperationException($"Note with ID {noteId} not found."));
 
         // Act
-        var result = await _plugin.EditNoteAsync(noteId, "[{\"type\":\"paragraph\",\"content\":\"Test\"}]");
+        var result = await _plugin.EditNoteAsync(noteId, "[{\"type\":\"paragraph\",\"content\":\"Test\"}]", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("not found");
@@ -314,7 +314,7 @@ public class NoteManagementPluginTests
     public async Task EditNoteAsync_WhenInvalidJson_ShouldReturnError()
     {
         // Act
-        var result = await _plugin.EditNoteAsync(Guid.NewGuid(), "invalid json");
+        var result = await _plugin.EditNoteAsync(Guid.NewGuid(), "invalid json", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Error");
@@ -335,7 +335,7 @@ public class NoteManagementPluginTests
             .Returns(note);
 
         // Act
-        var result = await _plugin.DeleteNoteAsync(noteId);
+        var result = await _plugin.DeleteNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Successfully deleted");
@@ -350,7 +350,7 @@ public class NoteManagementPluginTests
             .Returns((Note?)null);
 
         // Act
-        var result = await _plugin.DeleteNoteAsync(noteId);
+        var result = await _plugin.DeleteNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("not found");
@@ -364,7 +364,7 @@ public class NoteManagementPluginTests
     public async Task SearchNotesAsync_WhenQueryIsEmpty_ShouldReturnError()
     {
         // Act
-        var result = await _plugin.SearchNotesAsync("");
+        var result = await _plugin.SearchNotesAsync("", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("Error");
@@ -379,7 +379,7 @@ public class NoteManagementPluginTests
             .Returns(new List<Note>());
 
         // Act
-        var result = await _plugin.SearchNotesAsync("test");
+        var result = await _plugin.SearchNotesAsync("test", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("No notes found");
@@ -398,7 +398,7 @@ public class NoteManagementPluginTests
             .Returns(notes);
 
         // Act
-        var result = await _plugin.SearchNotesAsync("project");
+        var result = await _plugin.SearchNotesAsync("project", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldContain("2 relevant note(s)");

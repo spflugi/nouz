@@ -57,7 +57,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "New caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "New caption"), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -76,7 +76,7 @@ public class NoteHandlerImageTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -91,7 +91,7 @@ public class NoteHandlerImageTests
         SetupEmptyState();
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Note '{NoteId}' not found in state", noteId);
@@ -109,7 +109,7 @@ public class NoteHandlerImageTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Image block '{BlockId}' not found in note '{NoteId}'", blockId, noteId);
@@ -133,7 +133,7 @@ public class NoteHandlerImageTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Image block '{BlockId}' not found in note '{NoteId}'", blockId, noteId);
@@ -165,7 +165,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "New caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "New caption"), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -198,7 +198,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageCaption(noteId, blockId, "Caption"), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -223,7 +223,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 75), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 75), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -245,7 +245,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 5), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 5), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -267,7 +267,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 150), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 150), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -286,7 +286,7 @@ public class NoteHandlerImageTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Update(Arg.Any<Note>(), Arg.Any<CancellationToken>());
@@ -301,7 +301,7 @@ public class NoteHandlerImageTests
         SetupEmptyState();
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Note '{NoteId}' not found in state", noteId);
@@ -320,7 +320,7 @@ public class NoteHandlerImageTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Image block '{BlockId}' not found in note '{NoteId}'", blockId, noteId);
@@ -344,7 +344,7 @@ public class NoteHandlerImageTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 50), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Image block '{BlockId}' not found in note '{NoteId}'", blockId, noteId);
@@ -376,7 +376,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 60), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, 60), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -403,7 +403,7 @@ public class NoteHandlerImageTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, width), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateImageWidth(noteId, blockId, width), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();

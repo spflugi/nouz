@@ -39,7 +39,7 @@ public class ChatHandlerTests
             .Returns("Hello, user!");
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessage(content), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessage(content), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -56,7 +56,7 @@ public class ChatHandlerTests
             .Returns("Response");
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessage("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessage("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<ChatActions.AssistantTypingStarted>());
@@ -76,7 +76,7 @@ public class ChatHandlerTests
             .Returns("Response");
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessage("New message"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessage("New message"), TestContext.Current.CancellationToken);
 
         // Assert
         await _chatService.Received(1).GetResponseAsync(
@@ -94,7 +94,7 @@ public class ChatHandlerTests
             .Returns(response);
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessage("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessage("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -112,7 +112,7 @@ public class ChatHandlerTests
             .Throws(exception);
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessage("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessage("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to send chat message");
@@ -131,7 +131,7 @@ public class ChatHandlerTests
             .Throws(new Exception("Error"));
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessage("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessage("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -152,7 +152,7 @@ public class ChatHandlerTests
             .Returns(CreateAsyncEnumerable("Hello"));
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessageStreaming(content), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessageStreaming(content), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -169,7 +169,7 @@ public class ChatHandlerTests
             .Returns(CreateAsyncEnumerable("chunk1", "chunk2"));
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<ChatActions.StreamingMessageStarted>());
@@ -184,7 +184,7 @@ public class ChatHandlerTests
             .Returns(CreateAsyncEnumerable(chunks));
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(3).Dispatch(Arg.Any<ChatActions.StreamingChunkReceived>());
@@ -198,7 +198,7 @@ public class ChatHandlerTests
             .Returns(CreateAsyncEnumerable("chunk"));
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<ChatActions.StreamingMessageCompleted>());
@@ -213,7 +213,7 @@ public class ChatHandlerTests
             .Throws(exception);
 
         // Act
-        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to send streaming chat message");
@@ -232,7 +232,7 @@ public class ChatHandlerTests
     public async Task ClearChat_ShouldDispatchChatCleared()
     {
         // Act
-        await _handler.Handle(new ChatCommands.ClearChat(), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.ClearChat(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<ChatActions.ChatCleared>());
@@ -242,7 +242,7 @@ public class ChatHandlerTests
     public async Task ClearChat_ShouldLogDebugMessage()
     {
         // Act
-        await _handler.Handle(new ChatCommands.ClearChat(), CancellationToken.None);
+        await _handler.Handle(new ChatCommands.ClearChat(), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogDebug("Clearing chat history");

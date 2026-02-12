@@ -56,7 +56,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Mermaid), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Mermaid), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -80,7 +80,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Mermaid), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Mermaid), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -98,7 +98,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Mermaid), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Mermaid), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -128,7 +128,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ToggleMermaidEditMode(noteId, block.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ToggleMermaidEditMode(noteId, block.Id), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -155,7 +155,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ToggleMermaidEditMode(noteId, block.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ToggleMermaidEditMode(noteId, block.Id), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -173,7 +173,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.ToggleMermaidEditMode(noteId, block.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ToggleMermaidEditMode(noteId, block.Id), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -197,7 +197,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Table), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Table), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -225,7 +225,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Table), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Table), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -243,7 +243,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Table), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Table), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -272,7 +272,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.AddTableRow(noteId, block.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddTableRow(noteId, block.Id), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -301,7 +301,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.AddTableRow(noteId, block.Id, 0), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddTableRow(noteId, block.Id, 0), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -335,7 +335,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.RemoveTableRow(noteId, block.Id, 1), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.RemoveTableRow(noteId, block.Id, 1), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -361,7 +361,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.RemoveTableRow(noteId, block.Id, 0), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.RemoveTableRow(noteId, block.Id, 0), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -383,7 +383,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.RemoveTableRow(noteId, block.Id, 10), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.RemoveTableRow(noteId, block.Id, 10), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -412,7 +412,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.AddTableColumn(noteId, block.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddTableColumn(noteId, block.Id), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -441,7 +441,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.AddTableColumn(noteId, block.Id, 0), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddTableColumn(noteId, block.Id, 0), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -472,7 +472,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.RemoveTableColumn(noteId, block.Id, 1), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.RemoveTableColumn(noteId, block.Id, 1), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -498,7 +498,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.RemoveTableColumn(noteId, block.Id, 0), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.RemoveTableColumn(noteId, block.Id, 0), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -527,7 +527,7 @@ public class NoteHandlerMermaidTableTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateTableCell(noteId, block.Id, 1, 1, "Updated"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateTableCell(noteId, block.Id, 1, 1, "Updated"), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -549,7 +549,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateTableCell(noteId, block.Id, 5, 0, "Value"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateTableCell(noteId, block.Id, 5, 0, "Value"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -570,7 +570,7 @@ public class NoteHandlerMermaidTableTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateTableCell(noteId, block.Id, 0, 5, "Value"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateTableCell(noteId, block.Id, 0, 5, "Value"), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());

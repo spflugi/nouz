@@ -31,7 +31,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppStart_ShouldApplyMigrations()
     {
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _dbMigrator.Received(1).ApplyMigrations(Arg.Any<CancellationToken>());
@@ -41,7 +41,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppStart_ShouldLoadNotebooks()
     {
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -57,7 +57,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.SelectedNotebookId, null).Returns(notebookId.ToString());
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -71,7 +71,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.SelectedNotebookId, null).Returns((string?)null);
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NotebookActions.NotebookSelected>());
@@ -84,7 +84,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.SelectedNotebookId, null).Returns("not-a-guid");
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NotebookActions.NotebookSelected>());
@@ -98,7 +98,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.OpenAiApiKey, null).Returns(apiKey);
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -112,7 +112,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.OpenAiApiKey, null).Returns((string?)null);
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<SettingsActions.OpenAiApiKeyUpdated>());
@@ -126,7 +126,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.OpenAiApiAdminKey, null).Returns(adminKey);
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -141,7 +141,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.OpenAiChatModel, null).Returns(chatModel);
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -156,7 +156,7 @@ public class LifecycleHandlerTests
         _preferences.Get(PreferenceKeys.OpenAiEmbeddingModel, null).Returns(embeddingModel);
 
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -167,7 +167,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppStart_ShouldLogInformation()
     {
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppStart(), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation("Initialize app lifecycle on start.");
@@ -181,7 +181,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppResume_ShouldLogInformation()
     {
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppResume(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppResume(), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation("Initialize app lifecycle on resume.");
@@ -191,7 +191,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppResume_ShouldReturnUnit()
     {
         // Act
-        var result = await _handler.Handle(new LifecycleCommands.PerformOnAppResume(), CancellationToken.None);
+        var result = await _handler.Handle(new LifecycleCommands.PerformOnAppResume(), TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(Mediator.Unit.Value);
@@ -205,7 +205,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppSleep_ShouldLogInformation()
     {
         // Act
-        await _handler.Handle(new LifecycleCommands.PerformOnAppSleep(), CancellationToken.None);
+        await _handler.Handle(new LifecycleCommands.PerformOnAppSleep(), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation("App going to sleep.");
@@ -215,7 +215,7 @@ public class LifecycleHandlerTests
     public async Task PerformOnAppSleep_ShouldReturnUnit()
     {
         // Act
-        var result = await _handler.Handle(new LifecycleCommands.PerformOnAppSleep(), CancellationToken.None);
+        var result = await _handler.Handle(new LifecycleCommands.PerformOnAppSleep(), TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(Mediator.Unit.Value);

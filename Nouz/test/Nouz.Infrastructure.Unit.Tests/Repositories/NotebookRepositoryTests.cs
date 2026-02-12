@@ -42,7 +42,7 @@ public class NotebookRepositoryTests : IDisposable
     public async Task GetAll_WhenNoNotebooks_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _repository.GetAll();
+        var result = await _repository.GetAll(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -58,7 +58,7 @@ public class NotebookRepositoryTests : IDisposable
         await AddNotebook(notebook2);
 
         // Act
-        var result = await _repository.GetAll();
+        var result = await _repository.GetAll(TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -90,7 +90,7 @@ public class NotebookRepositoryTests : IDisposable
         await AddNotebook(notebook);
 
         // Act
-        var result = await _repository.GetById(notebook.Id);
+        var result = await _repository.GetById(notebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -102,7 +102,7 @@ public class NotebookRepositoryTests : IDisposable
     public async Task GetById_WhenNotebookDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _repository.GetById(Guid.NewGuid());
+        var result = await _repository.GetById(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -119,10 +119,10 @@ public class NotebookRepositoryTests : IDisposable
         var notebook = CreateNotebook("New Notebook");
 
         // Act
-        await _repository.Add(notebook);
+        await _repository.Add(notebook, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(notebook.Id);
+        var result = await _repository.GetById(notebook.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Name.ShouldBe("New Notebook");
     }
@@ -143,10 +143,10 @@ public class NotebookRepositoryTests : IDisposable
         };
 
         // Act
-        await _repository.Add(notebook);
+        await _repository.Add(notebook, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(notebook.Id);
+        var result = await _repository.GetById(notebook.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Name.ShouldBe("Full Notebook");
         result.CreatedAt.ShouldBe(createdAt);
@@ -167,10 +167,10 @@ public class NotebookRepositoryTests : IDisposable
         var updatedNotebook = notebook with { Name = "Updated Name" };
 
         // Act
-        await _repository.Update(updatedNotebook);
+        await _repository.Update(updatedNotebook, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(notebook.Id);
+        var result = await _repository.GetById(notebook.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Name.ShouldBe("Updated Name");
     }
@@ -193,10 +193,10 @@ public class NotebookRepositoryTests : IDisposable
         var updatedNotebook = notebook with { LastModifiedAt = newTime };
 
         // Act
-        await _repository.Update(updatedNotebook);
+        await _repository.Update(updatedNotebook, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(notebook.Id);
+        var result = await _repository.GetById(notebook.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.LastModifiedAt.ShouldBe(newTime);
         result.CreatedAt.ShouldBe(originalTime);
@@ -214,10 +214,10 @@ public class NotebookRepositoryTests : IDisposable
         await AddNotebook(notebook);
 
         // Act
-        await _repository.Delete(notebook.Id);
+        await _repository.Delete(notebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(notebook.Id);
+        var result = await _repository.GetById(notebook.Id, TestContext.Current.CancellationToken);
         result.ShouldBeNull();
     }
 
@@ -225,7 +225,7 @@ public class NotebookRepositoryTests : IDisposable
     public async Task Delete_WhenNotebookDoesNotExist_ShouldNotThrow()
     {
         // Act & Assert
-        await Should.NotThrowAsync(() => _repository.Delete(Guid.NewGuid()));
+        await Should.NotThrowAsync(() => _repository.Delete(Guid.NewGuid(), TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -238,10 +238,10 @@ public class NotebookRepositoryTests : IDisposable
         await AddNotebook(notebook2);
 
         // Act
-        await _repository.Delete(notebook1.Id);
+        await _repository.Delete(notebook1.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetAll();
+        var result = await _repository.GetAll(TestContext.Current.CancellationToken);
         result.Count.ShouldBe(1);
         result[0].Id.ShouldBe(notebook2.Id);
     }
@@ -258,9 +258,9 @@ public class NotebookRepositoryTests : IDisposable
 
     private async Task AddNotebook(Notebook notebook)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.Notebooks.Add(notebook);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
     private sealed class TestDbContextFactory : IDbContextFactory<NouzDbContext>

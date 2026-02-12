@@ -41,7 +41,7 @@ public class NotebookHandlerTests
         _notebookRepository.GetAll(Arg.Any<CancellationToken>()).Returns(notebooks);
 
         // Act
-        await _handler.Handle(new NotebookCommands.LoadAllNotebooks(), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.LoadAllNotebooks(), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).GetAll(Arg.Any<CancellationToken>());
@@ -58,7 +58,7 @@ public class NotebookHandlerTests
         _notebookRepository.GetAll(Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NotebookCommands.LoadAllNotebooks(), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.LoadAllNotebooks(), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to load all notebooks");
@@ -81,7 +81,7 @@ public class NotebookHandlerTests
         const string title = "My New Notebook";
 
         // Act
-        await _handler.Handle(new NotebookCommands.CreateNotebook(title), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.CreateNotebook(title), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).Add(
@@ -100,7 +100,7 @@ public class NotebookHandlerTests
     public async Task CreateNotebook_WhenTitleIsEmpty_ShouldShowWarningNotification()
     {
         // Arrange & Act
-        await _handler.Handle(new NotebookCommands.CreateNotebook(""), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.CreateNotebook(""), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.DidNotReceive().Add(Arg.Any<Notebook>(), Arg.Any<CancellationToken>());
@@ -118,7 +118,7 @@ public class NotebookHandlerTests
         const string titleWithSpaces = "  My Notebook  ";
 
         // Act
-        await _handler.Handle(new NotebookCommands.CreateNotebook(titleWithSpaces), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.CreateNotebook(titleWithSpaces), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).Add(
@@ -134,7 +134,7 @@ public class NotebookHandlerTests
         var beforeCreate = DateTimeOffset.UtcNow;
 
         // Act
-        await _handler.Handle(new NotebookCommands.CreateNotebook(title), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.CreateNotebook(title), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).Add(
@@ -153,7 +153,7 @@ public class NotebookHandlerTests
         _notebookRepository.Add(Arg.Any<Notebook>(), Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NotebookCommands.CreateNotebook("Test"), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.CreateNotebook("Test"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to create new notebook");
@@ -176,7 +176,7 @@ public class NotebookHandlerTests
         var notebookId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new NotebookCommands.SelectNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.SelectNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -204,7 +204,7 @@ public class NotebookHandlerTests
         _notebookRepository.GetById(notebookId, Arg.Any<CancellationToken>()).Returns(existingNotebook);
 
         // Act
-        await _handler.Handle(new NotebookCommands.RenameNotebook(notebookId, "New Name"), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.RenameNotebook(notebookId, "New Name"), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).Update(
@@ -231,7 +231,7 @@ public class NotebookHandlerTests
         _notebookRepository.GetById(notebookId, Arg.Any<CancellationToken>()).Returns((Notebook?)null);
 
         // Act
-        await _handler.Handle(new NotebookCommands.RenameNotebook(notebookId, "New Name"), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.RenameNotebook(notebookId, "New Name"), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.DidNotReceive().Update(Arg.Any<Notebook>(), Arg.Any<CancellationToken>());
@@ -256,7 +256,7 @@ public class NotebookHandlerTests
         var notebookId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new NotebookCommands.DeleteNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.DeleteNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).Delete(notebookId, Arg.Any<CancellationToken>());
@@ -276,7 +276,7 @@ public class NotebookHandlerTests
         var notebookId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new NotebookCommands.DeleteNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.DeleteNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation("Deleting notebook with id '{NotebookId}'", notebookId);
@@ -292,7 +292,7 @@ public class NotebookHandlerTests
         _notebookRepository.Delete(notebookId, Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NotebookCommands.DeleteNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NotebookCommands.DeleteNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to delete notebook with id '{NotebookId}'", notebookId);

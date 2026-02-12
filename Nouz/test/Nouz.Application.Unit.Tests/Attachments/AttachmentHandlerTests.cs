@@ -40,7 +40,7 @@ public class AttachmentHandlerTests
         _attachmentRepository.GetByNoteIdAsync(noteId, Arg.Any<CancellationToken>()).Returns(attachments);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.LoadAttachments(noteId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.LoadAttachments(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).GetByNoteIdAsync(noteId, Arg.Any<CancellationToken>());
@@ -59,7 +59,7 @@ public class AttachmentHandlerTests
             .Returns(new List<NoteAttachment>());
 
         // Act
-        await _handler.Handle(new AttachmentCommands.LoadAttachments(noteId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.LoadAttachments(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -75,7 +75,7 @@ public class AttachmentHandlerTests
         _attachmentRepository.GetByNoteIdAsync(noteId, Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.LoadAttachments(noteId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.LoadAttachments(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to load attachments for note '{NoteId}'", noteId);
@@ -98,7 +98,7 @@ public class AttachmentHandlerTests
             .Returns(attachment);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).AddAsync(noteId, stream, fileName, Arg.Any<CancellationToken>());
@@ -120,7 +120,7 @@ public class AttachmentHandlerTests
             .Returns(attachment);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -142,7 +142,7 @@ public class AttachmentHandlerTests
             .Throws(new InvalidOperationException("File exceeds maximum size limit"));
 
         // Act
-        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -165,7 +165,7 @@ public class AttachmentHandlerTests
             .Throws(exception);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.AddAttachment(noteId, stream, fileName), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to add attachment '{FileName}' to note '{NoteId}'",
@@ -189,7 +189,7 @@ public class AttachmentHandlerTests
         var attachmentId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new AttachmentCommands.DeleteAttachment(noteId, attachmentId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.DeleteAttachment(noteId, attachmentId), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).DeleteAsync(attachmentId, Arg.Any<CancellationToken>());
@@ -207,7 +207,7 @@ public class AttachmentHandlerTests
         var attachmentId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new AttachmentCommands.DeleteAttachment(noteId, attachmentId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.DeleteAttachment(noteId, attachmentId), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -227,7 +227,7 @@ public class AttachmentHandlerTests
         _attachmentRepository.DeleteAsync(attachmentId, Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.DeleteAttachment(noteId, attachmentId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.DeleteAttachment(noteId, attachmentId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to delete attachment '{AttachmentId}' from note '{NoteId}'",
@@ -252,7 +252,7 @@ public class AttachmentHandlerTests
             .Returns((string?)null);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.OpenAttachment(attachmentId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.OpenAttachment(attachmentId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Attachment '{AttachmentId}' file not found", attachmentId);
@@ -273,7 +273,7 @@ public class AttachmentHandlerTests
             .Returns(string.Empty);
 
         // Act
-        await _handler.Handle(new AttachmentCommands.OpenAttachment(attachmentId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.OpenAttachment(attachmentId), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -293,7 +293,7 @@ public class AttachmentHandlerTests
             .Returns("/non/existent/path/file.pdf");
 
         // Act
-        await _handler.Handle(new AttachmentCommands.OpenAttachment(attachmentId), CancellationToken.None);
+        await _handler.Handle(new AttachmentCommands.OpenAttachment(attachmentId), TestContext.Current.CancellationToken);
 
         // Assert - either it works or throws, both handled gracefully
         // The handler catches exceptions and shows error notification

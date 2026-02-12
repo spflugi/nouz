@@ -53,7 +53,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.Paragraph), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.Paragraph), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -74,7 +74,7 @@ public class NoteHandlerBlockTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.AddBlock(noteId, null, BlockType.H1), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddBlock(noteId, null, BlockType.H1), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -91,7 +91,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.Paragraph), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.Paragraph), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<NoteActions.EditingBlockChanged>());
@@ -105,7 +105,7 @@ public class NoteHandlerBlockTests
         SetupEmptyState();
 
         // Act
-        await _handler.Handle(new NoteCommands.AddBlock(noteId, null, BlockType.Paragraph), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddBlock(noteId, null, BlockType.Paragraph), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Note '{NoteId}' not found in state", noteId);
@@ -122,7 +122,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.Paragraph), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.Paragraph), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Update(Arg.Any<Note>(), Arg.Any<CancellationToken>());
@@ -143,7 +143,7 @@ public class NoteHandlerBlockTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.TodoItem, metadata), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.AddBlock(noteId, existingBlock.Id, BlockType.TodoItem, metadata), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -168,7 +168,7 @@ public class NoteHandlerBlockTests
         var updatedBlock = block with { Content = "Updated" };
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, updatedBlock), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, updatedBlock), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -186,7 +186,7 @@ public class NoteHandlerBlockTests
         var block = CreateBlock(BlockType.Paragraph, "Content");
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, block), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, block), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Note '{NoteId}' not found in state", noteId);
@@ -204,7 +204,7 @@ public class NoteHandlerBlockTests
         var nonExistingBlock = CreateBlock(BlockType.Paragraph, "Non-existing");
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, nonExistingBlock), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, nonExistingBlock), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogWarning("Block '{BlockId}' not found in note '{NoteId}'", nonExistingBlock.Id, noteId);
@@ -234,7 +234,7 @@ public class NoteHandlerBlockTests
             .Returns(Array.Empty<float>());
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, updatedBlock), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, updatedBlock), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Update(Arg.Any<Note>(), Arg.Any<CancellationToken>());
@@ -255,7 +255,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, block1.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, block1.Id), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -274,7 +274,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, block.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, block.Id), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogDebug("Cannot delete the last block in note '{NoteId}'", noteId);
@@ -292,7 +292,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, block2.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, block2.Id), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -317,7 +317,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, imageBlock.Id), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteBlock(noteId, imageBlock.Id), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).DeleteAsync(attachmentId, Arg.Any<CancellationToken>());
@@ -337,7 +337,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.H1), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.H1), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -358,7 +358,7 @@ public class NoteHandlerBlockTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Divider), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Divider), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -377,7 +377,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Divider), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Divider), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -403,7 +403,7 @@ public class NoteHandlerBlockTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
 
         // Act - Move first block to end
-        await _handler.Handle(new NoteCommands.ReorderBlocks(noteId, block1.Id, 2), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ReorderBlocks(noteId, block1.Id, 2), TestContext.Current.CancellationToken);
 
         // Assert
         capturedAction.ShouldNotBeNull();
@@ -423,7 +423,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act - Move to same position
-        await _handler.Handle(new NoteCommands.ReorderBlocks(noteId, block1.Id, 0), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ReorderBlocks(noteId, block1.Id, 0), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.DidNotReceive().Dispatch(Arg.Any<NoteActions.NoteUpdated>());
@@ -440,7 +440,7 @@ public class NoteHandlerBlockTests
         SetupStateWithNote(note);
 
         // Act - Try to move to index beyond bounds
-        await _handler.Handle(new NoteCommands.ReorderBlocks(noteId, block1.Id, 100), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ReorderBlocks(noteId, block1.Id, 100), TestContext.Current.CancellationToken);
 
         // Assert - Should clamp to valid index
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<NoteActions.NoteUpdated>());

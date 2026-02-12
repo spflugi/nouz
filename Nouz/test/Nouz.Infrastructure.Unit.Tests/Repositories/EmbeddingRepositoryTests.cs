@@ -52,10 +52,10 @@ public class EmbeddingRepositoryTests : IDisposable
     {
         // Arrange
         var embedding = new float[] { 0.1f, 0.2f, 0.3f };
-        await _repository.UpsertAsync(_defaultNote.Id, embedding);
+        await _repository.UpsertAsync(_defaultNote.Id, embedding, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id);
+        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -67,7 +67,7 @@ public class EmbeddingRepositoryTests : IDisposable
     public async Task GetByNoteIdAsync_WhenEmbeddingDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _repository.GetByNoteIdAsync(Guid.NewGuid());
+        var result = await _repository.GetByNoteIdAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -84,10 +84,10 @@ public class EmbeddingRepositoryTests : IDisposable
         var embedding = new float[] { 0.5f, 0.6f, 0.7f };
 
         // Act
-        await _repository.UpsertAsync(_defaultNote.Id, embedding);
+        await _repository.UpsertAsync(_defaultNote.Id, embedding, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id);
+        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Embedding.ShouldBe(embedding);
     }
@@ -97,15 +97,15 @@ public class EmbeddingRepositoryTests : IDisposable
     {
         // Arrange
         var initialEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
-        await _repository.UpsertAsync(_defaultNote.Id, initialEmbedding);
+        await _repository.UpsertAsync(_defaultNote.Id, initialEmbedding, TestContext.Current.CancellationToken);
 
         var updatedEmbedding = new float[] { 0.9f, 0.8f, 0.7f };
 
         // Act
-        await _repository.UpsertAsync(_defaultNote.Id, updatedEmbedding);
+        await _repository.UpsertAsync(_defaultNote.Id, updatedEmbedding, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id);
+        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Embedding.ShouldBe(updatedEmbedding);
     }
@@ -118,10 +118,10 @@ public class EmbeddingRepositoryTests : IDisposable
         var beforeInsert = DateTimeOffset.UtcNow;
 
         // Act
-        await _repository.UpsertAsync(_defaultNote.Id, embedding);
+        await _repository.UpsertAsync(_defaultNote.Id, embedding, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id);
+        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.LastUpdatedAt.ShouldBeGreaterThanOrEqualTo(beforeInsert);
     }
@@ -135,13 +135,13 @@ public class EmbeddingRepositoryTests : IDisposable
     {
         // Arrange
         var embedding = new float[] { 0.1f, 0.2f, 0.3f };
-        await _repository.UpsertAsync(_defaultNote.Id, embedding);
+        await _repository.UpsertAsync(_defaultNote.Id, embedding, TestContext.Current.CancellationToken);
 
         // Act
-        await _repository.DeleteAsync(_defaultNote.Id);
+        await _repository.DeleteAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id);
+        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
         result.ShouldBeNull();
     }
 
@@ -149,7 +149,7 @@ public class EmbeddingRepositoryTests : IDisposable
     public async Task DeleteAsync_WhenEmbeddingDoesNotExist_ShouldNotThrow()
     {
         // Act & Assert
-        await Should.NotThrowAsync(() => _repository.DeleteAsync(Guid.NewGuid()));
+        await Should.NotThrowAsync(() => _repository.DeleteAsync(Guid.NewGuid(), TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -163,7 +163,7 @@ public class EmbeddingRepositoryTests : IDisposable
         var queryEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
 
         // Act
-        var result = await _repository.FindSimilarAsync(queryEmbedding, 5);
+        var result = await _repository.FindSimilarAsync(queryEmbedding, 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -181,13 +181,13 @@ public class EmbeddingRepositoryTests : IDisposable
         // Insert embeddings
         var embedding1 = new float[] { 1.0f, 0.0f, 0.0f };
         var embedding2 = new float[] { 0.9f, 0.1f, 0.0f };
-        await _repository.UpsertAsync(note1.Id, embedding1);
-        await _repository.UpsertAsync(note2.Id, embedding2);
+        await _repository.UpsertAsync(note1.Id, embedding1, TestContext.Current.CancellationToken);
+        await _repository.UpsertAsync(note2.Id, embedding2, TestContext.Current.CancellationToken);
 
         var queryEmbedding = new float[] { 1.0f, 0.0f, 0.0f };
 
         // Act
-        var result = await _repository.FindSimilarAsync(queryEmbedding, 5);
+        var result = await _repository.FindSimilarAsync(queryEmbedding, 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -207,13 +207,13 @@ public class EmbeddingRepositoryTests : IDisposable
         // Note1 is more similar to query
         var embedding1 = new float[] { 1.0f, 0.0f, 0.0f };
         var embedding2 = new float[] { 0.5f, 0.5f, 0.0f };
-        await _repository.UpsertAsync(note1.Id, embedding1);
-        await _repository.UpsertAsync(note2.Id, embedding2);
+        await _repository.UpsertAsync(note1.Id, embedding1, TestContext.Current.CancellationToken);
+        await _repository.UpsertAsync(note2.Id, embedding2, TestContext.Current.CancellationToken);
 
         var queryEmbedding = new float[] { 1.0f, 0.0f, 0.0f };
 
         // Act
-        var result = await _repository.FindSimilarAsync(queryEmbedding, 5);
+        var result = await _repository.FindSimilarAsync(queryEmbedding, 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -232,14 +232,14 @@ public class EmbeddingRepositoryTests : IDisposable
         await AddNote(note2);
         await AddNote(note3);
 
-        await _repository.UpsertAsync(note1.Id, new float[] { 1.0f, 0.0f, 0.0f });
-        await _repository.UpsertAsync(note2.Id, new float[] { 0.9f, 0.1f, 0.0f });
-        await _repository.UpsertAsync(note3.Id, new float[] { 0.8f, 0.2f, 0.0f });
+        await _repository.UpsertAsync(note1.Id, new float[] { 1.0f, 0.0f, 0.0f }, TestContext.Current.CancellationToken);
+        await _repository.UpsertAsync(note2.Id, new float[] { 0.9f, 0.1f, 0.0f }, TestContext.Current.CancellationToken);
+        await _repository.UpsertAsync(note3.Id, new float[] { 0.8f, 0.2f, 0.0f }, TestContext.Current.CancellationToken);
 
         var queryEmbedding = new float[] { 1.0f, 0.0f, 0.0f };
 
         // Act
-        var result = await _repository.FindSimilarAsync(queryEmbedding, 2);
+        var result = await _repository.FindSimilarAsync(queryEmbedding, 2, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -253,12 +253,12 @@ public class EmbeddingRepositoryTests : IDisposable
         await AddNote(note1);
 
         var embedding = new float[] { 0.5f, 0.5f, 0.5f, 0.5f };
-        await _repository.UpsertAsync(note1.Id, embedding);
+        await _repository.UpsertAsync(note1.Id, embedding, TestContext.Current.CancellationToken);
 
         var queryEmbedding = new float[] { 0.5f, 0.5f, 0.5f, 0.5f };
 
         // Act
-        var result = await _repository.FindSimilarAsync(queryEmbedding, 5);
+        var result = await _repository.FindSimilarAsync(queryEmbedding, 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(1);
@@ -273,16 +273,16 @@ public class EmbeddingRepositoryTests : IDisposable
     {
         // Arrange
         var embedding = new float[] { 0.1f, 0.2f, 0.3f };
-        await _repository.UpsertAsync(_defaultNote.Id, embedding);
+        await _repository.UpsertAsync(_defaultNote.Id, embedding, TestContext.Current.CancellationToken);
 
         // Act - Delete the note
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var note = await context.Notes.FindAsync(_defaultNote.Id);
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
+        var note = await context.Notes.FindAsync([_defaultNote.Id], cancellationToken: TestContext.Current.CancellationToken);
         context.Notes.Remove(note!);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Assert - Embedding should be deleted too
-        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id);
+        var result = await _repository.GetByNoteIdAsync(_defaultNote.Id, TestContext.Current.CancellationToken);
         result.ShouldBeNull();
     }
 
@@ -306,9 +306,9 @@ public class EmbeddingRepositoryTests : IDisposable
 
     private async Task AddNote(Note note)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.Notes.Add(note);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
     private sealed class TestDbContextFactory : IDbContextFactory<NouzDbContext>
