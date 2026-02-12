@@ -21,9 +21,10 @@ internal sealed class NoteContextService : INoteContextService
         _noteRepository = noteRepository;
     }
 
-    public async Task<IReadOnlyList<Note>> GetRelevantNotesAsync(
+    public async Task<IReadOnlyList<NoteContextResult>> GetRelevantNotesAsync(
         string query,
         int topN,
+        float minSimilarity = 0f,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(query) || topN <= 0)
@@ -49,17 +50,45 @@ internal sealed class NoteContextService : INoteContextService
             return [];
         }
 
-        // Fetch the actual notes
-        var notes = new List<Note>(similarNotes.Count);
-        foreach (var (noteId, _) in similarNotes)
+        // Fetch the actual notes, filtering by minimum similarity
+        var results = new List<NoteContextResult>(similarNotes.Count);
+        foreach (var (noteId, similarity) in similarNotes)
         {
+            if (similarity < minSimilarity)
+            {
+                continue;
+            }
+
             var note = await _noteRepository.GetById(noteId, cancellationToken).ConfigureAwait(false);
             if (note is not null)
             {
-                notes.Add(note);
+                var title = GetNoteTitle(note) ?? "(Untitled)";
+                results.Add(new NoteContextResult(note, title, similarity));
             }
         }
 
-        return notes;
+        return results;
+    }
+
+    private static string? GetNoteTitle(Note note)
+    {
+        // Try to find an H1 block first
+        var h1Block = note.Blocks.FirstOrDefault(b => b.Type == BlockType.H1);
+        if (h1Block is not null && !string.IsNullOrWhiteSpace(h1Block.Content))
+        {
+            return h1Block.Content.Length > 50 ? h1Block.Content[..50] + "..." : h1Block.Content;
+        }
+
+        // Fall back to first non-empty block
+        var firstBlock = note.Blocks
+            .OrderBy(b => b.Order)
+            .FirstOrDefault(b => !string.IsNullOrWhiteSpace(b.Content));
+
+        if (firstBlock is not null)
+        {
+            return firstBlock.Content.Length > 50 ? firstBlock.Content[..50] + "..." : firstBlock.Content;
+        }
+
+        return null;
     }
 }

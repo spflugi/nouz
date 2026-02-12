@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Nouz.Application.Chat;
+using Nouz.Application.Settings;
 using Shouldly;
 
 namespace Nouz.Application.Unit.Tests.Chat;
@@ -227,6 +228,39 @@ public class ChatReducersTests
         // Assert
         newState.Chat.Messages.Count.ShouldBe(2);
         newState.Chat.Messages[0].ShouldBe(existingMessage);
+    }
+
+    [Fact]
+    public void StreamingMessageStarted_ShouldSetContextNoteTitles()
+    {
+        // Arrange
+        var state = new TestState();
+        var messageId = Guid.NewGuid();
+        var titles = ImmutableList.Create("Note 1", "Note 2");
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.StreamingMessageStarted(messageId, titles));
+
+        // Assert
+        newState.Chat.Messages.Count.ShouldBe(1);
+        newState.Chat.Messages[0].ContextNoteTitles.ShouldNotBeNull();
+        newState.Chat.Messages[0].ContextNoteTitles!.Count.ShouldBe(2);
+        newState.Chat.Messages[0].ContextNoteTitles![0].ShouldBe("Note 1");
+        newState.Chat.Messages[0].ContextNoteTitles![1].ShouldBe("Note 2");
+    }
+
+    [Fact]
+    public void StreamingMessageStarted_WhenNoContextNotes_ShouldHaveNullContextNoteTitles()
+    {
+        // Arrange
+        var state = new TestState();
+        var messageId = Guid.NewGuid();
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.StreamingMessageStarted(messageId));
+
+        // Assert
+        newState.Chat.Messages[0].ContextNoteTitles.ShouldBeNull();
     }
 
     #endregion

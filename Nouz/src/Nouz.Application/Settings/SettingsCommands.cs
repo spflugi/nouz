@@ -30,6 +30,11 @@ public static class SettingsCommands
     public sealed record SaveTopNRelevantNotes(int Count) : ICommand;
 
     /// <summary>
+    /// Save the minimum similarity threshold for note context retrieval.
+    /// </summary>
+    public sealed record SaveMinSimilarityThreshold(float Threshold) : ICommand;
+
+    /// <summary>
     /// Load OpenAI usage data for the current billing period.
     /// </summary>
     public sealed record LoadOpenAiUsage : ICommand;

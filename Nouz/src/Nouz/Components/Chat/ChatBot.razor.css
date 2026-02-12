@@ -260,3 +260,44 @@
     .clear-button ::deep .rzi {
         font-size: 18px;
     }
+
+.note-context-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: var(--space-1);
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    user-select: none;
+}
+
+    .note-context-chip:hover {
+        background-color: var(--bg-hover);
+        color: var(--text-secondary);
+    }
+
+.note-context-expanded {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+    padding: 6px 8px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+}
+
+.note-context-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding: 2px 0;
+}

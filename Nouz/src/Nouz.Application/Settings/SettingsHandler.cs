@@ -13,6 +13,7 @@ internal sealed class SettingsHandler :
     ICommandHandler<SettingsCommands.SaveOpenAiChatModel>,
     ICommandHandler<SettingsCommands.SaveOpenAiEmbeddingModel>,
     ICommandHandler<SettingsCommands.SaveTopNRelevantNotes>,
+    ICommandHandler<SettingsCommands.SaveMinSimilarityThreshold>,
     ICommandHandler<SettingsCommands.LoadOpenAiUsage>,
     ICommandHandler<SettingsCommands.SaveThemeMode>
 {
@@ -120,6 +121,20 @@ internal sealed class SettingsHandler :
         await _actionDispatcher.Dispatch(new SettingsActions.TopNRelevantNotesUpdated(count)).ConfigureAwait(false);
 
         _logger.LogInformation("TopNRelevantNotes saved: {Count}", count);
+
+        return Unit.Value;
+    }
+
+    public async ValueTask<Unit> Handle(SettingsCommands.SaveMinSimilarityThreshold command, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Saving MinSimilarityThreshold setting: {Threshold}", command.Threshold);
+
+        var threshold = Math.Clamp(command.Threshold, 0f, 1f);
+        await _preferences.Set(PreferenceKeys.MinSimilarityThreshold, threshold.ToString("F2")).ConfigureAwait(false);
+
+        await _actionDispatcher.Dispatch(new SettingsActions.MinSimilarityThresholdUpdated(threshold)).ConfigureAwait(false);
+
+        _logger.LogInformation("MinSimilarityThreshold saved: {Threshold}", threshold);
 
         return Unit.Value;
     }

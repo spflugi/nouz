@@ -95,6 +95,20 @@ internal sealed class LifecycleHandler :
             await _actionDispatcher.Dispatch(new SettingsActions.OpenAiEmbeddingModelUpdated(embeddingModel)).ConfigureAwait(false);
         }
 
+        var topNValue = await _preferences.Get(PreferenceKeys.TopNRelevantNotes).ConfigureAwait(false);
+
+        if (topNValue is not null && int.TryParse(topNValue, out var topN))
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.TopNRelevantNotesUpdated(topN)).ConfigureAwait(false);
+        }
+
+        var thresholdValue = await _preferences.Get(PreferenceKeys.MinSimilarityThreshold).ConfigureAwait(false);
+
+        if (thresholdValue is not null && float.TryParse(thresholdValue, System.Globalization.CultureInfo.InvariantCulture, out var threshold))
+        {
+            await _actionDispatcher.Dispatch(new SettingsActions.MinSimilarityThresholdUpdated(threshold)).ConfigureAwait(false);
+        }
+
         var themeModeValue = await _preferences.Get(PreferenceKeys.ThemeMode).ConfigureAwait(false);
 
         if (themeModeValue is not null && Enum.TryParse<ThemeMode>(themeModeValue, out var themeMode))

@@ -473,15 +473,16 @@ public class NoteManagementServiceTests
     {
         // Arrange
         var query = "test query";
-        var notes = new List<Note> { CreateNote(Guid.NewGuid()) };
-        _noteContextService.GetRelevantNotesAsync(query, 10, Arg.Any<CancellationToken>()).Returns(notes);
+        var note = CreateNote(Guid.NewGuid());
+        var contextResults = new List<NoteContextResult> { new(note, "Test", 0.9f) };
+        _noteContextService.GetRelevantNotesAsync(query, 10, Arg.Any<float>(), Arg.Any<CancellationToken>()).Returns(contextResults);
 
         // Act
         var result = await _service.SearchNotesAsync(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(1);
-        await _noteContextService.Received(1).GetRelevantNotesAsync(query, 10, Arg.Any<CancellationToken>());
+        await _noteContextService.Received(1).GetRelevantNotesAsync(query, 10, Arg.Any<float>(), Arg.Any<CancellationToken>());
     }
 
     #endregion

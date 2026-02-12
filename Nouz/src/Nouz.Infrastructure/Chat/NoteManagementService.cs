@@ -200,7 +200,8 @@ internal sealed class NoteManagementService : INoteManagementService
 
         // Use semantic search via the existing note context service
         const int maxResults = 10;
-        return await _noteContextService.GetRelevantNotesAsync(query, maxResults, cancellationToken).ConfigureAwait(false);
+        var results = await _noteContextService.GetRelevantNotesAsync(query, maxResults, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return results.Select(r => r.Note).ToList();
     }
 
     private static ImmutableList<Block> ConvertToBlocks(IReadOnlyList<BlockDefinition> definitions)

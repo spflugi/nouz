@@ -31,6 +31,11 @@ public static class SettingsActions
     public sealed record TopNRelevantNotesUpdated(int Count) : IAction;
 
     /// <summary>
+    /// Triggered when the minimum similarity threshold is updated.
+    /// </summary>
+    public sealed record MinSimilarityThresholdUpdated(float Threshold) : IAction;
+
+    /// <summary>
     /// Triggered when usage data loading starts.
     /// </summary>
     public sealed record OpenAiUsageLoadingStarted : IAction;

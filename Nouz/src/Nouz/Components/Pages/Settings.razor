@@ -138,6 +138,26 @@
                 </div>
             </div>
 
+            <div class="setting-row">
+                <div class="setting-label">
+                    <span class="setting-title">Similarity Threshold</span>
+                    <span class="setting-description">Minimum similarity score for notes to be included as context (0.0-1.0)</span>
+                </div>
+                <div class="setting-input">
+                    <input type="number"
+                           class="text-input number-input"
+                           min="0"
+                           max="1"
+                           step="0.05"
+                           value="@_minSimilarityThreshold.ToString("F2")"
+                           @oninput="HandleMinSimilarityInput" />
+                    @if (_isSavingMinSimilarity)
+                    {
+                        <span class="saving-indicator">Saving...</span>
+                    }
+                </div>
+            </div>
+
             @if (!string.IsNullOrWhiteSpace(_openAiAdminKey))
             {
                 <div class="usage-section">

@@ -24,7 +24,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenQueryIsEmpty_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("", 5, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("", 5, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -35,7 +35,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenQueryIsWhitespace_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("   ", 5, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("   ", 5, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -45,7 +45,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenTopNIsZero_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 0, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("test query", 0, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -55,7 +55,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenTopNIsNegative_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", -1, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("test query", -1, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -69,7 +69,7 @@ public class NoteContextServiceTests
             .Returns([]);
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -86,21 +86,21 @@ public class NoteContextServiceTests
             .Returns(new List<(Guid, float)>());
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task GetRelevantNotesAsync_WhenSimilarNotesFound_ShouldReturnNotes()
+    public async Task GetRelevantNotesAsync_WhenSimilarNotesFound_ShouldReturnNoteContextResults()
     {
         // Arrange
         var queryEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
         var noteId1 = Guid.NewGuid();
         var noteId2 = Guid.NewGuid();
-        var note1 = CreateNote(noteId1);
-        var note2 = CreateNote(noteId2);
+        var note1 = CreateNoteWithTitle(noteId1, "First Note");
+        var note2 = CreateNoteWithTitle(noteId2, "Second Note");
 
         _embeddingService.GenerateEmbeddingAsync("test query", Arg.Any<CancellationToken>())
             .Returns(queryEmbedding);
@@ -110,12 +110,16 @@ public class NoteContextServiceTests
         _noteRepository.GetById(noteId2, Arg.Any<CancellationToken>()).Returns(note2);
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
-        result.ShouldContain(n => n.Id == noteId1);
-        result.ShouldContain(n => n.Id == noteId2);
+        result[0].Note.Id.ShouldBe(noteId1);
+        result[0].Title.ShouldBe("First Note");
+        result[0].Similarity.ShouldBe(0.9f);
+        result[1].Note.Id.ShouldBe(noteId2);
+        result[1].Title.ShouldBe("Second Note");
+        result[1].Similarity.ShouldBe(0.8f);
     }
 
     [Fact]
@@ -125,7 +129,7 @@ public class NoteContextServiceTests
         var queryEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
         var noteId1 = Guid.NewGuid();
         var noteId2 = Guid.NewGuid();
-        var note1 = CreateNote(noteId1);
+        var note1 = CreateNoteWithTitle(noteId1, "Found Note");
 
         _embeddingService.GenerateEmbeddingAsync("test query", Arg.Any<CancellationToken>())
             .Returns(queryEmbedding);
@@ -135,11 +139,11 @@ public class NoteContextServiceTests
         _noteRepository.GetById(noteId2, Arg.Any<CancellationToken>()).Returns((Note?)null);
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(1);
-        result[0].Id.ShouldBe(noteId1);
+        result[0].Note.Id.ShouldBe(noteId1);
     }
 
     [Fact]
@@ -153,7 +157,7 @@ public class NoteContextServiceTests
             .Returns(new List<(Guid, float)>());
 
         // Act
-        await _service.GetRelevantNotesAsync("test query", 3, TestContext.Current.CancellationToken);
+        await _service.GetRelevantNotesAsync("test query", 3, 0f, TestContext.Current.CancellationToken);
 
         // Assert
         await _embeddingRepository.Received(1).FindSimilarAsync(queryEmbedding, 3, Arg.Any<CancellationToken>());
@@ -170,7 +174,81 @@ public class NoteContextServiceTests
 
         // Act & Assert
         await Should.ThrowAsync<OperationCanceledException>(() =>
-            _service.GetRelevantNotesAsync("test", 5, cts.Token));
+            _service.GetRelevantNotesAsync("test", 5, 0f, cts.Token));
+    }
+
+    [Fact]
+    public async Task GetRelevantNotesAsync_WhenBelowMinSimilarity_ShouldFilterOut()
+    {
+        // Arrange
+        var queryEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
+        var noteId1 = Guid.NewGuid();
+        var noteId2 = Guid.NewGuid();
+        var note1 = CreateNoteWithTitle(noteId1, "Relevant Note");
+        var note2 = CreateNoteWithTitle(noteId2, "Irrelevant Note");
+
+        _embeddingService.GenerateEmbeddingAsync("test query", Arg.Any<CancellationToken>())
+            .Returns(queryEmbedding);
+        _embeddingRepository.FindSimilarAsync(queryEmbedding, 5, Arg.Any<CancellationToken>())
+            .Returns(new List<(Guid, float)> { (noteId1, 0.9f), (noteId2, 0.2f) });
+        _noteRepository.GetById(noteId1, Arg.Any<CancellationToken>()).Returns(note1);
+        _noteRepository.GetById(noteId2, Arg.Any<CancellationToken>()).Returns(note2);
+
+        // Act
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0.3f, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Count.ShouldBe(1);
+        result[0].Note.Id.ShouldBe(noteId1);
+        result[0].Similarity.ShouldBe(0.9f);
+    }
+
+    [Fact]
+    public async Task GetRelevantNotesAsync_WhenAboveMinSimilarity_ShouldIncludeWithCorrectTitles()
+    {
+        // Arrange
+        var queryEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
+        var noteId1 = Guid.NewGuid();
+        var noteId2 = Guid.NewGuid();
+        var note1 = CreateNoteWithTitle(noteId1, "Meeting Notes");
+        var note2 = CreateNoteWithTitle(noteId2, "Project Plan");
+
+        _embeddingService.GenerateEmbeddingAsync("test query", Arg.Any<CancellationToken>())
+            .Returns(queryEmbedding);
+        _embeddingRepository.FindSimilarAsync(queryEmbedding, 5, Arg.Any<CancellationToken>())
+            .Returns(new List<(Guid, float)> { (noteId1, 0.8f), (noteId2, 0.5f) });
+        _noteRepository.GetById(noteId1, Arg.Any<CancellationToken>()).Returns(note1);
+        _noteRepository.GetById(noteId2, Arg.Any<CancellationToken>()).Returns(note2);
+
+        // Act
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0.3f, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Count.ShouldBe(2);
+        result[0].Title.ShouldBe("Meeting Notes");
+        result[1].Title.ShouldBe("Project Plan");
+    }
+
+    [Fact]
+    public async Task GetRelevantNotesAsync_WhenNoteHasNoBlocks_ShouldReturnUntitledTitle()
+    {
+        // Arrange
+        var queryEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
+        var noteId = Guid.NewGuid();
+        var note = CreateNote(noteId);
+
+        _embeddingService.GenerateEmbeddingAsync("test query", Arg.Any<CancellationToken>())
+            .Returns(queryEmbedding);
+        _embeddingRepository.FindSimilarAsync(queryEmbedding, 5, Arg.Any<CancellationToken>())
+            .Returns(new List<(Guid, float)> { (noteId, 0.9f) });
+        _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns(note);
+
+        // Act
+        var result = await _service.GetRelevantNotesAsync("test query", 5, 0f, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.Count.ShouldBe(1);
+        result[0].Title.ShouldBe("(Untitled)");
     }
 
     private static Note CreateNote(Guid id) => new()
@@ -179,5 +257,23 @@ public class NoteContextServiceTests
         NotebookId = Guid.NewGuid(),
         CreatedAt = DateTimeOffset.UtcNow,
         LastModifiedAt = DateTimeOffset.UtcNow
+    };
+
+    private static Note CreateNoteWithTitle(Guid id, string title) => new()
+    {
+        Id = id,
+        NotebookId = Guid.NewGuid(),
+        CreatedAt = DateTimeOffset.UtcNow,
+        LastModifiedAt = DateTimeOffset.UtcNow,
+        Blocks =
+        [
+            new Block
+            {
+                Id = Guid.NewGuid(),
+                Type = BlockType.H1,
+                Content = title,
+                Order = 0
+            }
+        ]
     };
 }

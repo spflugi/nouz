@@ -30,7 +30,8 @@ public static class ChatReducers
                     action.MessageId,
                     string.Empty,
                     ChatMessageRole.Assistant,
-                    DateTimeOffset.UtcNow);
+                    DateTimeOffset.UtcNow,
+                    action.ContextNoteTitles);
                 return state with
                 {
                     Messages = state.Messages.Add(emptyMessage),
