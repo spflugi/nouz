@@ -6,7 +6,6 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Nouz.Application.Chat;
 using Nouz.Application.Preferences;
-using Nouz.Application.Store;
 using Nouz.Domain.Entities;
 using Nouz.Infrastructure.Chat.Plugins;
 using IPreferences = Nouz.Application.Preferences.IPreferences;
@@ -35,7 +34,7 @@ internal sealed class ChatService : IChatService
         - quote: Block quote
         - decision: Decision block (for recording decisions)
         - warning: Warning/alert block
-        
+
         IMPORTANT RULES:
         1. When the user asks to create a note but doesn't specify which notebook, first use ListNotebooks to show available options and ask which one to use.
         2. For EDIT operations: First use GetNoteContent to read the current note, describe the proposed changes clearly to the user, and ask "Should I apply these changes?" Only call EditNote after the user confirms (e.g., "yes", "go ahead", "do it").
@@ -44,19 +43,13 @@ internal sealed class ChatService : IChatService
         """;
 
     private readonly IPreferences _preferences;
-    private readonly INoteContextService _noteContextService;
-    private readonly IStateProvider _stateProvider;
     private readonly NoteManagementPlugin _noteManagementPlugin;
 
     public ChatService(
         IPreferences preferences,
-        INoteContextService noteContextService,
-        IStateProvider stateProvider,
         NoteManagementPlugin noteManagementPlugin)
     {
         _preferences = preferences;
-        _noteContextService = noteContextService;
-        _stateProvider = stateProvider;
         _noteManagementPlugin = noteManagementPlugin;
     }
 
@@ -69,6 +62,7 @@ internal sealed class ChatService : IChatService
     public async Task<string> GetResponseAsync(
         string message,
         ImmutableList<ChatMessage> conversationHistory,
+        IReadOnlyList<Note>? relevantNotes = null,
         CancellationToken cancellationToken = default)
     {
         var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
@@ -80,7 +74,7 @@ internal sealed class ChatService : IChatService
 
         var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false));
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
-        var chatHistory = BuildChatHistory(conversationHistory, message);
+        var chatHistory = BuildChatHistory(conversationHistory, message, relevantNotes);
 
         // Enable automatic function calling
         var executionSettings = new OpenAIPromptExecutionSettings
@@ -100,6 +94,7 @@ internal sealed class ChatService : IChatService
     public async IAsyncEnumerable<string> GetStreamingResponseAsync(
         string message,
         ImmutableList<ChatMessage> conversationHistory,
+        IReadOnlyList<Note>? relevantNotes = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
@@ -108,15 +103,6 @@ internal sealed class ChatService : IChatService
         {
             yield return "Please configure your OpenAI API key in Settings to use the assistant.";
             yield break;
-        }
-
-        // Get relevant notes for RAG context
-        var topN = _stateProvider.State.Settings.TopNRelevantNotes;
-        IReadOnlyList<Note> relevantNotes = [];
-        if (topN > 0)
-        {
-            relevantNotes = await _noteContextService.GetRelevantNotesAsync(message, topN, cancellationToken)
-                .ConfigureAwait(false);
         }
 
         var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false));

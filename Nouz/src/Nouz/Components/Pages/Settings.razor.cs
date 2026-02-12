@@ -17,18 +17,21 @@ public partial class Settings
     private string _chatModel = string.Empty;
     private string _embeddingModel = string.Empty;
     private int _topNRelevantNotes;
+    private float _minSimilarityThreshold;
 
     private bool _isSavingApiKey;
     private bool _isSavingApiAdminKey;
     private bool _isSavingChatModel;
     private bool _isSavingEmbeddingModel;
     private bool _isSavingTopN;
+    private bool _isSavingMinSimilarity;
 
     private CancellationTokenSource? _apiKeyCts;
     private CancellationTokenSource? _apiAdminKeyCts;
     private CancellationTokenSource? _chatModelCts;
     private CancellationTokenSource? _embeddingModelCts;
     private CancellationTokenSource? _topNCts;
+    private CancellationTokenSource? _minSimilarityCts;
 
     // Usage section state
     private bool _isUsageExpanded;
@@ -52,6 +55,7 @@ public partial class Settings
                 _chatModel = settings.OpenAiChatModel;
                 _embeddingModel = settings.OpenAiEmbeddingModel;
                 _topNRelevantNotes = settings.TopNRelevantNotes;
+                _minSimilarityThreshold = settings.MinSimilarityThreshold;
                 _isLoadingUsage = settings.IsLoadingUsage;
                 _usage = settings.OpenAiUsage;
                 StateHasChanged();
@@ -70,6 +74,8 @@ public partial class Settings
         _embeddingModelCts?.Dispose();
         _topNCts?.Cancel();
         _topNCts?.Dispose();
+        _minSimilarityCts?.Cancel();
+        _minSimilarityCts?.Dispose();
         base.Dispose();
     }
 
@@ -143,6 +149,21 @@ public partial class Settings
             () => _isSavingTopN = true,
             () => _isSavingTopN = false,
             async () => await Mediator.Send(new SettingsCommands.SaveTopNRelevantNotes(_topNRelevantNotes)));
+    }
+
+    private async Task HandleMinSimilarityInput(ChangeEventArgs e)
+    {
+        if (float.TryParse(e.Value?.ToString(), System.Globalization.CultureInfo.InvariantCulture, out var value))
+        {
+            _minSimilarityThreshold = Math.Clamp(value, 0f, 1f);
+        }
+
+        _minSimilarityCts = ResetCancellationToken(_minSimilarityCts);
+        await DebounceSaveAsync(
+            _minSimilarityCts.Token,
+            () => _isSavingMinSimilarity = true,
+            () => _isSavingMinSimilarity = false,
+            async () => await Mediator.Send(new SettingsCommands.SaveMinSimilarityThreshold(_minSimilarityThreshold)));
     }
 
     private static CancellationTokenSource ResetCancellationToken(CancellationTokenSource? cts)

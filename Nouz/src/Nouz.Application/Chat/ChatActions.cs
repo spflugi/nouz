@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Nouz.Application.Store;
 
 namespace Nouz.Application.Chat;
@@ -30,7 +31,7 @@ public static class ChatActions
     /// <summary>
     /// Triggered when a streaming message starts.
     /// </summary>
-    public sealed record StreamingMessageStarted(Guid MessageId) : IAction;
+    public sealed record StreamingMessageStarted(Guid MessageId, ImmutableList<string>? ContextNoteTitles = null) : IAction;
 
     /// <summary>
     /// Triggered when a streaming chunk is received.

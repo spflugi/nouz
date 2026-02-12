@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Nouz.Application.Chat;
 
 /// <summary>
@@ -7,7 +9,8 @@ public sealed record ChatMessage(
     Guid Id,
     string Content,
     ChatMessageRole Role,
-    DateTimeOffset Timestamp);
+    DateTimeOffset Timestamp,
+    ImmutableList<string>? ContextNoteTitles = null);
 
 /// <summary>
 /// The role of a chat message sender.

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Mediator;
 using Nouz.Application.Logger;
 using Nouz.Application.Notifications;
@@ -12,6 +13,7 @@ internal sealed class ChatHandler :
 {
     private readonly IMediator _mediator;
     private readonly IChatService _chatService;
+    private readonly INoteContextService _noteContextService;
     private readonly IStateProvider _stateProvider;
     private readonly IActionDispatcher _actionDispatcher;
     private readonly ILoggerAdapter<ChatHandler> _logger;
@@ -19,12 +21,14 @@ internal sealed class ChatHandler :
     public ChatHandler(
         IMediator mediator,
         IChatService chatService,
+        INoteContextService noteContextService,
         IStateProvider stateProvider,
         IActionDispatcher actionDispatcher,
         ILoggerAdapter<ChatHandler> logger)
     {
         _mediator = mediator;
         _chatService = chatService;
+        _noteContextService = noteContextService;
         _stateProvider = stateProvider;
         _actionDispatcher = actionDispatcher;
         _logger = logger;
@@ -51,18 +55,31 @@ internal sealed class ChatHandler :
             // Get conversation history for context
             var conversationHistory = _stateProvider.State.Chat.Messages;
 
+            // Retrieve relevant notes
+            var settings = _stateProvider.State.Settings;
+            var contextResults = await GetRelevantNotesAsync(command.Content, settings.TopNRelevantNotes, settings.MinSimilarityThreshold, cancellationToken).ConfigureAwait(false);
+            var relevantNotes = contextResults.Count > 0
+                ? contextResults.Select(r => r.Note).ToList()
+                : null;
+
             // Get response from chat service
             var response = await _chatService.GetResponseAsync(
                 command.Content,
                 conversationHistory,
+                relevantNotes,
                 cancellationToken).ConfigureAwait(false);
 
             // Create and add assistant message to state
+            var contextNoteTitles = contextResults.Count > 0
+                ? contextResults.Select(r => r.Title).ToImmutableList()
+                : null;
+
             var assistantMessage = new ChatMessage(
                 Guid.NewGuid(),
                 response,
                 ChatMessageRole.Assistant,
-                DateTimeOffset.UtcNow);
+                DateTimeOffset.UtcNow,
+                contextNoteTitles);
 
             await _actionDispatcher.Dispatch(new ChatActions.AssistantMessageReceived(assistantMessage)).ConfigureAwait(false);
 
@@ -110,13 +127,24 @@ internal sealed class ChatHandler :
             // Get conversation history for context
             var conversationHistory = _stateProvider.State.Chat.Messages;
 
+            // Retrieve relevant notes
+            var settings = _stateProvider.State.Settings;
+            var contextResults = await GetRelevantNotesAsync(command.Content, settings.TopNRelevantNotes, settings.MinSimilarityThreshold, cancellationToken).ConfigureAwait(false);
+            var relevantNotes = contextResults.Count > 0
+                ? contextResults.Select(r => r.Note).ToList()
+                : null;
+            var contextNoteTitles = contextResults.Count > 0
+                ? contextResults.Select(r => r.Title).ToImmutableList()
+                : null;
+
             // Start streaming response
             var assistantMessageId = Guid.NewGuid();
-            await _actionDispatcher.Dispatch(new ChatActions.StreamingMessageStarted(assistantMessageId)).ConfigureAwait(false);
+            await _actionDispatcher.Dispatch(new ChatActions.StreamingMessageStarted(assistantMessageId, contextNoteTitles)).ConfigureAwait(false);
 
             await foreach (var chunk in _chatService.GetStreamingResponseAsync(
                 command.Content,
                 conversationHistory,
+                relevantNotes,
                 cancellationToken).ConfigureAwait(false))
             {
                 await _actionDispatcher.Dispatch(
@@ -157,5 +185,15 @@ internal sealed class ChatHandler :
         _logger.LogDebug("Chat history cleared");
 
         return Unit.Value;
+    }
+
+    private async Task<IReadOnlyList<NoteContextResult>> GetRelevantNotesAsync(string message, int topN, float minSimilarity, CancellationToken cancellationToken)
+    {
+        if (topN <= 0)
+        {
+            return [];
+        }
+
+        return await _noteContextService.GetRelevantNotesAsync(message, topN, minSimilarity, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -17,6 +17,8 @@ public static class SettingsReducers
                 state with { OpenAiEmbeddingModel = action.Model })
             .On<SettingsActions.TopNRelevantNotesUpdated>((state, action) =>
                 state with { TopNRelevantNotes = action.Count })
+            .On<SettingsActions.MinSimilarityThresholdUpdated>((state, action) =>
+                state with { MinSimilarityThreshold = action.Threshold })
             .On<SettingsActions.OpenAiUsageLoadingStarted>((state, _) =>
                 state with { IsLoadingUsage = true })
             .On<SettingsActions.OpenAiUsageLoaded>((state, action) =>

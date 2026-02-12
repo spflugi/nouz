@@ -40,6 +40,26 @@
                             <div class="message-text assistant-message">
                                 <MarkdownRenderer Content="@message.Content" />
                             </div>
+                            @if (message.ContextNoteTitles is { Count: > 0 })
+                            {
+                                <div class="note-context-chip" @onclick="() => ToggleNoteContext(message.Id)">
+                                    <RadzenIcon Icon="description" Style="font-size: 13px;" />
+                                    <span>@message.ContextNoteTitles.Count note@(message.ContextNoteTitles.Count != 1 ? "s" : "") referenced</span>
+                                    <RadzenIcon Icon="@(_expandedNoteContextIds.Contains(message.Id) ? "expand_less" : "expand_more")" Style="font-size: 14px;" />
+                                </div>
+                                @if (_expandedNoteContextIds.Contains(message.Id))
+                                {
+                                    <div class="note-context-expanded">
+                                        @foreach (var title in message.ContextNoteTitles)
+                                        {
+                                            <div class="note-context-item">
+                                                <RadzenIcon Icon="article" Style="font-size: 12px;" />
+                                                <span>@title</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
                         }
                     </div>
                 </div>

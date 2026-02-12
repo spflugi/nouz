@@ -5,6 +5,7 @@ using Nouz.Application.Chat;
 using Nouz.Application.Logger;
 using Nouz.Application.Notifications;
 using Nouz.Application.Store;
+using Nouz.Domain.Entities;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Shouldly;
@@ -15,6 +16,7 @@ public class ChatHandlerTests
 {
     private readonly IMediator _mediator = Substitute.For<IMediator>();
     private readonly IChatService _chatService = Substitute.For<IChatService>();
+    private readonly INoteContextService _noteContextService = Substitute.For<INoteContextService>();
     private readonly IStateProvider _stateProvider = Substitute.For<IStateProvider>();
     private readonly IActionDispatcher _actionDispatcher = Substitute.For<IActionDispatcher>();
     private readonly ILoggerAdapter<ChatHandler> _logger = Substitute.For<ILoggerAdapter<ChatHandler>>();
@@ -22,10 +24,14 @@ public class ChatHandlerTests
 
     public ChatHandlerTests()
     {
-        _handler = new ChatHandler(_mediator, _chatService, _stateProvider, _actionDispatcher, _logger);
+        _handler = new ChatHandler(_mediator, _chatService, _noteContextService, _stateProvider, _actionDispatcher, _logger);
 
         // Default state setup
         _stateProvider.State.Returns(new RootState());
+
+        // Default: no relevant notes
+        _noteContextService.GetRelevantNotesAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<float>(), Arg.Any<CancellationToken>())
+            .Returns([]);
     }
 
     #region SendMessage Tests
@@ -35,7 +41,7 @@ public class ChatHandlerTests
     {
         // Arrange
         var content = "Hello, assistant!";
-        _chatService.GetResponseAsync(content, Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetResponseAsync(content, Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns("Hello, user!");
 
         // Act
@@ -52,7 +58,7 @@ public class ChatHandlerTests
     public async Task SendMessage_ShouldDispatchTypingStarted()
     {
         // Arrange
-        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns("Response");
 
         // Act
@@ -72,7 +78,7 @@ public class ChatHandlerTests
             Chat = new ChatState { Messages = ImmutableList.Create(existingMessage) }
         };
         _stateProvider.State.Returns(state);
-        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns("Response");
 
         // Act
@@ -82,6 +88,7 @@ public class ChatHandlerTests
         await _chatService.Received(1).GetResponseAsync(
             "New message",
             Arg.Is<ImmutableList<ChatMessage>>(h => h.Count == 1),
+            Arg.Any<IReadOnlyList<Note>?>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -90,7 +97,7 @@ public class ChatHandlerTests
     {
         // Arrange
         var response = "This is the assistant response";
-        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns(response);
 
         // Act
@@ -108,7 +115,7 @@ public class ChatHandlerTests
     {
         // Arrange
         var exception = new Exception("API Error");
-        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Throws(exception);
 
         // Act
@@ -127,7 +134,7 @@ public class ChatHandlerTests
     public async Task SendMessage_WhenChatServiceThrows_ShouldDispatchErrorMessage()
     {
         // Arrange
-        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Throws(new Exception("Error"));
 
         // Act
@@ -139,6 +146,55 @@ public class ChatHandlerTests
                 a.Message.Content.Contains("error")));
     }
 
+    [Fact]
+    public async Task SendMessage_ShouldCallNoteContextService()
+    {
+        // Arrange
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
+            .Returns("Response");
+
+        // Act
+        await _handler.Handle(new ChatCommands.SendMessage("Hello"), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _noteContextService.Received(1).GetRelevantNotesAsync(
+            "Hello",
+            3,
+            0.3f,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SendMessage_WhenNotesReturned_ShouldIncludeContextNoteTitles()
+    {
+        // Arrange
+        var note = new Note
+        {
+            Id = Guid.NewGuid(),
+            NotebookId = Guid.NewGuid(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastModifiedAt = DateTimeOffset.UtcNow
+        };
+        var contextResults = new List<NoteContextResult>
+        {
+            new(note, "My Note", 0.9f)
+        };
+        _noteContextService.GetRelevantNotesAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<float>(), Arg.Any<CancellationToken>())
+            .Returns(contextResults);
+        _chatService.GetResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
+            .Returns("Response");
+
+        // Act
+        await _handler.Handle(new ChatCommands.SendMessage("Hello"), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _actionDispatcher.Received(1).Dispatch(
+            Arg.Is<ChatActions.AssistantMessageReceived>(a =>
+                a.Message.ContextNoteTitles != null &&
+                a.Message.ContextNoteTitles.Count == 1 &&
+                a.Message.ContextNoteTitles[0] == "My Note"));
+    }
+
     #endregion
 
     #region SendMessageStreaming Tests
@@ -148,7 +204,7 @@ public class ChatHandlerTests
     {
         // Arrange
         var content = "Hello, assistant!";
-        _chatService.GetStreamingResponseAsync(content, Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetStreamingResponseAsync(content, Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns(CreateAsyncEnumerable("Hello"));
 
         // Act
@@ -165,7 +221,7 @@ public class ChatHandlerTests
     public async Task SendMessageStreaming_ShouldDispatchStreamingMessageStarted()
     {
         // Arrange
-        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns(CreateAsyncEnumerable("chunk1", "chunk2"));
 
         // Act
@@ -180,7 +236,7 @@ public class ChatHandlerTests
     {
         // Arrange
         var chunks = new[] { "Hello", " ", "World" };
-        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns(CreateAsyncEnumerable(chunks));
 
         // Act
@@ -194,7 +250,7 @@ public class ChatHandlerTests
     public async Task SendMessageStreaming_ShouldDispatchStreamingMessageCompleted()
     {
         // Arrange
-        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Returns(CreateAsyncEnumerable("chunk"));
 
         // Act
@@ -209,7 +265,7 @@ public class ChatHandlerTests
     {
         // Arrange
         var exception = new Exception("Streaming error");
-        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<CancellationToken>())
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
             .Throws(exception);
 
         // Act
@@ -221,6 +277,86 @@ public class ChatHandlerTests
             Arg.Is<NotificationCommands.ShowNotification>(n =>
                 n.Title == "Error" &&
                 n.Severity == NotificationSeverity.Error),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SendMessageStreaming_ShouldCallNoteContextService()
+    {
+        // Arrange
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
+            .Returns(CreateAsyncEnumerable("chunk"));
+
+        // Act
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _noteContextService.Received(1).GetRelevantNotesAsync(
+            "Hello",
+            3,
+            0.3f,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SendMessageStreaming_WhenNotesReturned_ShouldPassContextNoteTitlesToStreamingStarted()
+    {
+        // Arrange
+        var note = new Note
+        {
+            Id = Guid.NewGuid(),
+            NotebookId = Guid.NewGuid(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastModifiedAt = DateTimeOffset.UtcNow
+        };
+        var contextResults = new List<NoteContextResult>
+        {
+            new(note, "Test Note", 0.8f)
+        };
+        _noteContextService.GetRelevantNotesAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<float>(), Arg.Any<CancellationToken>())
+            .Returns(contextResults);
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
+            .Returns(CreateAsyncEnumerable("chunk"));
+
+        // Act
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _actionDispatcher.Received(1).Dispatch(
+            Arg.Is<ChatActions.StreamingMessageStarted>(a =>
+                a.ContextNoteTitles != null &&
+                a.ContextNoteTitles.Count == 1 &&
+                a.ContextNoteTitles[0] == "Test Note"));
+    }
+
+    [Fact]
+    public async Task SendMessageStreaming_WhenNotesReturned_ShouldPassRelevantNotesToChatService()
+    {
+        // Arrange
+        var note = new Note
+        {
+            Id = Guid.NewGuid(),
+            NotebookId = Guid.NewGuid(),
+            CreatedAt = DateTimeOffset.UtcNow,
+            LastModifiedAt = DateTimeOffset.UtcNow
+        };
+        var contextResults = new List<NoteContextResult>
+        {
+            new(note, "Test Note", 0.8f)
+        };
+        _noteContextService.GetRelevantNotesAsync(Arg.Any<string>(), Arg.Any<int>(), Arg.Any<float>(), Arg.Any<CancellationToken>())
+            .Returns(contextResults);
+        _chatService.GetStreamingResponseAsync(Arg.Any<string>(), Arg.Any<ImmutableList<ChatMessage>>(), Arg.Any<IReadOnlyList<Note>?>(), Arg.Any<CancellationToken>())
+            .Returns(CreateAsyncEnumerable("chunk"));
+
+        // Act
+        await _handler.Handle(new ChatCommands.SendMessageStreaming("Hello"), TestContext.Current.CancellationToken);
+
+        // Assert
+        _chatService.Received(1).GetStreamingResponseAsync(
+            "Hello",
+            Arg.Any<ImmutableList<ChatMessage>>(),
+            Arg.Is<IReadOnlyList<Note>?>(notes => notes != null && notes.Count == 1 && notes[0].Id == note.Id),
             Arg.Any<CancellationToken>());
     }
 

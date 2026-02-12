@@ -11,6 +11,7 @@ public sealed record SettingsState
     public string OpenAiChatModel { get; init; } = "gpt-4o-mini";
     public string OpenAiEmbeddingModel { get; init; } = "text-embedding-3-small";
     public int TopNRelevantNotes { get; init; } = 3;
+    public float MinSimilarityThreshold { get; init; } = 0.3f;
 
     /// <summary>
     /// OpenAI usage data for the current billing period.

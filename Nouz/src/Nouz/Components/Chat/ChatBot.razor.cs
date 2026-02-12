@@ -10,6 +10,7 @@ namespace Nouz.Components.Chat;
 public partial class ChatBot
 {
     private readonly List<ChatMessage> _messages = [];
+    private readonly HashSet<Guid> _expandedNoteContextIds = [];
     private ElementReference _messagesContainer;
     private string _inputText = string.Empty;
     private bool _isTyping;
@@ -85,6 +86,14 @@ public partial class ChatBot
     private async Task ClearChat()
     {
         await Mediator.Send(new ChatCommands.ClearChat());
+    }
+
+    private void ToggleNoteContext(Guid messageId)
+    {
+        if (!_expandedNoteContextIds.Add(messageId))
+        {
+            _expandedNoteContextIds.Remove(messageId);
+        }
     }
 
     private async Task ScrollToBottom()
