@@ -58,7 +58,7 @@ public class NoteHandlerTests
         _noteRepository.GetAllByNotebook(notebookId, Arg.Any<CancellationToken>()).Returns(notes);
 
         // Act
-        await _handler.Handle(new NoteCommands.LoadNotesForNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.LoadNotesForNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).GetAllByNotebook(notebookId, Arg.Any<CancellationToken>());
@@ -81,7 +81,7 @@ public class NoteHandlerTests
         await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NotesLoaded>(a => capturedNotes = a.Notes));
 
         // Act
-        await _handler.Handle(new NoteCommands.LoadNotesForNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.LoadNotesForNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         capturedNotes.ShouldNotBeNull();
@@ -98,7 +98,7 @@ public class NoteHandlerTests
         _noteRepository.GetAllByNotebook(notebookId, Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NoteCommands.LoadNotesForNotebook(notebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.LoadNotesForNotebook(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to load notes for notebook '{NotebookId}'", notebookId);
@@ -123,7 +123,7 @@ public class NoteHandlerTests
             .Returns(Array.Empty<float>());
 
         // Act
-        await _handler.Handle(new NoteCommands.CreateNote(notebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.CreateNote(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Add(
@@ -143,7 +143,7 @@ public class NoteHandlerTests
             .Returns(Array.Empty<float>());
 
         // Act
-        await _handler.Handle(new NoteCommands.CreateNote(notebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.CreateNote(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -161,7 +161,7 @@ public class NoteHandlerTests
         _noteRepository.Add(Arg.Any<Note>(), Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NoteCommands.CreateNote(notebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.CreateNote(notebookId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to create note in notebook '{NotebookId}'", notebookId);
@@ -185,7 +185,7 @@ public class NoteHandlerTests
             .Returns(Array.Empty<float>());
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateNote(note), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateNote(note), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Update(
@@ -213,7 +213,7 @@ public class NoteHandlerTests
         var beforeUpdate = DateTimeOffset.UtcNow;
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateNote(note), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateNote(note), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Update(
@@ -230,7 +230,7 @@ public class NoteHandlerTests
         _noteRepository.Update(Arg.Any<Note>(), Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NoteCommands.UpdateNote(note), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.UpdateNote(note), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to update note '{NoteId}'", note.Id);
@@ -260,7 +260,7 @@ public class NoteHandlerTests
         _noteRepository.SearchInNotebook(notebookId, query, Arg.Any<CancellationToken>()).Returns(notes);
 
         // Act
-        await _handler.Handle(new NoteCommands.SearchNotes(notebookId, query), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.SearchNotes(notebookId, query), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).SearchInNotebook(notebookId, query, Arg.Any<CancellationToken>());
@@ -280,7 +280,7 @@ public class NoteHandlerTests
             .Throws(exception);
 
         // Act
-        await _handler.Handle(new NoteCommands.SearchNotes(notebookId, "test"), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.SearchNotes(notebookId, "test"), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to search notes in notebook '{NotebookId}'", notebookId);
@@ -294,7 +294,7 @@ public class NoteHandlerTests
     public async Task ClearNotes_ShouldDispatchNotesCleared()
     {
         // Act
-        await _handler.Handle(new NoteCommands.ClearNotes(), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ClearNotes(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<NoteActions.NotesCleared>());
@@ -309,7 +309,7 @@ public class NoteHandlerTests
     public async Task ClearSearch_ShouldDispatchSearchCleared()
     {
         // Act
-        await _handler.Handle(new NoteCommands.ClearSearch(), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.ClearSearch(), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Any<NoteActions.SearchCleared>());
@@ -328,7 +328,7 @@ public class NoteHandlerTests
         var blockId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new NoteCommands.SetEditingBlock(noteId, blockId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.SetEditingBlock(noteId, blockId), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -341,7 +341,7 @@ public class NoteHandlerTests
     public async Task SetEditingBlock_WithNullValues_ShouldDispatchNullValues()
     {
         // Act
-        await _handler.Handle(new NoteCommands.SetEditingBlock(null, null), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.SetEditingBlock(null, null), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(

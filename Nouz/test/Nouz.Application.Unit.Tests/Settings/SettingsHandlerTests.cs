@@ -32,7 +32,7 @@ public class SettingsHandlerTests
         var apiKey = "sk-test-key-12345";
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiApiKey(apiKey), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiApiKey(apiKey), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiApiKey, apiKey);
@@ -45,7 +45,7 @@ public class SettingsHandlerTests
         var apiKey = "sk-test-key-12345";
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiApiKey(apiKey), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiApiKey(apiKey), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -63,7 +63,7 @@ public class SettingsHandlerTests
         var model = "gpt-4";
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(model), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(model), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, model);
@@ -73,7 +73,7 @@ public class SettingsHandlerTests
     public async Task SaveOpenAiChatModel_WhenModelIsEmpty_ShouldUseDefault()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(""), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(""), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4o-mini");
@@ -83,7 +83,7 @@ public class SettingsHandlerTests
     public async Task SaveOpenAiChatModel_WhenModelIsWhitespace_ShouldUseDefault()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel("   "), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel("   "), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4o-mini");
@@ -93,7 +93,7 @@ public class SettingsHandlerTests
     public async Task SaveOpenAiChatModel_ShouldTrimModel()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel("  gpt-4  "), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel("  gpt-4  "), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiChatModel, "gpt-4");
@@ -106,7 +106,7 @@ public class SettingsHandlerTests
         var model = "gpt-4";
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(model), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiChatModel(model), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -124,7 +124,7 @@ public class SettingsHandlerTests
         var model = "text-embedding-3-large";
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(model), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(model), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiEmbeddingModel, model);
@@ -134,7 +134,7 @@ public class SettingsHandlerTests
     public async Task SaveOpenAiEmbeddingModel_WhenModelIsEmpty_ShouldUseDefault()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(""), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(""), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.OpenAiEmbeddingModel, "text-embedding-3-small");
@@ -147,7 +147,7 @@ public class SettingsHandlerTests
         var model = "text-embedding-3-large";
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(model), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveOpenAiEmbeddingModel(model), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -165,7 +165,7 @@ public class SettingsHandlerTests
         var count = 5;
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(count), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(count), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "5");
@@ -175,7 +175,7 @@ public class SettingsHandlerTests
     public async Task SaveTopNRelevantNotes_WhenCountIsNegative_ShouldClampToZero()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(-5), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(-5), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "0");
@@ -187,7 +187,7 @@ public class SettingsHandlerTests
     public async Task SaveTopNRelevantNotes_WhenCountIsGreaterThan10_ShouldClampTo10()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(15), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(15), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "10");
@@ -199,7 +199,7 @@ public class SettingsHandlerTests
     public async Task SaveTopNRelevantNotes_WhenCountIsWithinRange_ShouldSaveAsIs()
     {
         // Act
-        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(7), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(7), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.TopNRelevantNotes, "7");
@@ -214,7 +214,7 @@ public class SettingsHandlerTests
         var count = 3;
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(count), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveTopNRelevantNotes(count), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -232,7 +232,7 @@ public class SettingsHandlerTests
         var mode = ThemeMode.Dark;
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.ThemeMode, "Dark");
@@ -245,7 +245,7 @@ public class SettingsHandlerTests
         var mode = ThemeMode.Dark;
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -259,7 +259,7 @@ public class SettingsHandlerTests
         var mode = ThemeMode.Light;
 
         // Act
-        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), CancellationToken.None);
+        await _handler.Handle(new SettingsCommands.SaveThemeMode(mode), TestContext.Current.CancellationToken);
 
         // Assert
         await _preferences.Received(1).Set(PreferenceKeys.ThemeMode, "Light");

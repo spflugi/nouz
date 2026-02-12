@@ -55,7 +55,7 @@ public class NoteManagementServiceTests
         _notebookRepository.GetAll(Arg.Any<CancellationToken>()).Returns(notebooks);
 
         // Act
-        var result = await _service.GetAllNotebooksAsync();
+        var result = await _service.GetAllNotebooksAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -69,7 +69,7 @@ public class NoteManagementServiceTests
     public async Task CreateNotebookAsync_ShouldCreateNotebookWithCorrectName()
     {
         // Act
-        var result = await _service.CreateNotebookAsync("Test Notebook");
+        var result = await _service.CreateNotebookAsync("Test Notebook", TestContext.Current.CancellationToken);
 
         // Assert
         result.Name.ShouldBe("Test Notebook");
@@ -80,7 +80,7 @@ public class NoteManagementServiceTests
     public async Task CreateNotebookAsync_ShouldTrimNotebookName()
     {
         // Act
-        var result = await _service.CreateNotebookAsync("  Test Notebook  ");
+        var result = await _service.CreateNotebookAsync("  Test Notebook  ", TestContext.Current.CancellationToken);
 
         // Assert
         result.Name.ShouldBe("Test Notebook");
@@ -90,7 +90,7 @@ public class NoteManagementServiceTests
     public async Task CreateNotebookAsync_ShouldPersistToRepository()
     {
         // Act
-        await _service.CreateNotebookAsync("Test Notebook");
+        await _service.CreateNotebookAsync("Test Notebook", TestContext.Current.CancellationToken);
 
         // Assert
         await _notebookRepository.Received(1).Add(Arg.Is<Notebook>(n => n.Name == "Test Notebook"), Arg.Any<CancellationToken>());
@@ -100,7 +100,7 @@ public class NoteManagementServiceTests
     public async Task CreateNotebookAsync_ShouldDispatchNotebookAddedAction()
     {
         // Act
-        await _service.CreateNotebookAsync("Test Notebook");
+        await _service.CreateNotebookAsync("Test Notebook", TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Is<NotebookActions.NotebookAdded>(a => a.Notebook.Name == "Test Notebook"));
@@ -110,7 +110,7 @@ public class NoteManagementServiceTests
     public async Task CreateNotebookAsync_ShouldShowSuccessNotification()
     {
         // Act
-        await _service.CreateNotebookAsync("Test Notebook");
+        await _service.CreateNotebookAsync("Test Notebook", TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -137,7 +137,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetAllByNotebook(notebookId, Arg.Any<CancellationToken>()).Returns(notes);
 
         // Act
-        var result = await _service.GetNotebookNotesAsync(notebookId);
+        var result = await _service.GetNotebookNotesAsync(notebookId, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -159,7 +159,7 @@ public class NoteManagementServiceTests
         };
 
         // Act
-        var result = await _service.CreateNoteAsync(notebookId, blocks);
+        var result = await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         result.NotebookId.ShouldBe(notebookId);
@@ -178,7 +178,7 @@ public class NoteManagementServiceTests
         var blocks = new List<BlockDefinition>();
 
         // Act
-        var result = await _service.CreateNoteAsync(notebookId, blocks);
+        var result = await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         result.Blocks.Count.ShouldBe(1);
@@ -196,7 +196,7 @@ public class NoteManagementServiceTests
         };
 
         // Act
-        await _service.CreateNoteAsync(notebookId, blocks);
+        await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Add(Arg.Is<Note>(n => n.NotebookId == notebookId), Arg.Any<CancellationToken>());
@@ -213,7 +213,7 @@ public class NoteManagementServiceTests
         };
 
         // Act
-        await _service.CreateNoteAsync(notebookId, blocks);
+        await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Is<NoteActions.NoteCreated>(a => a.Note.NotebookId == notebookId));
@@ -230,7 +230,7 @@ public class NoteManagementServiceTests
         };
 
         // Act
-        await _service.CreateNoteAsync(notebookId, blocks);
+        await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -261,7 +261,7 @@ public class NoteManagementServiceTests
         };
 
         // Act
-        var result = await _service.CreateNoteAsync(notebookId, blocks);
+        var result = await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         result.Blocks[0].Type.ShouldBe(expectedType);
@@ -278,7 +278,7 @@ public class NoteManagementServiceTests
         };
 
         // Act
-        var result = await _service.CreateNoteAsync(notebookId, blocks);
+        var result = await _service.CreateNoteAsync(notebookId, blocks, TestContext.Current.CancellationToken);
 
         // Assert
         result.Blocks[0].Type.ShouldBe(BlockType.Paragraph);
@@ -297,7 +297,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns(note);
 
         // Act
-        var result = await _service.GetNoteAsync(noteId);
+        var result = await _service.GetNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -312,7 +312,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns((Note?)null);
 
         // Act
-        var result = await _service.GetNoteAsync(noteId);
+        var result = await _service.GetNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -336,7 +336,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns(existingNote);
 
         // Act
-        var result = await _service.EditNoteAsync(noteId, newBlocks);
+        var result = await _service.EditNoteAsync(noteId, newBlocks, TestContext.Current.CancellationToken);
 
         // Assert
         result.Blocks.Count.ShouldBe(2);
@@ -357,7 +357,7 @@ public class NoteManagementServiceTests
 
         // Act & Assert
         await Should.ThrowAsync<InvalidOperationException>(async () =>
-            await _service.EditNoteAsync(noteId, newBlocks));
+            await _service.EditNoteAsync(noteId, newBlocks, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -373,7 +373,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns(existingNote);
 
         // Act
-        await _service.EditNoteAsync(noteId, newBlocks);
+        await _service.EditNoteAsync(noteId, newBlocks, TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Update(Arg.Is<Note>(n => n.Id == noteId), Arg.Any<CancellationToken>());
@@ -392,7 +392,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns(existingNote);
 
         // Act
-        await _service.EditNoteAsync(noteId, newBlocks);
+        await _service.EditNoteAsync(noteId, newBlocks, TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Is<NoteActions.NoteUpdated>(a => a.Note.Id == noteId));
@@ -411,7 +411,7 @@ public class NoteManagementServiceTests
         _noteRepository.GetById(noteId, Arg.Any<CancellationToken>()).Returns(existingNote);
 
         // Act
-        await _service.EditNoteAsync(noteId, newBlocks);
+        await _service.EditNoteAsync(noteId, newBlocks, TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -430,7 +430,7 @@ public class NoteManagementServiceTests
         var noteId = Guid.NewGuid();
 
         // Act
-        await _service.DeleteNoteAsync(noteId);
+        await _service.DeleteNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Delete(noteId, Arg.Any<CancellationToken>());
@@ -443,7 +443,7 @@ public class NoteManagementServiceTests
         var noteId = Guid.NewGuid();
 
         // Act
-        await _service.DeleteNoteAsync(noteId);
+        await _service.DeleteNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(Arg.Is<NoteActions.NoteDeleted>(a => a.NoteId == noteId));
@@ -456,7 +456,7 @@ public class NoteManagementServiceTests
         var noteId = Guid.NewGuid();
 
         // Act
-        await _service.DeleteNoteAsync(noteId);
+        await _service.DeleteNoteAsync(noteId, TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -477,7 +477,7 @@ public class NoteManagementServiceTests
         _noteContextService.GetRelevantNotesAsync(query, 10, Arg.Any<CancellationToken>()).Returns(notes);
 
         // Act
-        var result = await _service.SearchNotesAsync(query);
+        var result = await _service.SearchNotesAsync(query, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(1);

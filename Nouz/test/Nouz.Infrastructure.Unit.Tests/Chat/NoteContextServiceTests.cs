@@ -24,7 +24,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenQueryIsEmpty_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("", 5);
+        var result = await _service.GetRelevantNotesAsync("", 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -35,7 +35,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenQueryIsWhitespace_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("   ", 5);
+        var result = await _service.GetRelevantNotesAsync("   ", 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -45,7 +45,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenTopNIsZero_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 0);
+        var result = await _service.GetRelevantNotesAsync("test query", 0, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -55,7 +55,7 @@ public class NoteContextServiceTests
     public async Task GetRelevantNotesAsync_WhenTopNIsNegative_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", -1);
+        var result = await _service.GetRelevantNotesAsync("test query", -1, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -69,7 +69,7 @@ public class NoteContextServiceTests
             .Returns([]);
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -86,7 +86,7 @@ public class NoteContextServiceTests
             .Returns(new List<(Guid, float)>());
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -110,7 +110,7 @@ public class NoteContextServiceTests
         _noteRepository.GetById(noteId2, Arg.Any<CancellationToken>()).Returns(note2);
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -135,7 +135,7 @@ public class NoteContextServiceTests
         _noteRepository.GetById(noteId2, Arg.Any<CancellationToken>()).Returns((Note?)null);
 
         // Act
-        var result = await _service.GetRelevantNotesAsync("test query", 5);
+        var result = await _service.GetRelevantNotesAsync("test query", 5, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(1);
@@ -153,7 +153,7 @@ public class NoteContextServiceTests
             .Returns(new List<(Guid, float)>());
 
         // Act
-        await _service.GetRelevantNotesAsync("test query", 3);
+        await _service.GetRelevantNotesAsync("test query", 3, TestContext.Current.CancellationToken);
 
         // Assert
         await _embeddingRepository.Received(1).FindSimilarAsync(queryEmbedding, 3, Arg.Any<CancellationToken>());

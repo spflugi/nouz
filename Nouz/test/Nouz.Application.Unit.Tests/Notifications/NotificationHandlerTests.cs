@@ -26,7 +26,7 @@ public class NotificationHandlerTests
         var command = new NotificationCommands.ShowNotification("Test Title", "Test Message", NotificationSeverity.Info);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -45,7 +45,7 @@ public class NotificationHandlerTests
         await _actionDispatcher.Dispatch(Arg.Do<NotificationActions.NotificationShown>(a => capturedId = a.Notification.Id));
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         capturedId.ShouldNotBeNull();
@@ -59,7 +59,7 @@ public class NotificationHandlerTests
         var command = new NotificationCommands.ShowNotification("Title", "Message", NotificationSeverity.Error);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation(
@@ -78,7 +78,7 @@ public class NotificationHandlerTests
         var command = new NotificationCommands.ShowNotification("Title", "Message", severity);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -97,7 +97,7 @@ public class NotificationHandlerTests
         var command = new NotificationCommands.DismissNotification(notificationId);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         await _actionDispatcher.Received(1).Dispatch(
@@ -112,7 +112,7 @@ public class NotificationHandlerTests
         var command = new NotificationCommands.DismissNotification(notificationId);
 
         // Act
-        await _handler.Handle(command, CancellationToken.None);
+        await _handler.Handle(command, TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation("Dismiss notification with id {NotificationId}", notificationId);

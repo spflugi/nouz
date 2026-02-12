@@ -26,7 +26,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "Test content");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<!DOCTYPE html>");
@@ -48,7 +48,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "Test content", createdAt);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<header class=\"note-header\">");
@@ -62,7 +62,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "Test");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<style>");
@@ -81,7 +81,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "Hello world");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<p>Hello world</p>");
@@ -98,7 +98,7 @@ public class NoteExportServiceTests
         var note = CreateNote(blockType, "Heading text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain($"<{expectedTag}>Heading text</{expectedTag}>");
@@ -111,7 +111,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.ListItem, "List item text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<ul class=\"bullet-list\">");
@@ -126,7 +126,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.AgendaItem, "Agenda item text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<ul class=\"agenda-list\">");
@@ -150,7 +150,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<div class=\"todo-item\">");
@@ -173,7 +173,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<span class=\"todo-checkbox checked\">");
@@ -187,7 +187,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Code, "const x = 1;");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<pre><code>const x = 1;</code></pre>");
@@ -200,7 +200,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Code, "<script>alert('xss')</script>");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("&lt;script&gt;");
@@ -214,7 +214,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Quote, "A wise quote");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<blockquote>A wise quote</blockquote>");
@@ -227,7 +227,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Decision, "We decided to proceed");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<div class=\"decision-box\">");
@@ -242,7 +242,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Warning, "Be careful!");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<div class=\"warning-box\">");
@@ -257,7 +257,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Divider, "");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<hr>");
@@ -274,7 +274,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "This is **bold** text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<strong>bold</strong>");
@@ -287,7 +287,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "This is *italic* text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<em>italic</em>");
@@ -300,7 +300,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "This is ~~strikethrough~~ text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<del>strikethrough</del>");
@@ -313,7 +313,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "Use `console.log()` for debugging");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<code>console.log()</code>");
@@ -326,7 +326,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "This is {color:#FF5733}colored{/color} text");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("style=\"color: #FF5733;\"");
@@ -363,7 +363,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<figure");
@@ -395,7 +395,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("[Image not found]");
@@ -426,7 +426,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldNotContain("<figcaption>");
@@ -459,7 +459,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<table class=\"export-table\">");
@@ -498,7 +498,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldNotContain("<th>");
@@ -531,7 +531,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("&lt;script&gt;");
@@ -553,7 +553,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("<div class=\"mermaid-export\">");
@@ -577,7 +577,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(block);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("&lt;b&gt;Node&lt;/b&gt;");
@@ -595,7 +595,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "Use <div> and & symbols");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("&lt;div&gt;");
@@ -609,7 +609,7 @@ public class NoteExportServiceTests
         var note = CreateNote(BlockType.Paragraph, "He said \"hello\" and 'goodbye'");
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         html.ShouldContain("&quot;hello&quot;");
@@ -633,7 +633,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(blocks);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         var h1Index = html.IndexOf("<h1>Title</h1>", StringComparison.Ordinal);
@@ -657,7 +657,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(blocks);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         // Should only have one ul opening and closing
@@ -680,7 +680,7 @@ public class NoteExportServiceTests
         var note = CreateNoteWithBlocks(blocks);
 
         // Act
-        var html = await _service.GenerateHtmlAsync(note);
+        var html = await _service.GenerateHtmlAsync(note, TestContext.Current.CancellationToken);
 
         // Assert
         var ulCount = html.Split("<ul class=\"bullet-list\">").Length - 1;

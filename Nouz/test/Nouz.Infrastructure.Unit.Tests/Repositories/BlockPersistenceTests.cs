@@ -564,77 +564,77 @@ public class BlockPersistenceTests : IDisposable
 
     private async Task AddNote(Note note)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.Notes.Add(note);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task AddBlockToNote(Block block, Guid noteId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.Entry(block).Property("NoteId").CurrentValue = noteId;
         context.Set<Block>().Add(block);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task<Block?> GetBlockById(Guid blockId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         return await context.Set<Block>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == blockId);
+            .FirstOrDefaultAsync(b => b.Id == blockId, TestContext.Current.CancellationToken);
     }
 
     private async Task<List<Block>> GetBlocksByNoteId(Guid noteId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         return await context.Set<Block>()
             .AsNoTracking()
             .Where(b => EF.Property<Guid>(b, "NoteId") == noteId)
-            .ToListAsync();
+            .ToListAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task UpdateBlockContent(Guid blockId, string newContent)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var block = await context.Set<Block>().FindAsync(blockId);
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
+        var block = await context.Set<Block>().FindAsync([blockId], cancellationToken: TestContext.Current.CancellationToken);
         if (block is not null)
         {
             context.Entry(block).CurrentValues.SetValues(block with { Content = newContent });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
     }
 
     private async Task UpdateBlockType(Guid blockId, BlockType newType)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var block = await context.Set<Block>().FindAsync(blockId);
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
+        var block = await context.Set<Block>().FindAsync([blockId], cancellationToken: TestContext.Current.CancellationToken);
         if (block is not null)
         {
             context.Entry(block).CurrentValues.SetValues(block with { Type = newType });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
     }
 
     private async Task UpdateBlockMetadata(Guid blockId, Dictionary<string, object> newMetadata)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var block = await context.Set<Block>().FindAsync(blockId);
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
+        var block = await context.Set<Block>().FindAsync([blockId], cancellationToken: TestContext.Current.CancellationToken);
         if (block is not null)
         {
             context.Entry(block).CurrentValues.SetValues(block with { Metadata = newMetadata });
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
     }
 
     private async Task DeleteBlock(Guid blockId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var block = await context.Set<Block>().FindAsync(blockId);
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
+        var block = await context.Set<Block>().FindAsync([blockId], cancellationToken: TestContext.Current.CancellationToken);
         if (block is not null)
         {
             context.Set<Block>().Remove(block);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
     }
 

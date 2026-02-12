@@ -48,7 +48,7 @@ public class NoteHandlerMoveNoteTests
         var newNotebookId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new NoteCommands.MoveNote(noteId, newNotebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.MoveNote(noteId, newNotebookId), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).MoveToNotebook(noteId, newNotebookId, Arg.Any<CancellationToken>());
@@ -70,7 +70,7 @@ public class NoteHandlerMoveNoteTests
         var newNotebookId = Guid.NewGuid();
 
         // Act
-        await _handler.Handle(new NoteCommands.MoveNote(noteId, newNotebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.MoveNote(noteId, newNotebookId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogInformation("Moving note '{NoteId}' to notebook '{NewNotebookId}'", noteId, newNotebookId);
@@ -87,7 +87,7 @@ public class NoteHandlerMoveNoteTests
         _noteRepository.MoveToNotebook(noteId, newNotebookId, Arg.Any<CancellationToken>()).Throws(exception);
 
         // Act
-        await _handler.Handle(new NoteCommands.MoveNote(noteId, newNotebookId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.MoveNote(noteId, newNotebookId), TestContext.Current.CancellationToken);
 
         // Assert
         _logger.Received(1).LogError(exception, "Failed to move note '{NoteId}' to notebook '{NewNotebookId}'", noteId, newNotebookId);

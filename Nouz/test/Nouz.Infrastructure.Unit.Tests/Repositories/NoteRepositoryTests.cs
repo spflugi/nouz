@@ -92,7 +92,7 @@ public class NoteRepositoryTests : IDisposable
     public async Task GetAllByNotebook_WhenNoNotes_ShouldReturnEmptyList()
     {
         // Act
-        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -108,7 +108,7 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(note2);
 
         // Act
-        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -129,7 +129,7 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(noteInOther);
 
         // Act
-        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(1);
@@ -147,7 +147,7 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(noteInDefault);
 
         // Act
-        var result = await _repository.GetAllByNotebook(emptyNotebook.Id);
+        var result = await _repository.GetAllByNotebook(emptyNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeEmpty();
@@ -177,7 +177,7 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(note);
 
         // Act
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -189,7 +189,7 @@ public class NoteRepositoryTests : IDisposable
     public async Task GetById_WhenNoteDoesNotExist_ShouldReturnNull()
     {
         // Act
-        var result = await _repository.GetById(Guid.NewGuid());
+        var result = await _repository.GetById(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -211,7 +211,7 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(note);
 
         // Act
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -231,10 +231,10 @@ public class NoteRepositoryTests : IDisposable
         var note = CreateNote(_defaultNotebook.Id);
 
         // Act
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Id.ShouldBe(note.Id);
     }
@@ -254,10 +254,10 @@ public class NoteRepositoryTests : IDisposable
         };
 
         // Act
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.NotebookId.ShouldBe(_defaultNotebook.Id);
         result.CreatedAt.ShouldBe(createdAt);
@@ -292,10 +292,10 @@ public class NoteRepositoryTests : IDisposable
         var updatedNote = note with { LastModifiedAt = newLastModified };
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.LastModifiedAt.ShouldBe(newLastModified);
     }
@@ -318,10 +318,10 @@ public class NoteRepositoryTests : IDisposable
         var updatedNote = note with { LastModifiedAt = newTime };
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.LastModifiedAt.ShouldBe(newTime);
         result.CreatedAt.ShouldBe(originalTime);
@@ -340,19 +340,19 @@ public class NoteRepositoryTests : IDisposable
         var updatedNote = note with { NotebookId = otherNotebook.Id };
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.NotebookId.ShouldBe(otherNotebook.Id);
 
         // Verify it's no longer in default notebook
-        var notesInDefault = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var notesInDefault = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
         notesInDefault.ShouldBeEmpty();
 
         // Verify it's in the other notebook
-        var notesInOther = await _repository.GetAllByNotebook(otherNotebook.Id);
+        var notesInOther = await _repository.GetAllByNotebook(otherNotebook.Id, TestContext.Current.CancellationToken);
         notesInOther.Count.ShouldBe(1);
     }
 
@@ -368,10 +368,10 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(note);
 
         // Act
-        await _repository.Delete(note.Id);
+        await _repository.Delete(note.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldBeNull();
     }
 
@@ -379,7 +379,7 @@ public class NoteRepositoryTests : IDisposable
     public async Task Delete_WhenNoteDoesNotExist_ShouldNotThrow()
     {
         // Act & Assert
-        await Should.NotThrowAsync(() => _repository.Delete(Guid.NewGuid()));
+        await Should.NotThrowAsync(() => _repository.Delete(Guid.NewGuid(), TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -392,10 +392,10 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(note2);
 
         // Act
-        await _repository.Delete(note1.Id);
+        await _repository.Delete(note1.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
         result.Count.ShouldBe(1);
         result[0].Id.ShouldBe(note2.Id);
     }
@@ -428,13 +428,13 @@ public class NoteRepositoryTests : IDisposable
         await AddNote(note2);
 
         // Act - Delete the notebook
-        await using var context = await _contextFactory.CreateDbContextAsync();
-        var notebook = await context.Notebooks.FindAsync(_defaultNotebook.Id);
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
+        var notebook = await context.Notebooks.FindAsync([_defaultNotebook.Id], cancellationToken: TestContext.Current.CancellationToken);
         context.Notebooks.Remove(notebook!);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Assert - Notes should be deleted too
-        var remainingNotes = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var remainingNotes = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
         remainingNotes.ShouldBeEmpty();
     }
 
@@ -449,10 +449,10 @@ public class NoteRepositoryTests : IDisposable
         var block1 = CreateBlock(BlockType.H1, "Heading");
         var block2 = CreateBlock(BlockType.Paragraph, "Content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -466,10 +466,10 @@ public class NoteRepositoryTests : IDisposable
     {
         // Arrange
         var note = CreateNote(_defaultNotebook.Id);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -487,11 +487,11 @@ public class NoteRepositoryTests : IDisposable
         var block3 = CreateBlock(BlockType.Code, "var x = 1;");
         var note2 = CreateNoteWithBlocks(_defaultNotebook.Id, [block3]);
 
-        await _repository.Add(note1);
-        await _repository.Add(note2);
+        await _repository.Add(note1, TestContext.Current.CancellationToken);
+        await _repository.Add(note2, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var result = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
         result.Count.ShouldBe(2);
@@ -513,10 +513,10 @@ public class NoteRepositoryTests : IDisposable
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2, block3]);
 
         // Act
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(3);
         result.Blocks.ShouldContain(b => b.Content == "Title");
@@ -542,10 +542,10 @@ public class NoteRepositoryTests : IDisposable
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block]);
 
         // Act
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(1);
         result.Blocks[0].Metadata.ShouldContainKey("checked");
@@ -558,16 +558,16 @@ public class NoteRepositoryTests : IDisposable
         // Arrange
         var block1 = CreateBlock(BlockType.H1, "Title");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var block2 = CreateBlock(BlockType.Paragraph, "New paragraph");
         var updatedNote = note with { Blocks = [block1, block2] };
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(2);
         result.Blocks.ShouldContain(b => b.Id == block1.Id);
@@ -580,16 +580,16 @@ public class NoteRepositoryTests : IDisposable
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Original content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var updatedBlock = block with { Content = "Updated content" };
         var updatedNote = note with { Blocks = [updatedBlock] };
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(1);
         result.Blocks[0].Content.ShouldBe("Updated content");
@@ -602,15 +602,15 @@ public class NoteRepositoryTests : IDisposable
         var block1 = CreateBlock(BlockType.H1, "Title");
         var block2 = CreateBlock(BlockType.Paragraph, "Content to remove");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var updatedNote = note with { Blocks = [block1] }; // Remove block2
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(1);
         result.Blocks[0].Id.ShouldBe(block1.Id);
@@ -624,7 +624,7 @@ public class NoteRepositoryTests : IDisposable
         var block2 = CreateBlock(BlockType.Paragraph, "Para 1");
         var block3 = CreateBlock(BlockType.Paragraph, "Para 2");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2, block3]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Update: keep block1, modify block2, remove block3, add block4
         var updatedBlock2 = block2 with { Content = "Modified Para 1" };
@@ -632,10 +632,10 @@ public class NoteRepositoryTests : IDisposable
         var updatedNote = note with { Blocks = [block1, updatedBlock2, block4] };
 
         // Act
-        await _repository.Update(updatedNote);
+        await _repository.Update(updatedNote, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(3);
         result.Blocks.ShouldContain(b => b.Id == block1.Id && b.Content == "Title");
@@ -651,16 +651,16 @@ public class NoteRepositoryTests : IDisposable
         var block1 = CreateBlock(BlockType.H1, "Title");
         var block2 = CreateBlock(BlockType.Paragraph, "Content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        await _repository.Delete(note.Id);
+        await _repository.Delete(note.Id, TestContext.Current.CancellationToken);
 
         // Assert - Verify blocks are also deleted
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         var remainingBlocks = await context.Set<Block>()
             .Where(b => EF.Property<Guid>(b, "NoteId") == note.Id)
-            .ToListAsync();
+            .ToListAsync(TestContext.Current.CancellationToken);
         remainingBlocks.ShouldBeEmpty();
     }
 
@@ -673,16 +673,16 @@ public class NoteRepositoryTests : IDisposable
     {
         // Arrange
         var note = CreateNote(_defaultNotebook.Id);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var targetNotebook = CreateNotebook("Target Notebook");
         await AddNotebook(targetNotebook);
 
         // Act
-        await _repository.MoveToNotebook(note.Id, targetNotebook.Id);
+        await _repository.MoveToNotebook(note.Id, targetNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.NotebookId.ShouldBe(targetNotebook.Id);
     }
@@ -699,7 +699,7 @@ public class NoteRepositoryTests : IDisposable
             CreatedAt = originalTime,
             LastModifiedAt = originalTime
         };
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var targetNotebook = CreateNotebook("Target Notebook");
         await AddNotebook(targetNotebook);
@@ -707,10 +707,10 @@ public class NoteRepositoryTests : IDisposable
         var beforeMove = DateTimeOffset.UtcNow;
 
         // Act
-        await _repository.MoveToNotebook(note.Id, targetNotebook.Id);
+        await _repository.MoveToNotebook(note.Id, targetNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.LastModifiedAt.ShouldBeGreaterThanOrEqualTo(beforeMove);
         result.CreatedAt.ShouldBe(originalTime);
@@ -723,16 +723,16 @@ public class NoteRepositoryTests : IDisposable
         var block1 = CreateBlock(BlockType.H1, "Title");
         var block2 = CreateBlock(BlockType.Paragraph, "Content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var targetNotebook = CreateNotebook("Target Notebook");
         await AddNotebook(targetNotebook);
 
         // Act
-        await _repository.MoveToNotebook(note.Id, targetNotebook.Id);
+        await _repository.MoveToNotebook(note.Id, targetNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var result = await _repository.GetById(note.Id);
+        var result = await _repository.GetById(note.Id, TestContext.Current.CancellationToken);
         result.ShouldNotBeNull();
         result.Blocks.Count.ShouldBe(2);
         result.Blocks.ShouldContain(b => b.Id == block1.Id);
@@ -744,19 +744,19 @@ public class NoteRepositoryTests : IDisposable
     {
         // Arrange
         var note = CreateNote(_defaultNotebook.Id);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         var targetNotebook = CreateNotebook("Target Notebook");
         await AddNotebook(targetNotebook);
 
         // Act
-        await _repository.MoveToNotebook(note.Id, targetNotebook.Id);
+        await _repository.MoveToNotebook(note.Id, targetNotebook.Id, TestContext.Current.CancellationToken);
 
         // Assert
-        var notesInOriginal = await _repository.GetAllByNotebook(_defaultNotebook.Id);
+        var notesInOriginal = await _repository.GetAllByNotebook(_defaultNotebook.Id, TestContext.Current.CancellationToken);
         notesInOriginal.ShouldBeEmpty();
 
-        var notesInTarget = await _repository.GetAllByNotebook(targetNotebook.Id);
+        var notesInTarget = await _repository.GetAllByNotebook(targetNotebook.Id, TestContext.Current.CancellationToken);
         notesInTarget.Count.ShouldBe(1);
         notesInTarget[0].Id.ShouldBe(note.Id);
     }
@@ -770,7 +770,7 @@ public class NoteRepositoryTests : IDisposable
 
         // Act & Assert
         await Should.NotThrowAsync(() =>
-            _repository.MoveToNotebook(Guid.NewGuid(), targetNotebook.Id));
+            _repository.MoveToNotebook(Guid.NewGuid(), targetNotebook.Id, TestContext.Current.CancellationToken));
     }
 
     #endregion
@@ -783,10 +783,10 @@ public class NoteRepositoryTests : IDisposable
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "This is a unique searchable content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "unique");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "unique", TestContext.Current.CancellationToken);
 
         // Assert
         results.Count.ShouldBe(1);
@@ -800,10 +800,10 @@ public class NoteRepositoryTests : IDisposable
         var block1 = CreateBlock(BlockType.H1, "Searchable title");
         var block2 = CreateBlock(BlockType.Paragraph, "Some other content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "Searchable");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "Searchable", TestContext.Current.CancellationToken);
 
         // Assert
         results.Count.ShouldBe(1);
@@ -816,10 +816,10 @@ public class NoteRepositoryTests : IDisposable
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Some content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "nonexistent");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "nonexistent", TestContext.Current.CancellationToken);
 
         // Assert
         results.ShouldBeEmpty();
@@ -831,10 +831,10 @@ public class NoteRepositoryTests : IDisposable
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Some content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "", TestContext.Current.CancellationToken);
 
         // Assert
         results.ShouldBeEmpty();
@@ -846,10 +846,10 @@ public class NoteRepositoryTests : IDisposable
         // Arrange
         var block = CreateBlock(BlockType.Paragraph, "Some content");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "   ");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "   ", TestContext.Current.CancellationToken);
 
         // Assert
         results.ShouldBeEmpty();
@@ -868,12 +868,12 @@ public class NoteRepositoryTests : IDisposable
         var block3 = CreateBlock(BlockType.Paragraph, "Third note without match");
         var note3 = CreateNoteWithBlocks(_defaultNotebook.Id, [block3]);
 
-        await _repository.Add(note1);
-        await _repository.Add(note2);
-        await _repository.Add(note3);
+        await _repository.Add(note1, TestContext.Current.CancellationToken);
+        await _repository.Add(note2, TestContext.Current.CancellationToken);
+        await _repository.Add(note3, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "keyword");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "keyword", TestContext.Current.CancellationToken);
 
         // Assert
         results.Count.ShouldBe(2);
@@ -890,10 +890,10 @@ public class NoteRepositoryTests : IDisposable
         var block2 = CreateBlock(BlockType.Paragraph, "Paragraph with searchterm");
         var block3 = CreateBlock(BlockType.Code, "code without match");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2, block3]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "searchterm");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "searchterm", TestContext.Current.CancellationToken);
 
         // Assert
         results.Count.ShouldBe(1);
@@ -913,11 +913,11 @@ public class NoteRepositoryTests : IDisposable
         var block2 = CreateBlock(BlockType.Paragraph, "Content with searchword in second");
         var note2 = CreateNoteWithBlocks(notebook2.Id, [block2]);
 
-        await _repository.Add(note1);
-        await _repository.Add(note2);
+        await _repository.Add(note1, TestContext.Current.CancellationToken);
+        await _repository.Add(note2, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "searchword");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "searchword", TestContext.Current.CancellationToken);
 
         // Assert
         results.Count.ShouldBe(1);
@@ -933,10 +933,10 @@ public class NoteRepositoryTests : IDisposable
         var block2 = CreateBlock(BlockType.Paragraph, "Paragraph also with keyword");
         var block3 = CreateBlock(BlockType.Quote, "Quote with keyword too");
         var note = CreateNoteWithBlocks(_defaultNotebook.Id, [block1, block2, block3]);
-        await _repository.Add(note);
+        await _repository.Add(note, TestContext.Current.CancellationToken);
 
         // Act
-        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "keyword");
+        var results = await _repository.SearchInNotebook(_defaultNotebook.Id, "keyword", TestContext.Current.CancellationToken);
 
         // Assert
         results.Count.ShouldBe(1);
@@ -979,16 +979,16 @@ public class NoteRepositoryTests : IDisposable
 
     private async Task AddNote(Note note)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.Notes.Add(note);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
     private async Task AddNotebook(Notebook notebook)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.Notebooks.Add(notebook);
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
     private sealed class TestDbContextFactory : IDbContextFactory<NouzDbContext>

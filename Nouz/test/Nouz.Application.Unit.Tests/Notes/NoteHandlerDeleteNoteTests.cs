@@ -52,7 +52,7 @@ public class NoteHandlerDeleteNoteTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Delete(noteId, Arg.Any<CancellationToken>());
@@ -71,7 +71,7 @@ public class NoteHandlerDeleteNoteTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).DeleteAsync(attachmentId, Arg.Any<CancellationToken>());
@@ -92,7 +92,7 @@ public class NoteHandlerDeleteNoteTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).DeleteAsync(attachmentId1, Arg.Any<CancellationToken>());
@@ -111,7 +111,7 @@ public class NoteHandlerDeleteNoteTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _attachmentRepository.Received(1).DeleteAsync(attachmentId, Arg.Any<CancellationToken>());
@@ -130,7 +130,7 @@ public class NoteHandlerDeleteNoteTests
             .Throws(new Exception("Storage error"));
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Delete(noteId, Arg.Any<CancellationToken>());
@@ -146,7 +146,7 @@ public class NoteHandlerDeleteNoteTests
         SetupEmptyState();
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _noteRepository.Received(1).Delete(noteId, Arg.Any<CancellationToken>());
@@ -162,7 +162,7 @@ public class NoteHandlerDeleteNoteTests
         SetupStateWithNote(note);
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(
@@ -183,7 +183,7 @@ public class NoteHandlerDeleteNoteTests
         _noteRepository.Delete(noteId, Arg.Any<CancellationToken>()).Throws(new Exception("Database error"));
 
         // Act
-        await _handler.Handle(new NoteCommands.DeleteNote(noteId), CancellationToken.None);
+        await _handler.Handle(new NoteCommands.DeleteNote(noteId), TestContext.Current.CancellationToken);
 
         // Assert
         await _mediator.Received(1).Send(

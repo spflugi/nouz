@@ -30,7 +30,7 @@ public class OpenAiUsageServiceTests
         _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>(null));
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -43,7 +43,7 @@ public class OpenAiUsageServiceTests
         _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>(string.Empty));
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -56,7 +56,7 @@ public class OpenAiUsageServiceTests
         _preferences.Get(PreferenceKeys.OpenAiApiAdminKey).Returns(Task.FromResult<string?>("   "));
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -120,7 +120,7 @@ public class OpenAiUsageServiceTests
         });
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
@@ -138,7 +138,7 @@ public class OpenAiUsageServiceTests
         _messageHandler.SetupErrorResponse(HttpStatusCode.Unauthorized);
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert - service gracefully handles errors and returns data with zeros
         result.ShouldNotBeNull();
@@ -156,7 +156,7 @@ public class OpenAiUsageServiceTests
         _messageHandler.SetupException(new HttpRequestException("Network error"));
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert - service gracefully handles errors and returns data with zeros
         result.ShouldNotBeNull();
@@ -186,7 +186,7 @@ public class OpenAiUsageServiceTests
         var expectedStartOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
 
         // Act
-        var result = await _service.GetCurrentMonthUsageAsync();
+        var result = await _service.GetCurrentMonthUsageAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldNotBeNull();
