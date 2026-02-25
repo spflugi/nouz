@@ -105,6 +105,7 @@ internal sealed partial class NoteExportService
             BlockType.Quote => $"            <blockquote>{content}</blockquote>",
             BlockType.Decision => RenderDecisionBlock(block),
             BlockType.Warning => RenderWarningBlock(block),
+            BlockType.Idea => RenderIdeaBlock(block),
             BlockType.Divider => "            <hr>",
             BlockType.Image => await RenderImageBlockAsync(block, cancellationToken).ConfigureAwait(false),
             BlockType.Table => RenderTableBlock(block),
@@ -157,6 +158,20 @@ internal sealed partial class NoteExportService
     {
         var content = FormatInlineContent(block.Content);
         return $"            <div class=\"warning-box\"><span class=\"warning-icon\">&#9888;</span><span class=\"warning-text\">{content}</span></div>";
+    }
+
+    private string RenderIdeaBlock(Block block)
+    {
+        var content = FormatInlineContent(block.Content);
+        var status = GetMetadataValue<string>(block, "status") ?? "raw";
+        var statusLabel = status switch
+        {
+            "exploring" => "Exploring",
+            "adopted" => "Adopted",
+            "dropped" => "Dropped",
+            _ => "Raw"
+        };
+        return $"            <div class=\"idea-box\"><span class=\"idea-icon\">&#128161;</span><span class=\"idea-text\">{content}</span><span class=\"idea-status idea-status-{status}\">{statusLabel}</span></div>";
     }
 
     private async Task<string> RenderImageBlockAsync(Block block, CancellationToken cancellationToken)

@@ -426,6 +426,45 @@ public partial class BlockRenderer : IAsyncDisposable
         await OnContentChanged.InvokeAsync(updatedBlock);
     }
 
+    private string GetIdeaStatus()
+    {
+        if (Block.Metadata.TryGetValue("status", out var statusValue))
+        {
+            return statusValue switch
+            {
+                string str => str,
+                System.Text.Json.JsonElement jsonElement => jsonElement.GetString() ?? "raw",
+                _ => "raw"
+            };
+        }
+        return "raw";
+    }
+
+    private string GetIdeaStatusLabel() => GetIdeaStatus() switch
+    {
+        "exploring" => "Exploring",
+        "adopted" => "Adopted",
+        "dropped" => "Dropped",
+        _ => "Raw"
+    };
+
+    private async Task CycleIdeaStatus()
+    {
+        var nextStatus = GetIdeaStatus() switch
+        {
+            "raw" => "exploring",
+            "exploring" => "adopted",
+            "adopted" => "dropped",
+            _ => "raw"
+        };
+        var metadata = new Dictionary<string, object>(Block.Metadata)
+        {
+            ["status"] = nextStatus
+        };
+        var updatedBlock = Block with { Metadata = metadata };
+        await OnContentChanged.InvokeAsync(updatedBlock);
+    }
+
     [JSInvokable]
     public void OnSelectionChanged(SelectionData? selection)
     {

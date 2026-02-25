@@ -423,6 +423,20 @@ internal sealed class NoteHandler :
                 }
             }
 
+            // Auto-save on idea status change
+            if (command.Block.Type == BlockType.Idea)
+            {
+                var oldStatus = oldBlock.Metadata.TryGetValue("status", out var os) ? os?.ToString() : null;
+                var newStatus = command.Block.Metadata.TryGetValue("status", out var ns) ? ns?.ToString() : null;
+
+                if (oldStatus != newStatus)
+                {
+                    await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
+                    _logger.LogDebug("Block '{BlockId}' updated in note '{NoteId}' (auto-saved after idea status change)", command.Block.Id, command.NoteId);
+                    return Unit.Value;
+                }
+            }
+
             _logger.LogDebug("Block '{BlockId}' updated in note '{NoteId}' (state only)", command.Block.Id, command.NoteId);
         }
         catch (Exception ex)
@@ -567,6 +581,13 @@ internal sealed class NoteHandler :
                     }
                 };
             }
+            else if (command.NewType == BlockType.Idea)
+            {
+                updatedBlock = updatedBlock with
+                {
+                    Metadata = new Dictionary<string, object> { ["status"] = "raw" }
+                };
+            }
 
             var blocks = note.Blocks.Replace(oldBlock, updatedBlock).ToList();
             var focusBlockId = updatedBlock.Id;
@@ -595,8 +616,8 @@ internal sealed class NoteHandler :
                 LastModifiedAt = DateTimeOffset.UtcNow
             };
 
-            // Auto-save for Mermaid and Table blocks to persist their template content
-            if (command.NewType is BlockType.Mermaid or BlockType.Table)
+            // Auto-save for Mermaid, Table and Idea blocks to persist their template content
+            if (command.NewType is BlockType.Mermaid or BlockType.Table or BlockType.Idea)
             {
                 await _noteRepository.Update(updatedNote, cancellationToken).ConfigureAwait(false);
                 _logger.LogDebug("Block '{BlockId}' type changed to '{NewType}' (auto-saved)", command.BlockId, command.NewType);
@@ -960,6 +981,7 @@ internal sealed class NoteHandler :
                 case BlockType.Quote:
                 case BlockType.Decision:
                 case BlockType.Warning:
+                case BlockType.Idea:
                     if (!string.IsNullOrWhiteSpace(block.Content))
                     {
                         if (sb.Length > 0)
