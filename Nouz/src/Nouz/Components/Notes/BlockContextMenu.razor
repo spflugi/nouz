@@ -63,6 +63,11 @@
             <RadzenIcon Icon="warning" />
             <span>Warning</span>
         </button>
+        <button class="menu-item @(CurrentType == BlockType.Idea ? "active" : "")"
+                @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Idea))">
+            <RadzenIcon Icon="emoji_objects" />
+            <span>Idea</span>
+        </button>
         <button class="menu-item @(CurrentType == BlockType.Divider ? "active" : "")"
                 @onclick="@(() => OnTypeSelected.InvokeAsync(BlockType.Divider))">
             <RadzenIcon Icon="horizontal_rule" />

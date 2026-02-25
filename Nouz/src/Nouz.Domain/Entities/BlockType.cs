@@ -14,6 +14,7 @@ public enum BlockType
     Quote,
     Decision,
     Warning,
+    Idea,
     Divider,
     Image,
     Mermaid,

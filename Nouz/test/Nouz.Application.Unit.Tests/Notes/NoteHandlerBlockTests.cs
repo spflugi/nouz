@@ -384,6 +384,96 @@ public class NoteHandlerBlockTests
             Arg.Is<NoteActions.EditingBlockChanged>(a => a.BlockId != block.Id));
     }
 
+    [Fact]
+    public async Task ChangeBlockType_ToIdea_SetsDefaultRawStatus()
+    {
+        // Arrange
+        var noteId = Guid.NewGuid();
+        var block = CreateBlock(BlockType.Paragraph, "Content");
+        var note = CreateNoteWithBlocks(noteId, block);
+        SetupStateWithNote(note);
+
+        NoteActions.NoteUpdated? capturedAction = null;
+        await _actionDispatcher.Dispatch(Arg.Do<NoteActions.NoteUpdated>(a => capturedAction = a));
+
+        // Act
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Idea), TestContext.Current.CancellationToken);
+
+        // Assert
+        capturedAction.ShouldNotBeNull();
+        var ideaBlock = capturedAction.Note.Blocks.First(b => b.Type == BlockType.Idea);
+        ideaBlock.Metadata.ShouldContainKey("status");
+        ideaBlock.Metadata["status"].ShouldBe("raw");
+    }
+
+    [Fact]
+    public async Task ChangeBlockType_ToIdea_ShouldAutoSaveToRepository()
+    {
+        // Arrange
+        var noteId = Guid.NewGuid();
+        var block = CreateBlock(BlockType.Paragraph, "Content");
+        var note = CreateNoteWithBlocks(noteId, block);
+        SetupStateWithNote(note);
+
+        // Act
+        await _handler.Handle(new NoteCommands.ChangeBlockType(noteId, block.Id, BlockType.Idea), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _noteRepository.Received(1).Update(Arg.Any<Note>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateBlock_IdeaStatusChanged_AutoSaves()
+    {
+        // Arrange
+        var noteId = Guid.NewGuid();
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Idea,
+            Content = "My idea",
+            Metadata = new Dictionary<string, object> { ["status"] = "raw" }
+        };
+        var note = CreateNoteWithBlocks(noteId, block);
+        SetupStateWithNote(note);
+
+        var updatedBlock = block with
+        {
+            Metadata = new Dictionary<string, object> { ["status"] = "exploring" }
+        };
+
+        // Act
+        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, updatedBlock), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _noteRepository.Received(1).Update(Arg.Any<Note>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task UpdateBlock_IdeaStatusUnchanged_ShouldNotAutoSave()
+    {
+        // Arrange
+        var noteId = Guid.NewGuid();
+        var block = new Block
+        {
+            Id = Guid.NewGuid(),
+            Type = BlockType.Idea,
+            Content = "My idea",
+            Metadata = new Dictionary<string, object> { ["status"] = "exploring" }
+        };
+        var note = CreateNoteWithBlocks(noteId, block);
+        SetupStateWithNote(note);
+
+        // Update content only, status stays the same
+        var updatedBlock = block with { Content = "Updated idea text" };
+
+        // Act
+        await _handler.Handle(new NoteCommands.UpdateBlock(noteId, updatedBlock), TestContext.Current.CancellationToken);
+
+        // Assert
+        await _noteRepository.DidNotReceive().Update(Arg.Any<Note>(), Arg.Any<CancellationToken>());
+    }
+
     #endregion
 
     #region ReorderBlocks Tests

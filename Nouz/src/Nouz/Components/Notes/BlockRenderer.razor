@@ -147,6 +147,19 @@
                 </div>
                 break;
 
+            case BlockType.Idea:
+                <div class="block block-idea">
+                    <RadzenIcon Icon="emoji_objects" class="idea-icon" />
+                    <span class="idea-content"
+                          contenteditable="true"
+                          @ref="_contentRef"
+                          data-placeholder="Idea"></span>
+                    <button class="idea-status idea-status-@GetIdeaStatus()"
+                            @onclick="CycleIdeaStatus"
+                            @onclick:stopPropagation="true">@GetIdeaStatusLabel()</button>
+                </div>
+                break;
+
             case BlockType.Divider:
                 <div class="block block-divider" @ref="_contentRef">
                     <hr />

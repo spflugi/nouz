@@ -133,6 +133,7 @@
 .block-wrapper.editing .agenda-content,
 .block-wrapper.editing .decision-content,
 .block-wrapper.editing .warning-content,
+.block-wrapper.editing .idea-content,
 .block-wrapper.editing code {
     cursor: text;
 }
@@ -388,6 +389,88 @@
     .warning-content:focus {
         outline: none;
     }
+
+/* Idea Block */
+.block-idea {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    border-left: 3px solid var(--notification-success);
+    padding-left: var(--space-3);
+    margin: var(--space-1) 0;
+    background-color: var(--notification-success-bg);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+    padding-right: var(--space-2);
+}
+
+.idea-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--notification-success);
+    margin-top: 1px;
+}
+
+.idea-content {
+    flex: 1;
+    min-width: 0;
+    outline: none;
+    min-height: 1.5em;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+    .idea-content:empty::before {
+        content: attr(data-placeholder);
+        color: var(--text-placeholder);
+        pointer-events: none;
+    }
+
+    .idea-content:focus {
+        outline: none;
+    }
+
+.idea-status {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 2px;
+    padding: 2px 8px;
+    border: none;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+    white-space: nowrap;
+}
+
+    .idea-status:hover {
+        opacity: 0.8;
+    }
+
+.idea-status-raw {
+    color: var(--text-muted);
+    background-color: var(--bg-hover);
+}
+
+.idea-status-exploring {
+    color: var(--notification-info);
+    background-color: var(--notification-info-bg);
+}
+
+.idea-status-adopted {
+    color: var(--notification-success);
+    background-color: var(--notification-success-bg);
+}
+
+.idea-status-dropped {
+    color: var(--notification-error);
+    background-color: var(--notification-error-bg);
+}
 
 /* Divider Block */
 .block-divider {
