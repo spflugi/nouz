@@ -67,7 +67,7 @@ internal sealed class ChatHandler :
                 command.Content,
                 conversationHistory,
                 relevantNotes,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // Create and add assistant message to state
             var contextNoteTitles = contextResults.Count > 0
@@ -141,10 +141,25 @@ internal sealed class ChatHandler :
             var assistantMessageId = Guid.NewGuid();
             await _actionDispatcher.Dispatch(new ChatActions.StreamingMessageStarted(assistantMessageId, contextNoteTitles)).ConfigureAwait(false);
 
+            var onToolCall = (string functionName, bool isCompleted) =>
+            {
+                if (isCompleted)
+                {
+                    _ = _actionDispatcher.Dispatch(new ChatActions.ToolCallCompleted(assistantMessageId, functionName));
+                }
+                else
+                {
+                    var label = GetFriendlyLabel(functionName);
+                    _ = _actionDispatcher.Dispatch(new ChatActions.ToolCallStarted(assistantMessageId,
+                        new ToolCallActivity(functionName, label, false)));
+                }
+            };
+
             await foreach (var chunk in _chatService.GetStreamingResponseAsync(
                 command.Content,
                 conversationHistory,
                 relevantNotes,
+                onToolCall,
                 cancellationToken).ConfigureAwait(false))
             {
                 await _actionDispatcher.Dispatch(
@@ -196,4 +211,17 @@ internal sealed class ChatHandler :
 
         return await _noteContextService.GetRelevantNotesAsync(message, topN, minSimilarity, cancellationToken).ConfigureAwait(false);
     }
+
+    private static string GetFriendlyLabel(string functionName) => functionName switch
+    {
+        "ListNotebooks" => "Listed notebooks",
+        "CreateNotebook" => "Created notebook",
+        "GetNotebookNotes" => "Read notebook",
+        "CreateNote" => "Created note",
+        "GetNoteContent" => "Read note",
+        "EditNote" => "Updated note",
+        "DeleteNote" => "Deleted note",
+        "SearchNotes" => "Searched notes",
+        _ => functionName
+    };
 }

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Nouz.ReduxSimple;
 
 namespace Nouz.Application.Chat;
@@ -61,6 +62,54 @@ public static class ChatReducers
             })
             .On<ChatActions.StreamingMessageCompleted>((state, _) =>
                 state with { StreamingMessageId = null })
+            .On<ChatActions.ToolCallStarted>((state, action) =>
+            {
+                var messageIndex = state.Messages.FindIndex(m => m.Id == action.MessageId);
+                if (messageIndex < 0)
+                {
+                    return state;
+                }
+
+                var existingMessage = state.Messages[messageIndex];
+                var existingCalls = existingMessage.ToolCalls ?? ImmutableList<ToolCallActivity>.Empty;
+
+                // Deduplicate: if same function is called again, reset it to running instead of adding a duplicate
+                var existingIndex = existingCalls.FindIndex(a => a.FunctionName == action.Activity.FunctionName);
+                var updatedToolCalls = existingIndex >= 0
+                    ? existingCalls.SetItem(existingIndex, existingCalls[existingIndex] with { IsCompleted = false })
+                    : existingCalls.Add(action.Activity);
+
+                var updatedMessage = existingMessage with { ToolCalls = updatedToolCalls };
+
+                return state with { Messages = state.Messages.SetItem(messageIndex, updatedMessage) };
+            })
+            .On<ChatActions.ToolCallCompleted>((state, action) =>
+            {
+                var messageIndex = state.Messages.FindIndex(m => m.Id == action.MessageId);
+                if (messageIndex < 0)
+                {
+                    return state;
+                }
+
+                var existingMessage = state.Messages[messageIndex];
+                if (existingMessage.ToolCalls is null)
+                {
+                    return state;
+                }
+
+                // Find the first incomplete activity with this function name
+                var activityIndex = existingMessage.ToolCalls.FindIndex(a => a.FunctionName == action.FunctionName && !a.IsCompleted);
+                if (activityIndex < 0)
+                {
+                    return state;
+                }
+
+                var updatedActivity = existingMessage.ToolCalls[activityIndex] with { IsCompleted = true };
+                var updatedToolCalls = existingMessage.ToolCalls.SetItem(activityIndex, updatedActivity);
+                var updatedMessage = existingMessage with { ToolCalls = updatedToolCalls };
+
+                return state with { Messages = state.Messages.SetItem(messageIndex, updatedMessage) };
+            })
             .ToList();
     }
 }

@@ -10,7 +10,8 @@ public sealed record ChatMessage(
     string Content,
     ChatMessageRole Role,
     DateTimeOffset Timestamp,
-    ImmutableList<string>? ContextNoteTitles = null);
+    ImmutableList<string>? ContextNoteTitles = null,
+    ImmutableList<ToolCallActivity>? ToolCalls = null);
 
 /// <summary>
 /// The role of a chat message sender.
