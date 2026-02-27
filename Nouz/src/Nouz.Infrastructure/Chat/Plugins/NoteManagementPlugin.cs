@@ -223,6 +223,15 @@ internal sealed class NoteManagementPlugin
                     case BlockType.Warning:
                         sb.AppendLine($"[Warning] - {block.Content}");
                         break;
+                    case BlockType.Idea:
+                        sb.AppendLine($"[Idea] - {block.Content}");
+                        break;
+                    case BlockType.Mermaid:
+                        sb.AppendLine($"```mermaid\n{block.Content}\n```");
+                        break;
+                    case BlockType.Table:
+                        sb.AppendLine(block.Content);
+                        break;
                     case BlockType.Divider:
                         break;
                     case BlockType.Image:

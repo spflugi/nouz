@@ -34,6 +34,7 @@ internal sealed class ChatService : IChatService
         - quote: Block quote
         - decision: Decision block (for recording decisions)
         - warning: Warning/alert block
+        - idea: Idea or insight block
 
         IMPORTANT RULES:
         1. When the user asks to create a note but doesn't specify which notebook, first use ListNotebooks to show available options and ask which one to use.
@@ -63,6 +64,7 @@ internal sealed class ChatService : IChatService
         string message,
         ImmutableList<ChatMessage> conversationHistory,
         IReadOnlyList<Note>? relevantNotes = null,
+        Action<string, bool>? onToolCall = null,
         CancellationToken cancellationToken = default)
     {
         var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
@@ -72,7 +74,7 @@ internal sealed class ChatService : IChatService
             return "Please configure your OpenAI API key in Settings to use the assistant.";
         }
 
-        var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false));
+        var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false), onToolCall);
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var chatHistory = BuildChatHistory(conversationHistory, message, relevantNotes);
 
@@ -95,6 +97,7 @@ internal sealed class ChatService : IChatService
         string message,
         ImmutableList<ChatMessage> conversationHistory,
         IReadOnlyList<Note>? relevantNotes = null,
+        Action<string, bool>? onToolCall = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var apiKey = await _preferences.Get(PreferenceKeys.OpenAiApiKey).ConfigureAwait(false);
@@ -105,7 +108,7 @@ internal sealed class ChatService : IChatService
             yield break;
         }
 
-        var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false));
+        var kernel = CreateKernel(apiKey, await GetChatModel().ConfigureAwait(false), onToolCall);
         var chatService = kernel.GetRequiredService<IChatCompletionService>();
         var chatHistory = BuildChatHistory(conversationHistory, message, relevantNotes);
 
@@ -128,7 +131,7 @@ internal sealed class ChatService : IChatService
         }
     }
 
-    private Kernel CreateKernel(string apiKey, string modelId)
+    private Kernel CreateKernel(string apiKey, string modelId, Action<string, bool>? onToolCall = null)
     {
         var builder = Kernel.CreateBuilder();
         builder.AddOpenAIChatCompletion(
@@ -139,6 +142,12 @@ internal sealed class ChatService : IChatService
 
         // Register the note management plugin for function calling
         kernel.Plugins.AddFromObject(_noteManagementPlugin, "NoteManagement");
+
+        // Register tool call progress filter if a callback is provided
+        if (onToolCall is not null)
+        {
+            kernel.FunctionInvocationFilters.Add(new ToolCallProgressFilter(onToolCall));
+        }
 
         return kernel;
     }

@@ -42,4 +42,14 @@ public static class ChatActions
     /// Triggered when a streaming message is completed.
     /// </summary>
     public sealed record StreamingMessageCompleted(Guid MessageId) : IAction;
+
+    /// <summary>
+    /// Triggered when a tool call is started by the AI assistant.
+    /// </summary>
+    public sealed record ToolCallStarted(Guid MessageId, ToolCallActivity Activity) : IAction;
+
+    /// <summary>
+    /// Triggered when a tool call is completed by the AI assistant.
+    /// </summary>
+    public sealed record ToolCallCompleted(Guid MessageId, string FunctionName) : IAction;
 }

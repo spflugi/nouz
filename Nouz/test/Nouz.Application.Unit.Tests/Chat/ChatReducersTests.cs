@@ -400,6 +400,153 @@ public class ChatReducersTests
 
     #endregion
 
+    #region ToolCallStarted Tests
+
+    [Fact]
+    public void ToolCallStarted_AddsActivityToMessage()
+    {
+        // Arrange
+        var messageId = Guid.NewGuid();
+        var message = new ChatMessage(messageId, "", ChatMessageRole.Assistant, DateTimeOffset.UtcNow);
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList.Create(message) }
+        };
+        var activity = new ToolCallActivity("SearchNotes", "Searched notes", false);
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallStarted(messageId, activity));
+
+        // Assert
+        newState.Chat.Messages[0].ToolCalls.ShouldNotBeNull();
+        newState.Chat.Messages[0].ToolCalls!.Count.ShouldBe(1);
+        newState.Chat.Messages[0].ToolCalls![0].FunctionName.ShouldBe("SearchNotes");
+        newState.Chat.Messages[0].ToolCalls![0].IsCompleted.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ToolCallStarted_DoesNothing_WhenMessageNotFound()
+    {
+        // Arrange
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList<ChatMessage>.Empty }
+        };
+        var activity = new ToolCallActivity("SearchNotes", "Searched notes", false);
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallStarted(Guid.NewGuid(), activity));
+
+        // Assert
+        newState.Chat.Messages.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void ToolCallStarted_WhenSameFunctionCalledAgain_ResetsExistingToRunning()
+    {
+        // Arrange
+        var messageId = Guid.NewGuid();
+        var completedActivity = new ToolCallActivity("GetNoteContent", "Read note", true);
+        var message = new ChatMessage(messageId, "", ChatMessageRole.Assistant, DateTimeOffset.UtcNow,
+            ToolCalls: ImmutableList.Create(completedActivity));
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList.Create(message) }
+        };
+        var newActivity = new ToolCallActivity("GetNoteContent", "Read note", false);
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallStarted(messageId, newActivity));
+
+        // Assert - no duplicate added, existing entry reset to running
+        newState.Chat.Messages[0].ToolCalls!.Count.ShouldBe(1);
+        newState.Chat.Messages[0].ToolCalls![0].IsCompleted.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ToolCallStarted_DifferentFunctions_AddsNewEntry()
+    {
+        // Arrange
+        var messageId = Guid.NewGuid();
+        var existingActivity = new ToolCallActivity("SearchNotes", "Searched notes", false);
+        var message = new ChatMessage(messageId, "", ChatMessageRole.Assistant, DateTimeOffset.UtcNow,
+            ToolCalls: ImmutableList.Create(existingActivity));
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList.Create(message) }
+        };
+        var newActivity = new ToolCallActivity("GetNoteContent", "Read note", false);
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallStarted(messageId, newActivity));
+
+        // Assert - different function name adds new entry
+        newState.Chat.Messages[0].ToolCalls!.Count.ShouldBe(2);
+    }
+
+    #endregion
+
+    #region ToolCallCompleted Tests
+
+    [Fact]
+    public void ToolCallCompleted_MarksActivityAsCompleted()
+    {
+        // Arrange
+        var messageId = Guid.NewGuid();
+        var activity = new ToolCallActivity("SearchNotes", "Searched notes", false);
+        var message = new ChatMessage(messageId, "", ChatMessageRole.Assistant, DateTimeOffset.UtcNow,
+            ToolCalls: ImmutableList.Create(activity));
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList.Create(message) }
+        };
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallCompleted(messageId, "SearchNotes"));
+
+        // Assert
+        newState.Chat.Messages[0].ToolCalls.ShouldNotBeNull();
+        newState.Chat.Messages[0].ToolCalls![0].IsCompleted.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ToolCallCompleted_DoesNothing_WhenActivityNotFound()
+    {
+        // Arrange
+        var messageId = Guid.NewGuid();
+        var activity = new ToolCallActivity("SearchNotes", "Searched notes", false);
+        var message = new ChatMessage(messageId, "", ChatMessageRole.Assistant, DateTimeOffset.UtcNow,
+            ToolCalls: ImmutableList.Create(activity));
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList.Create(message) }
+        };
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallCompleted(messageId, "CreateNote"));
+
+        // Assert
+        newState.Chat.Messages[0].ToolCalls![0].IsCompleted.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ToolCallCompleted_DoesNothing_WhenMessageNotFound()
+    {
+        // Arrange
+        var state = new TestState
+        {
+            Chat = new ChatState { Messages = ImmutableList<ChatMessage>.Empty }
+        };
+
+        // Act
+        var newState = ApplyAction(state, new ChatActions.ToolCallCompleted(Guid.NewGuid(), "SearchNotes"));
+
+        // Assert
+        newState.Chat.Messages.ShouldBeEmpty();
+    }
+
+    #endregion
+
     private static ChatMessage CreateMessage(ChatMessageRole role, string content)
     {
         return new ChatMessage(Guid.NewGuid(), content, role, DateTimeOffset.UtcNow);

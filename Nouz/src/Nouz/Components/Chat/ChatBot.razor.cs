@@ -11,10 +11,12 @@ public partial class ChatBot
 {
     private readonly List<ChatMessage> _messages = [];
     private readonly HashSet<Guid> _expandedNoteContextIds = [];
+    private readonly HashSet<Guid> _expandedToolCallIds = [];
     private ElementReference _messagesContainer;
     private string _inputText = string.Empty;
     private bool _isTyping;
     private bool _isStreaming;
+    private Guid? _streamingMessageId;
 
     protected override void OnInitialized()
     {
@@ -51,12 +53,13 @@ public partial class ChatBot
 
         // Subscribe to streaming state
         StateProvider.StateObservable
-            .Select(s => s.Chat.StreamingMessageId.HasValue)
+            .Select(s => s.Chat.StreamingMessageId)
             .DistinctUntilChanged()
             .TakeUntilDisappearing(this)
-            .Subscribe(isStreaming =>
+            .Subscribe(streamingMessageId =>
             {
-                _isStreaming = isStreaming;
+                _streamingMessageId = streamingMessageId;
+                _isStreaming = streamingMessageId.HasValue;
                 StateHasChanged();
             });
     }
@@ -93,6 +96,14 @@ public partial class ChatBot
         if (!_expandedNoteContextIds.Add(messageId))
         {
             _expandedNoteContextIds.Remove(messageId);
+        }
+    }
+
+    private void ToggleToolCalls(Guid messageId)
+    {
+        if (!_expandedToolCallIds.Add(messageId))
+        {
+            _expandedToolCallIds.Remove(messageId);
         }
     }
 
