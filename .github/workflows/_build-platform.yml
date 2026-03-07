@@ -1,0 +1,63 @@
+name: Build (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      cargo_linker:
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Linux system dependencies
+        if: inputs.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Setup MSVC build environment
+        if: inputs.platform == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build (frontend + Tauri)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: ${{ inputs.cargo_linker }}

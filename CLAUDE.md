@@ -1,104 +1,83 @@
-# CLAUDE.md
+# Nouz — Tauri Notes App
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+A cross-platform note-taking desktop app with AI integration and a block-based editor.
 
-## Build and Test Commands
+## Tech Stack
+
+- **Tauri v2** — desktop shell (Rust backend)
+- **React 19 + TypeScript** — UI
+- **Tailwind CSS v4** — styling via `@tailwindcss/vite` plugin
+- **Zustand** — state management
+- **SQLite** — local storage via `rusqlite` (bundled, no external deps)
+- **OpenAI JS SDK** — AI chat with function calling + streaming
+- **Mermaid.js** — diagram blocks
+- **react-markdown + remark-gfm** — chat markdown rendering
+
+## Project Structure
+
+```
+src/                          # React frontend
+  components/
+    layout/                   # MainLayout, LeftSidebar, RightSidebar, Topbar
+    notes/                    # NoteTimeline, NoteCard, BlockRenderer, block types
+      blocks/                 # MermaidBlock, TableBlock, ImageBlock
+    chat/                     # ChatBot, MarkdownRenderer
+    modals/                   # ConfirmationModal, TextInputModal
+    settings/                 # SettingsPage
+    ui/                       # NotebookItem, NotificationContainer
+  store/                      # Zustand stores (notebook, note, chat, settings, notification)
+  services/
+    db.ts                     # Typed wrappers over Tauri commands (invoke)
+    aiService.ts              # OpenAI streaming + tool calling + RAG
+  hooks/                      # useResizable, useDebounce
+  types/index.ts              # All TypeScript types
+  utils/                      # uuid.ts, blocks.ts (block helpers, cosine similarity)
+  styles/globals.css          # Tailwind + CSS variable design tokens
+
+src-tauri/                    # Rust backend
+  src/
+    db/                       # SQLite connection, migrations, models
+    commands/                 # Tauri command handlers (notebooks, notes, attachments, embeddings, preferences)
+    lib.rs                    # App entry, command registration
+```
+
+## Database
+
+SQLite at `~/Library/Application Support/nouz/nouz.db` (macOS).
+
+Tables: `notebooks`, `notes`, `blocks`, `attachments`, `embeddings`, `preferences`
+
+## Running
 
 ```bash
-# Install MAUI workload (required first time)
-dotnet workload install maui-desktop
-
-# Build entire solution
-dotnet build Nouz/Nouz.slnx
-
-# Build main app (Release)
-dotnet build Nouz/src/Nouz/Nouz.csproj -c Release -f net10.0-windows10.0.19041.0 -p:RuntimeIdentifierOverride=win10-x64
-
-# Run all tests
-dotnet test Nouz/Nouz.slnx
-
-# Run specific test project
-dotnet test Nouz/test/Nouz.Application.Unit.Tests
-dotnet test Nouz/test/Nouz.Infrastructure.Unit.Tests
-dotnet test Nouz/test/Nouz.Architecture.Tests
-
-# Run single test by fully qualified name
-dotnet test Nouz/Nouz.slnx --filter "FullyQualifiedName~NotebookHandlerTests.CreateNotebook"
+npm run tauri dev     # development (starts Vite + Tauri)
+npm run build         # Vite production build only
+npm run tauri build   # full desktop app bundle
 ```
 
-## Architecture
+## Block Types
 
-This is a .NET 10 MAUI application with Blazor UI (WebView) for a note-taking app with notebooks, notes, and block-based editing.
+17 block types: `paragraph`, `h1`–`h4`, `listitem`, `todoitem`, `agendaitem`, `code`, `quote`, `decision`, `warning`, `idea`, `divider`, `image`, `mermaid`, `table`
 
-### Layer Structure
+Blocks are stored in the `blocks` table with `block_type`, `content`, and `metadata` (JSON string).
 
-```
-Nouz (Main MAUI App)           - Blazor UI components in Components/
-├── Nouz.Application           - Commands, handlers, actions, reducers, state
-├── Nouz.Domain                - Entities, repository interfaces
-├── Nouz.Infrastructure        - EF Core/SQLite repos, logging, preferences
-└── Nouz.ReduxSimple           - Custom Redux state management library
-```
+## AI Features
 
-**Layer dependency rules (enforced by architecture tests):**
-- Domain has no dependencies on other layers
-- Application depends only on Domain
-- Infrastructure implements Domain interfaces but is not referenced by Application
-- Only `ServiceCollectionExtensions` classes are public in Infrastructure
+- **Chat** in right sidebar with OpenAI streaming responses
+- **Tool calling**: list/create notebooks, CRUD notes, search notes
+- **RAG**: embeddings stored in SQLite, cosine similarity retrieval
+- API key, model, top-N context notes, similarity threshold all configurable in Settings
 
-### State Management Pattern
+## Design System
 
-Redux-like pattern with immutable state:
-1. UI dispatches **Commands** via `IMediator` (e.g., `NotebookCommands.CreateNotebook`)
-2. **Handlers** process commands, call repositories, dispatch **Actions**
-3. **Reducers** produce new state from actions
-4. UI subscribes to state via selectors
+Warm-gray monochromatic palette (light + dark). Design tokens as CSS custom properties in `src/styles/globals.css`. Dark mode via `[data-theme="dark"]` on `<html>`.
 
-Key interfaces:
-- `IActionDispatcher` - dispatches actions to the Redux store
-- `IStateProvider` - provides access to current state
-- `ICommandHandler<T>` - handles commands (from Mediator library)
+Theme is applied at startup from stored preferences (no restart needed for theme toggle).
 
-State is defined in `RootState.cs` combining `NotebookState`, `NoteState`, `NotificationState`.
+## Key Conventions
 
-### CQRS Commands Pattern
-
-Commands are defined as sealed records in `*Commands.cs` files:
-```csharp
-public static class NotebookCommands
-{
-    public sealed record CreateNotebook(string Title) : ICommand;
-}
-```
-
-Handlers implement `ICommandHandler<T>` and are registered via source generation.
-
-### Key Technologies
-
-- **UI**: Blazor components with Radzen.Blazor, rendered in MAUI WebView
-- **State**: Custom Redux (`Nouz.ReduxSimple`) with System.Reactive
-- **CQRS**: Mediator library with source generation
-- **Database**: EF Core with SQLite
-- **Logging**: Serilog (configured via appsettings.json embedded resource)
-- **Testing**: xUnit, NSubstitute, Shouldly, NetArchTest
-
-### Project Configuration
-
-- Package versions centralized in `Nouz/Directory.Packages.props`
-- `TreatWarningsAsErrors=true` in all projects
-- Nullable reference types enabled
-- DI registration in `MauiProgram.cs` via extension methods from each layer
-
-### Frontend/backend separation
-CSS code shall reside in a separate `.razor.css` file and similarly the c# code shall reside in a `.razor.cs` file and not be mixed with the frontend code.
-
-### Workflow
-When implementing new features or refactoring existing features, please follow the following workflow:
-
-- Create a detailed plan and outline steps
-- Implement step-by-step, after each step, add relevant unit and integration tests and run them to make sure everything still works
-- Verify implementation at the end by running all tests
-
-## Design
-The design is kept minimalistic and almost monochrome with a warm tone. For every new feature, stick to the elegant, minimalistic design and re-use the 
-color palette already found in the app.
+- **No `import React`** — project uses the new JSX transform (`react-jsx`)
+- **Inline styles** — components use inline `style` objects (not Tailwind classes) for component-level styles; Tailwind utilities are used for typography classes (`block-h1`, `selectable`, etc.) in `globals.css`
+- **Auto-save** — notes save 800ms after last keystroke; explicit save button also available
+- **Block metadata** — stored as JSON string in DB; use `parseMetadata<T>()` / `stringifyMetadata()` helpers
+- **Tauri commands** — all Rust commands are snake_case; all invocations go through `src/services/db.ts`

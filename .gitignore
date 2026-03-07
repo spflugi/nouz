@@ -1,13 +1,28 @@
-# Binaries and Visual Studio/Rider hidden folders
-bin/
-obj/
-.vs/
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Tauri / Rust build artifacts (also covered by src-tauri/.gitignore)
+src-tauri/target/
+src-tauri/gen/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
 
 # Log files
 *.log
-
-# User files 
-*.user
 
 # Databases
 *.db
@@ -17,6 +32,3 @@ obj/
 *cwd
 PLAN.md
 PROGRESS.md
-
-# Test result files
-TestResults/
