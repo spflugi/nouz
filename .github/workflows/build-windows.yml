@@ -1,0 +1,15 @@
+name: Build (Windows)
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-platform.yml
+    with:
+      os: windows-latest
+      platform: windows
+      cargo_linker: link.exe

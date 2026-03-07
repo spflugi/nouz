@@ -1,0 +1,14 @@
+name: Build (macOS)
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-platform.yml
+    with:
+      os: macos-latest
+      platform: macos

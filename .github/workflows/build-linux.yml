@@ -1,0 +1,14 @@
+name: Build (Linux)
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  build:
+    uses: ./.github/workflows/_build-platform.yml
+    with:
+      os: ubuntu-22.04
+      platform: linux
